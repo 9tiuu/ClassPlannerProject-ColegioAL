@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <title>ClassPlanner | Plataform</title>
+    {% load static %}
+    <link rel="website icon" href="{% static 'tickets/img/ClassPlannerIcon-transparent.png' %}" type="img/x-icon">
+
+    <!-- Scripts utilizados -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.8.0/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.rawgit.com/davidshimjs/qrcodejs/gh-pages/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.4.1/html2canvas.min.js"></script>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'selector'
+        }
+    </script>
+    
+    {% load static %} 
+    <link rel="stylesheet" href="{% static 'tickets/css/styles.css' %}"> 
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="fixed bg-white dark:bg-[#11182d] top-0 z-50 w-full border-b border-slate-300 dark:border-slate-800">
+        <div class="px-3 py-3 lg:px-5 lg:pl-3">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center justify-start rtl:justify-end">
+                    <button data-drawer-target="top-bar-sidebar" id="sidebar-buttom" data-drawer-toggle="top-bar-sidebar" aria-controls="top-bar-sidebar" type="button" class="sm:hidden text-heading dark:text-white rounded-lg bg-transparent box-border border border-transparent hover:bg-neutral-secondary-medium focus:ring-4 focus:ring-neutral-tertiary font-medium leading-5 rounded-base text-sm p-2 focus:outline-none">
+                        <span class="sr-only">Open sidebar</span>
+                        <svg class="w-6 h-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                            <path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M5 7h14M5 12h14M5 17h10"/>
+                        </svg>
+                    </button>
+                    <a href="{% url 'home' %}" class="flex ms-2 md:me-24">
+                        <img src="{% static 'tickets/img/ClassPlanner-transparent.png' %}" class="md:w-52 w-32" alt="icon">
+                    </a>
+                </div>
+                
+                <div class="flex items-center">
+                    <div class="flex items-center ms-3">
+                        <div class="mr-4">
+                            <div class="flex gap-2 items-center">
+                                <button id="darkModeButton" class="w-10 h-10 rounded-full bg-white dark:bg-[#232945] dark:text-white border-2 border-gray-300 dark:border-slate-700 flex items-center justify-center">
+                                    {% comment %} cambio de tema dark/light {% endcomment %}
+                                </button>
+                                <div class="flex gap-2 cursor-pointer" id="user-buttom">
+                                    <button type="button" class="text-sm border-2 border-gray-300 dark:border-slate-700 flex rounded-full" aria-expanded="false" data-dropdown-toggle="dropdown-user">
+                                        <span class="sr-only">Open user menu</span>
+                                        {% if request.user.is_authenticated %}
+                                            {% if request.user.avatar %}
+                                                <img class="w-10 h-10 rounded-full" src="{{ request.user.avatar.url }}" alt="user photo" id="avatar">
+                                            {% else %}
+                                                <img class="w-10 h-10 rounded-full" src="{% static 'tickets/img/defaultavatar.png' %}" alt="user photo" id="avatar">
+                                            {% endif %}
+                                        {% endif %}
+                                    </button>
+
+                                    <div class="md:flex items-center justify-center hidden">
+                                        <div>
+                                            <p class="text-sm font-semibold dark:text-white" role="none">
+                                                {{ request.user.name }} {{ request.user.last_name }}
+                                            </p>
+                                            <p class="text-sm text-slate-500 dark:text-[#a8b2d2]" role="none">
+                                                {% comment %} {{ request.user.rol.name }} {% endcomment %}
+                                                Administrador
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- User Dropdown -->
+                        <div class="z-50 w-72 hidden absolute bg-white dark:bg-[#11182d] top-0 right-0 mt-[5.5rem] mr-[1rem] border dark:border-slate-800 rounded-lg shadow-xl" id="dropdown-user">
+                            <div class="px-4 py-3 border-b border-default-medium dark:border-slate-800" role="none">
+                                <p class="text-base font-semibold dark:text-white" role="none">
+                                    {{ request.user.name }} {{ request.user.last_name }}
+                                </p>
+                                <p class="text-sm text-slate-500 dark:text-[#a8b2d2]" role="none">
+                                    {% comment %} {{ request.user.rol.name }} {% endcomment %}
+                                    Administrador
+                                </p>
+                                {% comment %} <p class="text-sm text-blue-600" role="none">
+                                    {{ request.user.email }}
+                                </p> {% endcomment %}
+                                
+                            </div>
+                            <ul class="p-2 text-sm text-body font-medium" role="none">
+                                <li>
+                                    <a href="#" class="inline-flex text-slate-500 hover:bg-gray-100 hover:text-black dark:text-[#a8b2d2] dark:hover:text-white dark:hover:bg-[#232945] items-center w-full p-3 hover:bg-neutral-tertiary-medium hover:text-heading rounded hover:transition transition hover:duration-200 duration-200" role="menuitem">Configuración</a>
+                                </li>
+                                <li>
+                                    <a href="{% url 'logout' %}" class="inline-flex items-center w-full p-3 text-slate-500 hover:text-red-600 hover:bg-gray-100 dark:text-[#a8b2d2] dark:hover:text-red-400 dark:hover:bg-[#232945] hover:transition transition hover:duration-200 duration-200 hover:text-heading rounded" role="menuitem">Cerrar sesión</a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Sidebar Options -->
+    <aside id="top-bar-sidebar" class="fixed bg-white dark:bg-[#11182d] top-0 left-0 z-40 w-72 h-full transition-transform -translate-x-full sm:translate-x-0" aria-label="Sidebar">
+        <div class="h-full px-3 py-4 overflow-y-auto bg-neutral-primary-soft">
+            <ul class="space-y-0 font-medium mt-24">
+                <li>
+                    <a href="{% url 'home' %}" class="flex items-center rounded-lg dark:text-[#a8b2d2] hover:bg-[#D9E6FF] dark:hover:bg-blue-600 hover:transition transition hover:duration-200 duration-200 px-2 py-3 text-body group">
+                        <svg class="group-hover:text-blue-600 dark:group-hover:text-white group-hover:transition transition w-5 h-5 duration-75 group-hover:text-fg-brand" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6.025A7.5 7.5 0 1 0 17.975 14H10V6.025Z"/><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.5 3c-.169 0-.334.014-.5.025V11h7.975c.011-.166.025-.331.025-.5A7.5 7.5 0 0 0 13.5 3Z"/></svg>
+                        <span class="ms-2 group-hover:text-blue-600 dark:group-hover:text-white group-hover:transition transition">Dashboard</span>
+                    </a>
+                </li>
+                {% if request.user.rol.name == 'root' %}
+                    <li>
+                        <a href="{% url 'userlist' %}" class="flex items-center rounded-lg dark:text-[#a8b2d2] hover:bg-[#D9E6FF] dark:hover:bg-blue-600 hover:transition transition hover:duration-200 duration-200 px-2 py-3 text-body group">
+                            <svg class="group-hover:text-blue-600 dark:group-hover:text-white group-hover:transition transition shrink-0 w-5 h-5 duration-75 group-hover:text-fg-brand" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M16 19h4a1 1 0 0 0 1-1v-1a3 3 0 0 0-3-3h-2m-2.236-4a3 3 0 1 0 0-4M3 18v-1a3 3 0 0 1 3-3h4a3 3 0 0 1 3 3v1a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1Zm8-10a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>
+                            <span class="flex-1 ms-2 whitespace-nowrap group-hover:text-blue-600 dark:group-hover:text-white group-hover:transition transition">Usuarios</span>
+                        </a>
+                    </li>
+                {% endif %}
+                <li>
+                    <a href="{% url 'asignaturas' %}" class="flex items-center rounded-lg dark:text-[#a8b2d2] hover:bg-[#D9E6FF] dark:hover:bg-blue-600 hover:transition transition hover:duration-200 duration-200 px-2 py-3 text-body group">
+                        <svg class="group-hover:text-blue-600 dark:group-hover:text-white group-hover:transition transition shrink-0 w-5 h-5 duration-75 group-hover:text-fg-brand" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M16 19h4a1 1 0 0 0 1-1v-1a3 3 0 0 0-3-3h-2m-2.236-4a3 3 0 1 0 0-4M3 18v-1a3 3 0 0 1 3-3h4a3 3 0 0 1 3 3v1a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1Zm8-10a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>
+                        <span class="flex-1 ms-2 whitespace-nowrap group-hover:text-blue-600 dark:group-hover:text-white group-hover:transition transition">Asignaturas</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'asignaturaspordocente' %}" class="flex items-center rounded-lg dark:text-[#a8b2d2] hover:bg-[#D9E6FF] dark:hover:bg-blue-600 hover:transition transition hover:duration-200 duration-200 px-2 py-3 text-body group">
+                        <svg class="group-hover:text-blue-600 dark:group-hover:text-white group-hover:transition transition shrink-0 w-5 h-5 duration-75 group-hover:text-fg-brand" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M16 19h4a1 1 0 0 0 1-1v-1a3 3 0 0 0-3-3h-2m-2.236-4a3 3 0 1 0 0-4M3 18v-1a3 3 0 0 1 3-3h4a3 3 0 0 1 3 3v1a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1Zm8-10a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>
+                        <span class="flex-1 ms-2 whitespace-nowrap group-hover:text-blue-600 dark:group-hover:text-white group-hover:transition transition">Horarios</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </aside>
+
+    <!-- Interfaces -->
+    <div class="p-4 bg-slate-100 dark:bg-[#080e1d] sm:ml-72 mt-14">
+        {% block content %}
+            <div class="p-4 border-1 border-default border-dashed border-gray-400 mt-10 rounded-lg">
+                <div class="grid grid-cols-3 gap-4 mb-4">
+                    <div class="flex items-center justify-center h-24 rounded-base bg-gray-200 dark:bg-[#11182d]">
+                        <p class="text-gray-600">
+                        <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7 7V5"/></svg>
+                        </p>
+                    </div>
+                    <div class="flex items-center justify-center h-24 rounded-base bg-gray-200 dark:bg-[#11182d]">
+                        <p class="text-gray-600">
+                        <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7 7V5"/></svg>
+                        </p>
+                    </div>
+                    <div class="flex items-center justify-center h-24 rounded-base bg-gray-200 dark:bg-[#11182d]">
+                        <p class="text-gray-600">
+                        <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7 7V5"/></svg>
+                        </p>
+                    </div>
+                </div>
+                <div class="flex items-center justify-center h-48 rounded-base bg-gray-200 dark:bg-[#11182d] mb-4">
+                    <p class="text-gray-600">
+                        <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7 7V5"/></svg>
+                    </p>
+                </div>
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div class="flex items-center justify-center h-24 rounded-base bg-gray-200 dark:bg-[#11182d]">
+                        <p class="text-gray-600">
+                        <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7 7V5"/></svg>
+                        </p>
+                    </div>
+                    <div class="flex items-center justify-center h-24 rounded-base bg-gray-200 dark:bg-[#11182d]">
+                        <p class="text-gray-600">
+                        <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7 7V5"/></svg>
+                        </p>
+                    </div>
+                    <div class="flex items-center justify-center h-24 rounded-base bg-gray-200 dark:bg-[#11182d]">
+                        <p class="text-gray-600">
+                        <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7 7V5"/></svg>
+                        </p>
+                    </div>
+                    <div class="flex items-center justify-center h-24 rounded-base bg-gray-200 dark:bg-[#11182d]">
+                        <p class="text-gray-600">
+                        <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7 7V5"/></svg>
+                        </p>
+                    </div>
+                </div>
+                <div class="flex items-center justify-center h-48 rounded-base bg-gray-200 dark:bg-[#11182d] mb-4">
+                    <p class="text-gray-600">
+                        <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7 7V5"/></svg>
+                    </p>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="flex items-center justify-center h-24 rounded-base bg-gray-200 dark:bg-[#11182d]">
+                        <p class="text-gray-600">
+                        <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7 7V5"/></svg>
+                        </p>
+                    </div>
+                    <div class="flex items-center justify-center h-24 rounded-base bg-gray-200 dark:bg-[#11182d]">
+                        <p class="text-gray-600">
+                        <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7 7V5"/></svg>
+                        </p>
+                    </div>
+                    <div class="flex items-center justify-center h-24 rounded-base bg-gray-200 dark:bg-[#11182d]">
+                        <p class="text-gray-600">
+                        <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7 7V5"/></svg>
+                        </p>
+                    </div>
+                    <div class="flex items-center justify-center h-24 rounded-base bg-gray-200 dark:bg-[#11182d]">
+                        <p class="text-gray-600">
+                        <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7 7V5"/></svg>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        {% endblock %}
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <script>
+                Swal.fire({
+                    "title": "{% if 'error' in message.tags %}¡Error!{% elif 'success' in message.tags %}Listo!{% else %}Información{% endif %}",
+                    "text": "{{ message }}",
+                    "icon": "{% if 'error' in message.tags %}error{% elif 'success' in message.tags %}success{% elif 'warning' in message.tags %}warning{% else %}info{% endif %}",
+                    "confirmButtonColor": "{% if 'error' in message.tags %}#d33{% elif 'success' in message.tags %}#0d6efd{% elif 'warning' in message.tags %}#f39c12{% else %}#3085d6{% endif %}"
+                });
+            </script>
+        {% endfor %}
+    {% endif %}
+</body>
+
+    {% load static %}
+    <script src="{% static 'tickets/js/script.js' %}"></script>
+    <script src="{% static 'tickets/js/darkmode.js' %}"></script>
+</html>

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <title>ClassPlanner | Login</title>
+    {% load static %}
+    <link rel="website icon" href="{% static 'tickets/img/ClassPlannerIcon-transparent.png' %}" type="img/x-icon">
+    
+    <!-- Scripts utilizados -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'selector'
+        }
+    </script>
+
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'tickets/css/styles.css' %}">
+</head>
+<body>
+    <div class="flex flex-row-reverse w-full h-screen">
+        <div class="absolute bottom-0 left-0 ml-4 mb-4">
+            <button id="darkModeButton" class="w-12 h-12 rounded-full bg-white dark:bg-[#232945] dark:text-white border-2 border-gray-300 dark:border-slate-700 flex items-center justify-center">
+                {% comment %} cambio de tema dark/light {% endcomment %}
+            </button>
+        </div>
+        <div class="flex items-center md:p-4 p-6 justify-center w-[100rem] h-screen bg-white dark:bg-[#080e1d]">
+            <form action="#" method="post" class="md:w-[35rem] w-full">
+                <div class="flex items-center mb-10">
+                    {% load static %}
+                    <img src="{% static 'tickets/img/ClassPlanner-transparent.png' %}" class="md:w-72 w-64" alt="icon">
+                </div>
+                <div class="mb-4">
+                    <p class="md:text-4xl uppercase text-2xl font-bold dark:text-white">¡Tu plataforma de gestión academica lista para usar!</p>
+                </div>
+                {% csrf_token %}
+                <p class="mb-4 flex flex-col">
+                    <label for="username" class="mb-1 text-lg font-semibold text-slate-600 dark:text-white">Ingresar con correo o RUT <b class="text-red-600">*</b></label>
+                    <input type="text" name="username" class="bg-white dark:bg-[#11182d] focus:outline-none focus:border-blue-600 transition duration-300 focus:transition focus:duration-300 rounded-lg h-12 border-2 p-3 border-slate-300 dark:border-slate-800 dark:placeholder:text-[#a8b2d2] dark:text-white" placeholder="ejemplo@outlook.com o 12345678-K" required>
+                </p>
+                <p class="mb-2 flex flex-col">
+                    <label for="password" class="mb-1 text-lg font-semibold text-slate-600 dark:text-white">Contraseña <b class="text-red-600">*</b></label>
+                    <input type="password" name="password" class="bg-white dark:bg-[#11182d] focus:outline-none focus:border-blue-600 transition duration-300 focus:transition focus:duration-300 rounded-lg h-12 border-2 p-3 border-slate-300 dark:border-slate-800 dark:placeholder:text-[#a8b2d2] dark:text-white" placeholder="************" minlength="4" maxlength="45" required>
+                </p>
+                {% comment %} <p class="text-right text-blue-600 cursor-pointer hover:underline hover:transition transition">¿Olvidaste tu contraseña?</p> {% endcomment %}
+                {% if form.non_field_errors %}
+                <p class="text-red-600 dark:text-red-500 text-lg font-semibold">Correo-rut y/o contraseña incorrectos</p>
+                {% endif %}
+
+                <div class="mt-10">
+                    <input type="submit" class="bg-slate-700 hover:bg-slate-900 cursor-pointer dark:bg-blue-600 dark:hover:bg-blue-800 hover:transition transition hover:duration-300 duration-300 w-full py-3 text-lg text-white font-semibold rounded-lg" value="Iniciar sesión">
+                </div>
+            </form>
+        </div>
+        <div class="w-full h-screen bg-blue-400 hidden xl:flex items-center justify-center">
+            <img src="{% static 'tickets/img/loginbg.jpg' %}" class="object-cover w-full h-full" alt="icon">
+        </div>
+    </div>
+</body>
+
+    {% load static %}
+    <script src="{% static 'tickets/js/script.js' %}"></script>
+    <script src="{% static 'tickets/js/darkmode.js' %}"></script>
+</html>
