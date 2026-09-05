@@ -1,6 +1,6 @@
 from django.urls import path
-from tickets import views
-from .views import CreateRol, CreateUsuario, ListUsuario, UpdateUsuario, DeleteUsuario, ListRol, UpdateRol, DeleteRol, ListAsignatura, ListAsignaturaPorDocente
+from . import views
+from .views import CreateRol, CreateUsuario, ListUsuario, UpdateUsuario, DeleteUsuario, ListRol, UpdateRol, DeleteRol, ListAsignatura, ListPlanDeEstudio
 from .views import custom_logout
 from django.contrib.auth.views import LoginView
 
@@ -24,7 +24,7 @@ urlpatterns = [
     path('asignaturas/', ListAsignatura.as_view(), name='asignaturas'),
 
     # ASIGNATURAS POR DOCENTE / O HORARIOS
-    path('asignaturaspordocentes/', ListAsignaturaPorDocente.as_view(), name='asignaturaspordocente'),
+    path('asignaturaspordocentes/', ListPlanDeEstudio.as_view(), name='asignaturaspordocente'),
 
     # AUTENTICACION
     path('logout/', custom_logout, name='logout'),

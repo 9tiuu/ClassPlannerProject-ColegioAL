@@ -9,7 +9,7 @@ from django.contrib import messages
 from datetime import datetime
 import re
 
-from .models import Rol, Usuario, Asignatura, AsignaturaPorDocente
+from .models import Rol, Usuario, Asignatura, PlanDeEstudio, Curso
 from .forms import RolForm, UsuarioForm, UserUpdateForm
 
 from django.contrib.auth import logout
@@ -106,7 +106,7 @@ class CreateUsuario(UserPassesTestMixin, CreateView):
     def test_func(self):
         rol = self.request.user.rol.name
         return rol in ['root', 'Administrador']
-    
+
     def form_valid(self, form):
         username = form.cleaned_data.get('username')
         if not re.match(r'^[A-Za-záéíóúÁÉÍÓÚ\s]+$', username):
@@ -209,16 +209,16 @@ class ListAsignatura(UserPassesTestMixin, ListView):
             rol = self.request.user.rol.name
             return rol in ['root', 'Administrador']
 
-# ----------------------------------- # ASIGNATURAS POR DOCENTE
+# ----------------------------------- # PLAN DE ESTUDIO
 
-class ListAsignaturaPorDocente(UserPassesTestMixin, ListView):
-    model = AsignaturaPorDocente
-    template_name = 'tickets/asignaturapordocente/asignaturadocente.html'
-    context_object_name = 'asignaturasdocente'
+class ListPlanDeEstudio(UserPassesTestMixin, ListView):
+    model = PlanDeEstudio
+    template_name = 'tickets/plandeestudio/plandeestudiolist.html'
+    context_object_name = 'plandeestudio'
 
     def test_func(self):
             rol = self.request.user.rol.name
-            return rol in ['root', 'Administrador', 'Docente']
+            return rol in ['root', 'Administrador', 'Profesor']
 
 # ----------------------------------- #
 def custom_logout(request):
