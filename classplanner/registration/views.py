@@ -10,6 +10,7 @@ from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse_lazy
 from django.contrib import messages
+from django.shortcuts import redirect
 import re
 
 
@@ -40,6 +41,24 @@ class ProfileUpdateView(UpdateView):
     def get_object(self):
         return self.request.user
 
+    def post(self, request, *args, **kwargs):
+        if 'avatar_clear' in request.POST:
+            usuario = self.get_object()
+
+            if usuario.avatar:
+                usuario.avatar.delete(save=False)
+                usuario.avatar = None
+                usuario.save(update_fields=['avatar'])
+
+            messages.success(
+                request,
+                '¡Imagen de perfil eliminada!'
+            )
+
+            return redirect(self.success_url)
+        
+        return super().post(request, *args, **kwargs)
+
     def form_valid(self, form):
         username = form.cleaned_data.get('username')
         if not re.match(r'^[A-Za-záéíóúÁÉÍÓÚ\s]+$', username):
@@ -65,4 +84,3 @@ class ProfileUpdateView(UpdateView):
         
         messages.success(self.request, '¡Perfil de Usuario Actualizado!')
         return super().form_valid(form)
-   

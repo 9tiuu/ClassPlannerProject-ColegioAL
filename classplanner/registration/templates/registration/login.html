@@ -40,11 +40,11 @@
                 {% csrf_token %}
                 <p class="mb-4 flex flex-col">
                     <label for="username" class="mb-1 text-lg font-semibold text-slate-600 dark:text-white">Ingresar con correo o RUT <b class="text-red-600">*</b></label>
-                    <input type="text" name="username" class="bg-white dark:bg-[#11182d] focus:outline-none focus:border-blue-600 transition duration-300 focus:transition focus:duration-300 rounded-lg h-12 border-2 p-3 border-slate-300 dark:border-slate-800 dark:placeholder:text-[#a8b2d2] dark:text-white" placeholder="ejemplo@outlook.com o 12345678-K" required>
+                    <input type="text" name="username" class="bg-white dark:bg-[#11182d] focus:outline-none focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 focus:transition focus:duration-300 rounded-lg h-12 border-2 p-3 border-slate-300 dark:border-slate-700 dark:placeholder:text-[#a8b2d2] dark:text-white" placeholder="ejemplo@outlook.com o 12345678-K" required>
                 </p>
                 <p class="mb-2 flex flex-col">
                     <label for="password" class="mb-1 text-lg font-semibold text-slate-600 dark:text-white">Contraseña <b class="text-red-600">*</b></label>
-                    <input type="password" name="password" class="bg-white dark:bg-[#11182d] focus:outline-none focus:border-blue-600 transition duration-300 focus:transition focus:duration-300 rounded-lg h-12 border-2 p-3 border-slate-300 dark:border-slate-800 dark:placeholder:text-[#a8b2d2] dark:text-white" placeholder="************" minlength="4" maxlength="45" required>
+                    <input type="password" name="password" class="bg-white dark:bg-[#11182d] focus:outline-none focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 focus:transition focus:duration-300 rounded-lg h-12 border-2 p-3 border-slate-300 dark:border-slate-700 dark:placeholder:text-[#a8b2d2] dark:text-white" placeholder="************" minlength="4" maxlength="45" required>
                 </p>
                 {% comment %} <p class="text-right text-blue-600 cursor-pointer hover:underline hover:transition transition">¿Olvidaste tu contraseña?</p> {% endcomment %}
                 {% if form.non_field_errors %}
