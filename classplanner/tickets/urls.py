@@ -2,7 +2,7 @@ from django.urls import path
 from . import views
 from .views import CreateRol, CreateUsuario, ListUsuario, UpdateUsuario, DeleteUsuario, ListRol, UpdateRol, DeleteRol, ListAsignatura, ListPlanDeEstudio
 from .views import custom_logout
-from django.contrib.auth.views import LoginView
+# from django.contrib.auth.views import LoginView
 
 urlpatterns = [
     path('home/', views.Home, name='home'),
@@ -28,5 +28,5 @@ urlpatterns = [
 
     # AUTENTICACION
     path('logout/', custom_logout, name='logout'),
-    path('', LoginView.as_view(), name='login'),
+    # path('', LoginView.as_view(), name='login'),
 ]

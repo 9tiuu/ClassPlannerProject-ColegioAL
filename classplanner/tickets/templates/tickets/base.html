@@ -40,7 +40,13 @@
                         </svg>
                     </button>
                     <a href="{% url 'home' %}" class="flex ms-2 md:me-24">
-                        <img src="{% static 'tickets/img/ClassPlanner-transparent.png' %}" class="md:w-52 w-32" alt="icon">
+                        <div class="flex items-center">
+                            <img src="{% static 'tickets/img/ClassPlannerIcon-transparent.png' %}" class="md:w-14 w-8" alt="icon">
+                            <div class="ml-2 dark:text-gray-100">
+                                <p class="uppercase font-extrabold md:text-xl text-sm">ClassPlanner</p>
+                                <p class="uppercase md:text-xs text-[9px] font-semibold">Gestión de Horarios</p>
+                            </div>
+                        </div>
                     </a>
                 </div>
                 
@@ -83,15 +89,25 @@
                                     <p class="text-base font-semibold dark:text-white" role="none">
                                         {{ request.user.name }} {{ request.user.last_name }}
                                     </p>
+                                    {% if request.user.rol.name == 'root'%}
+                                    <p class="text-purple-500 text-xs font-semibold bg-purple-600/20 px-3 py-1 text-center rounded-full">
+                                        {{ request.user.rol.name }}
+                                    </p>
+                                    {% elif request.user.rol.name == 'Docente'%}
                                     <p class="text-blue-500 text-xs font-semibold bg-blue-600/20 px-3 py-1 text-center rounded-full">
                                         {{ request.user.rol.name }}
                                     </p>
+                                    {% elif request.user.rol.name == 'Director'%}
+                                    <p class="text-orange-500 text-xs font-semibold bg-orange-600/20 px-3 py-1 text-center rounded-full">
+                                        {{ request.user.rol.name }}
+                                    </p>
+                                    {% endif %}
                                 </div>
                                 <p class="text-sm text-slate-500 dark:text-[#a8b2d2]" role="none">
                                     {% comment %} {{ request.user.rol.name }} {% endcomment %}
                                     
                                 </p>
-                                <p class="text-sm text-blue-600" role="none">
+                                <p class="text-sm text-blue-500" role="none">
                                     {{ request.user.email }}
                                 </p>
                             </div>
@@ -129,30 +145,30 @@
                     {% comment %} <p class="mb-2 text-slate-500 dark:text-[#a8b2d2] uppercase font-bold text-xs">Gestión</p> {% endcomment %}
                     <li>
                         <a href="{% url 'home' %}" class="flex items-center rounded-lg dark:bg-[#11182d] dark:hover:bg-[#1c2239] dark:text-[#a8b2d2] dark:hover:text-white text-slate-500 hover:bg-gray-100 hover:text-slate-700 hover:transition transition hover:duration-200 duration-200 px-2 py-3 text-body group">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-layout-dashboard">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="currentColor" class="icon bg-slate-500/15 dark:bg-[#1c2239] group-hover:text-blue-500 group-hover:bg-blue-600/20 hover:transition transition hover:duration-200 duration-200 rounded p-1.5 icon-tabler icons-tabler-filled icon-tabler-layout-dashboard">
                                 <path stroke="none" d="M0 0h24v24H0z" fill="none" />
                                 <path d="M9 3a2 2 0 0 1 2 2v6a2 2 0 0 1 -2 2h-4a2 2 0 0 1 -2 -2v-6a2 2 0 0 1 2 -2zm0 12a2 2 0 0 1 2 2v2a2 2 0 0 1 -2 2h-4a2 2 0 0 1 -2 -2v-2a2 2 0 0 1 2 -2zm10 -4a2 2 0 0 1 2 2v6a2 2 0 0 1 -2 2h-4a2 2 0 0 1 -2 -2v-6a2 2 0 0 1 2 -2zm0 -8a2 2 0 0 1 2 2v2a2 2 0 0 1 -2 2h-4a2 2 0 0 1 -2 -2v-2a2 2 0 0 1 2 -2z" />
                             </svg>
-                            <span class="ms-2 group-hover:text-slate-700 font-semibold dark:group-hover:text-white group-hover:transition transition">Dashboard</span>
+                            <span class="ms-2 text-sm group-hover:text-slate-700 font-semibold dark:group-hover:text-white group-hover:transition transition">Dashboard</span>
                         </a>
                     </li>
                     {% if request.user.rol.name == 'root' %}
                         <li>
                             <a href="{% url 'userlist' %}" class="flex items-center rounded-lg dark:bg-[#11182d] dark:hover:bg-[#1c2239] dark:text-[#a8b2d2] dark:hover:text-white text-slate-500 hover:bg-gray-100 hover:text-slate-700 hover:transition transition hover:duration-200 duration-200 px-2 py-3 text-body group">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-people-fill" viewBox="0 0 16 16">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" class="bi bi-people-fill bg-slate-500/15 dark:bg-[#1c2239] group-hover:text-blue-500 group-hover:bg-blue-600/20 hover:transition transition hover:duration-200 duration-200 rounded p-1.5" viewBox="0 0 16 16">
                                     <path d="M7 14s-1 0-1-1 1-4 5-4 5 3 5 4-1 1-1 1zm4-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6m-5.784 6A2.24 2.24 0 0 1 5 13c0-1.355.68-2.75 1.936-3.72A6.3 6.3 0 0 0 5 9c-4 0-5 3-5 4s1 1 1 1zM4.5 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5"/>
                                 </svg>
-                                <span class="flex-1 ms-2 whitespace-nowrap group-hover:text-slate-700 font-semibold dark:group-hover:text-white group-hover:transition transition">Usuarios</span>
+                                <span class="flex-1 text-sm ms-2 whitespace-nowrap group-hover:text-slate-700 font-semibold dark:group-hover:text-white group-hover:transition transition">Usuarios</span>
                             </a>
                         </li>
                     {% endif %}
                     <li>
                         <a href="#" class="flex items-center rounded-lg dark:bg-[#11182d] dark:hover:bg-[#1c2239] dark:text-[#a8b2d2] dark:hover:text-white text-slate-500 hover:bg-gray-100 hover:text-slate-700 hover:transition transition hover:duration-200 duration-200 px-2 py-3 text-body group">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-book">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="currentColor" class="icon bg-slate-500/15 dark:bg-[#1c2239] group-hover:text-blue-500 group-hover:bg-blue-600/20 hover:transition transition hover:duration-200 duration-200 rounded p-1.5 icon-tabler icons-tabler-filled icon-tabler-book">
                                 <path stroke="none" d="M0 0h24v24H0z" fill="none" />
                                 <path d="M21.5 5.134a1 1 0 0 1 .493 .748l.007 .118v13a1 1 0 0 1 -1.5 .866a8 8 0 0 0 -7.5 -.266v-15.174a10 10 0 0 1 8.5 .708m-10.5 -.707l.001 15.174a8 8 0 0 0 -7.234 .117l-.327 .18l-.103 .044l-.049 .016l-.11 .026l-.061 .01l-.117 .006h-.042l-.11 -.012l-.077 -.014l-.108 -.032l-.126 -.056l-.095 -.056l-.089 -.067l-.06 -.056l-.073 -.082l-.064 -.089l-.022 -.036l-.032 -.06l-.044 -.103l-.016 -.049l-.026 -.11l-.01 -.061l-.004 -.049l-.002 -13.068a1 1 0 0 1 .5 -.866a10 10 0 0 1 8.5 -.707" />
                             </svg>
-                            <span class="flex-1 ms-2 whitespace-nowrap group-hover:text-slate-700 font-semibold dark:group-hover:text-white group-hover:transition transition">Asignaturas</span>
+                            <span class="flex-1 text-sm ms-2 whitespace-nowrap group-hover:text-slate-700 font-semibold dark:group-hover:text-white group-hover:transition transition">Asignaturas</span>
                         </a>
                     </li>
                 </div>
@@ -163,10 +179,10 @@
                     </a>
                 </li> {% endcomment %}
             </ul>
-            <ul class="space-y-0 font-medium mt-24">
+            <ul class="space-y-0 font-medium mt-24 ml-2">
                 <li>
-                    <p class="text-slate-600 dark:text-[#afbadd] font-semibold text-sm"> ClassPlanner v.0.0.1</p>
-                    <p class="text-slate-500 dark:text-[#a8b2d2] font-normal text-sm">@Inacapinos</p>
+                    <p class="text-slate-600 dark:text-[#afbadd] font-semibold text-xs"> ClassPlanner v.0.0.1</p>
+                    <p class="text-slate-500 dark:text-[#a8b2d2] font-normal text-xs">@Inacapinos</p>
                 </li>
             </ul>
         </div>
@@ -252,14 +268,34 @@
     </div>
 
     {% if messages %}
+    <div class="fixed bottom-0 z-40 right-0 mr-4 mb-4 translate-y-24 transition duration-200" id="login_message">
+        <div class="bg-green-500/20 py-3 px-10 rounded-lg text-green-600 border border-green-600/20 flex items-center justify-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-circle-check">
+                <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                <path d="M17 3.34a10 10 0 1 1 -14.995 8.984l-.005 -.324l.005 -.324a10 10 0 0 1 14.995 -8.336zm-1.293 5.953a1 1 0 0 0 -1.32 -.083l-.094 .083l-3.293 3.292l-1.293 -1.292l-.094 -.083a1 1 0 0 0 -1.403 1.403l.083 .094l2 2l.094 .083a1 1 0 0 0 1.226 0l.094 -.083l4 -4l.083 -.094a1 1 0 0 0 -.083 -1.32z" />
+            </svg>
+            <div>
+                <p class="font-semibold">Login Successful!</p>
+                <p class="text-xs dark:text-slate-300 text-slate-700">Has iniciado sesión correctamente.</p>
+            </div>
+        </div>
+    </div>
+
         {% for message in messages %}
             <script>
-                Swal.fire({
-                    "title": "{% if 'error' in message.tags %}¡Error!{% elif 'success' in message.tags %}Listo!{% else %}Información{% endif %}",
-                    "text": "{{ message }}",
-                    "icon": "{% if 'error' in message.tags %}error{% elif 'success' in message.tags %}success{% elif 'warning' in message.tags %}warning{% else %}info{% endif %}",
-                    "confirmButtonColor": "{% if 'error' in message.tags %}#d33{% elif 'success' in message.tags %}#0d6efd{% elif 'warning' in message.tags %}#f39c12{% else %}#3085d6{% endif %}"
-                });
+                if ('{{ message }}' === 'loginsuccessful') { 
+                    const loginMsg = document.getElementById('login_message');
+                    setTimeout(() => {loginMsg.classList.remove('translate-y-24')}, 1000);
+                    setTimeout(() => {loginMsg.classList.add('translate-y-24')}, 4000);
+
+                } else {
+                    Swal.fire({
+                        "title": "{% if 'error' in message.tags %}¡Error!{% elif 'success' in message.tags %}Listo!{% else %}Información{% endif %}",
+                        "text": "{{ message }}",
+                        "icon": "{% if 'error' in message.tags %}error{% elif 'success' in message.tags %}success{% elif 'warning' in message.tags %}warning{% else %}info{% endif %}",
+                        "confirmButtonColor": "{% if 'error' in message.tags %}#d33{% elif 'success' in message.tags %}#0d6efd{% elif 'warning' in message.tags %}#f39c12{% else %}#3085d6{% endif %}"
+                    }); 
+                }   
             </script>
         {% endfor %}
     {% endif %}

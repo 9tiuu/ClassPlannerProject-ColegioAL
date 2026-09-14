@@ -21,19 +21,29 @@
                     <div class="flex md:justify-between md:flex-row flex-col p-2 gap-8 mb-4">
                         <div>
                             <div class="flex items-center gap-2">
-                                <p class="dark:text-white text-2xl font-bold">
+                                <p class="dark:text-white text-xl font-bold">
                                     {{ request.user.name }} {{ request.user.last_name }}
                                 </p>
+                                {% if request.user.rol.name == 'root' %}
+                                <p class="text-purple-500 text-xs font-semibold bg-purple-600/20 px-3 py-1 text-center rounded-full">
+                                    {{ request.user.rol.name }}
+                                </p>
+                                {% elif request.user.rol.name == 'Docente' %}
                                 <p class="text-blue-500 text-xs font-semibold bg-blue-600/20 px-3 py-1 text-center rounded-full">
                                     {{ request.user.rol.name }}
                                 </p>
+                                {% elif request.user.rol.name == 'Director' %}
+                                <p class="text-orange-500 text-xs font-semibold bg-orange-600/20 px-3 py-1 text-center rounded-full">
+                                    {{ request.user.rol.name }}
+                                </p>
+                                {% endif%}
                             </div>
-                            <p class="text-slate-500 dark:text-[#a8b2d2] font-normal">
+                            <p class="text-slate-500 dark:text-[#a8b2d2] font-normal text-sm">
                                 {{ request.user.email }}
                             </p>
                         </div>
-                        <a href="{% url 'profile_update' request.user.id %}" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-800 text-center hover:transition transition hover:duration-300 duration-300 rounded-lg px-8 py-3">
-                            <p class="w-full text-white font-semibold">Editar Perfil</p>
+                        <a href="{% url 'profile_update' request.user.id %}" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-800 text-center hover:transition transition hover:duration-300 duration-300 rounded-lg px-8 py-2">
+                            <p class="w-full text-sm text-white font-semibold">Editar Perfil</p>
                         </a>
                     </div>
                 </div>

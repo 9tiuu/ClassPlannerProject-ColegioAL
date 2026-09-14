@@ -21,14 +21,24 @@
                     <div class="flex md:justify-between md:flex-row flex-col p-2 gap-8 mb-4">
                         <div>
                             <div class="flex items-center gap-2">
-                                <p class="dark:text-white text-2xl font-bold">
+                                <p class="dark:text-white text-xl font-bold">
                                     {{ request.user.name }} {{ request.user.last_name }}
                                 </p>
+                                {% if request.user.rol.name == 'root' %}
+                                <p class="text-purple-500 text-xs font-semibold bg-purple-600/20 px-3 py-1 text-center rounded-full">
+                                    {{ request.user.rol.name }}
+                                </p>
+                                {% elif request.user.rol.name == 'Docente' %}
                                 <p class="text-blue-500 text-xs font-semibold bg-blue-600/20 px-3 py-1 text-center rounded-full">
                                     {{ request.user.rol.name }}
                                 </p>
+                                {% elif request.user.rol.name == 'Director' %}
+                                <p class="text-orange-500 text-xs font-semibold bg-orange-600/20 px-3 py-1 text-center rounded-full">
+                                    {{ request.user.rol.name }}
+                                </p>
+                                {% endif%}
                             </div>
-                            <p class="text-slate-500 dark:text-[#a8b2d2] font-normal">
+                            <p class="text-slate-500 dark:text-[#a8b2d2] font-normal text-sm">
                                 {{ request.user.email }}
                             </p>
                         </div>
@@ -73,39 +83,39 @@
                                 
                                 <div class="mt-8 flex flex-col">
                                     <div class="flex flex-col w-ful mb-5">
-                                        <label for="id_username" class="mb-1 text-lg font-semibold text-slate-600 dark:text-white">Nombre de Usuario</label>
-                                        <input type="text" name="username" id="id_username" value="{{ form.username.value}}" class="bg-white dark:bg-[#11182d] focus:outline-none focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 focus:transition focus:duration-300 rounded-lg h-12 border-2 p-3 border-slate-300 dark:border-slate-700 dark:placeholder:text-[#a8b2d2] dark:text-white" minlength="2" maxlength="45" required>
+                                        <label for="id_username" class="mb-1 text-base font-semibold text-slate-600 dark:text-white">Nombre de Usuario</label>
+                                        <input type="text" name="username" id="id_username" value="{{ form.username.value}}" class="bg-white dark:bg-[#11182d] text-sm focus:outline-none focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 focus:transition focus:duration-300 rounded-lg h-12 border-2 p-3 border-slate-300 dark:border-slate-700 dark:placeholder:text-[#a8b2d2] dark:text-white" minlength="2" maxlength="45" required>
 
                                         {% if form.name.errors %}
                                         <div class="errors mb-2">
                                             {% for error in form.name.errors %}
-                                            <p class="text-red-500">{{ error }}</p>
+                                            <p class="text-red-500 text-sm">{{ error }}</p>
                                             {% endfor %}
                                         </div>
                                         {% endif %}
                                     </div>
                                     <div class="flex md:flex-row flex-col gap-4">
                                         <div class="flex flex-col w-full">
-                                            <label for="id_name" class="mb-1 text-lg font-semibold text-slate-600 dark:text-white">Nombre</label>
-                                            <input type="text" name="name" id="id_name" value="{{ form.name.value}}" class="bg-white dark:bg-[#11182d] focus:outline-none focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 focus:transition focus:duration-300 rounded-lg h-12 border-2 p-3 border-slate-300 dark:border-slate-700 dark:placeholder:text-[#a8b2d2] dark:text-white" minlength="2" maxlength="45" required>
+                                            <label for="id_name" class="mb-1 text-base font-semibold text-slate-600 dark:text-white">Nombre</label>
+                                            <input type="text" name="name" id="id_name" value="{{ form.name.value}}" class="bg-white dark:bg-[#11182d] text-sm focus:outline-none focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 focus:transition focus:duration-300 rounded-lg h-12 border-2 p-3 border-slate-300 dark:border-slate-700 dark:placeholder:text-[#a8b2d2] dark:text-white" minlength="2" maxlength="45" required>
 
                                             {% if form.name.errors %}
                                             <div class="errors mb-2">
                                                 {% for error in form.name.errors %}
-                                                <p class="text-red-500">{{ error }}</p>
+                                                <p class="text-red-500 text-sm">{{ error }}</p>
                                                 {% endfor %}
                                             </div>
                                             {% endif %}
                                         </div>
 
                                         <div class="flex flex-col w-full">
-                                            <label for="id_last_name" class="mb-1 text-lg font-semibold text-slate-600 dark:text-white">Apellido</label>
-                                            <input type="text" name="last_name" id="id_lastname" value="{{ form.last_name.value}}" class="bg-white dark:bg-[#11182d] focus:outline-none focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 focus:transition focus:duration-300 rounded-lg h-12 border-2 p-3 border-slate-300 dark:border-slate-700 dark:placeholder:text-[#a8b2d2] dark:text-white" minlength="2" maxlength="45" required>
+                                            <label for="id_last_name" class="mb-1 text-base font-semibold text-slate-600 dark:text-white">Apellido</label>
+                                            <input type="text" name="last_name" id="id_lastname" value="{{ form.last_name.value}}" class="bg-white dark:bg-[#11182d] text-sm focus:outline-none focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 focus:transition focus:duration-300 rounded-lg h-12 border-2 p-3 border-slate-300 dark:border-slate-700 dark:placeholder:text-[#a8b2d2] dark:text-white" minlength="2" maxlength="45" required>
 
                                             {% if form.last_name.errors %}
                                             <div class="errors mb-2">
                                                 {% for error in form.last_name.errors %}
-                                                <p class="text-red-500">{{ error }}</p>
+                                                <p class="text-red-500 text-sm">{{ error }}</p>
                                                 {% endfor %}
                                             </div>
                                             {% endif %}
@@ -113,55 +123,114 @@
                                     </div>
                                 </div>
                                 <div class="flex justify-end flex-row gap-2 my-8 w-full">
-                                    <a href="{% url 'profile' %}" class="flex items-center gap-2 border-2 font-semibold border-slate-300 dark:border-slate-700 dark:bg-[#11182d] dark:hover:bg-[#080e1d] dark:text-[#a8b2d2] dark:hover:text-white text-slate-500 hover:bg-gray-100 hover:text-slate-700 text-center hover:transition transition hover:duration-300 duration-300 rounded-lg px-4 py-3">
+                                    <a href="{% url 'profile' %}" class="flex items-center text-sm gap-2 border-2 font-semibold border-slate-300 dark:border-slate-700 dark:bg-[#11182d] dark:hover:bg-[#080e1d] dark:text-[#a8b2d2] dark:hover:text-white text-slate-500 hover:bg-gray-100 hover:text-slate-700 text-center hover:transition transition hover:duration-300 duration-300 rounded-lg px-4 py-3">
                                         Cancelar
                                     </a>
                                     <button type="submit" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-800 text-center hover:transition transition hover:duration-300 duration-300 rounded-lg px-4 py-3 ">
-                                        <p class="w-full text-white font-semibold">Guardar cambios</p>
+                                        <p class="w-full text-sm text-white font-semibold">Guardar cambios</p>
                                     </button>
                                 </div>
                             </div>
                         </div>
-                        <div class="flex md:flex-row flex-col gap-2 mb-4 w-full hidden" id="account">
-                            <div class="dark:bg-[#11182d] bg-white w-full shadow rounded-lg mb-10 p-4 md:p-8">
+                        <div class="flex flex-col gap-2 mb-4 w-full hidden" id="account">
+                            <div class="dark:bg-[#11182d] bg-white w-full shadow rounded-lg mb-4 p-4 md:p-8">
                                 <h3 class="dark:text-white text-black font-bold text-xl">Información de Contacto</h3>
                                 <p class="dark:text-[#a8b2d2] text-slate-500">Actualiza tus información de contacto</p>
 
                                 <div class="mt-8 flex flex-col">
-                                    <div class="flex md:flex-row flex-col gap-4">
+                                    <div class="flex md:flex-row flex-col gap-4 mb-5">
                                         <div class="flex flex-col w-full">
-                                            <label for="id_email" class="mb-1 text-lg font-semibold text-slate-600 dark:text-white">Correo</label>
-                                            <input type="text" name="email" id="id_emaile" value="{{ form.email.value}}" class="bg-white dark:bg-[#11182d] focus:outline-none focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 focus:transition focus:duration-300 rounded-lg h-12 border-2 p-3 border-slate-300 dark:border-slate-700 dark:placeholder:text-[#a8b2d2] dark:text-white" minlength="2" maxlength="45" required>
+                                            <label for="id_telefono" class="mb-1 text-base font-semibold text-slate-600 dark:text-white">Teléfono</label>
+                                            <input type="text" name="telefono" id="id_telefono" value="{{ form.telefono.value }}" class="bg-white dark:bg-[#11182d] text-sm focus:outline-none focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 focus:transition focus:duration-300 rounded-lg h-12 border-2 p-3 border-slate-300 dark:border-slate-700 dark:placeholder:text-[#a8b2d2] dark:text-white" minlength="2" maxlength="45" required>
 
-                                            {% if form.email.errors %}
+                                            {% if form.telefono.errors %}
                                             <div class="errors mb-2">
-                                                {% for error in form.email.errors %}
-                                                <p class="text-red-500">{{ error }}</p>
-                                                {% endfor %}
-                                            </div>
-                                            {% endif %}
-                                        </div>
-
-                                        <div class="flex flex-col w-full">
-                                            <label for="id_rut" class="mb-1 text-lg font-semibold text-slate-600 dark:text-white">RUT</label>
-                                            <input type="text" name="rut" id="id_rut" value="{{ form.rut.value}}" class="bg-white dark:bg-[#11182d] focus:outline-none focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 focus:transition focus:duration-300 rounded-lg h-12 border-2 p-3 border-slate-300 dark:border-slate-700 dark:placeholder:text-[#a8b2d2] dark:text-white" minlength="2" maxlength="45" required>
-
-                                            {% if form.rut.errors %}
-                                            <div class="errors mb-2">
-                                                {% for error in form.rut.errors %}
-                                                <p class="text-red-500">{{ error }}</p>
+                                                {% for error in form.telefono.errors %}
+                                                <p class="text-red-500 text-sm">{{ error }}</p>
                                                 {% endfor %}
                                             </div>
                                             {% endif %}
                                         </div>
                                     </div>
+                                    <div class="flex md:flex-row flex-col gap-4">
+                                        <div class="flex flex-col w-full">
+                                            <label for="id_email" class="mb-1 text-base font-semibold text-slate-600 dark:text-white">Correo</label>
+                                            <input type="text" name="email" id="id_email" value="{{ form.email.value}}" class="bg-white dark:bg-[#11182d] text-sm focus:outline-none focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 focus:transition focus:duration-300 rounded-lg h-12 border-2 p-3 border-slate-300 dark:border-slate-700 dark:placeholder:text-[#a8b2d2] dark:text-white" minlength="2" maxlength="45" required>
+
+                                            {% if form.email.errors %}
+                                            <div class="errors mb-2">
+                                                {% for error in form.email.errors %}
+                                                <p class="text-red-500 text-sm">{{ error }}</p>
+                                                {% endfor %}
+                                            </div>
+                                            {% endif %}
+                                        </div>
+
+                                        <div class="flex flex-col w-full">
+                                            <label for="id_rut" class="mb-1 text-base font-semibold text-slate-600 dark:text-white">RUT</label>
+                                            <input type="text" name="rut" id="id_rut" value="{{ form.rut.value}}" class="bg-white dark:bg-[#11182d] text-sm focus:outline-none focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 focus:transition focus:duration-300 rounded-lg h-12 border-2 p-3 border-slate-300 dark:border-slate-700 dark:placeholder:text-[#a8b2d2] dark:text-white" minlength="2" maxlength="45" required>
+
+                                            {% if form.rut.errors %}
+                                            <div class="errors mb-2">
+                                                {% for error in form.rut.errors %}
+                                                <p class="text-red-500 text-sm">{{ error }}</p>
+                                                {% endfor %}
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>                                   
                                 </div>
                                 <div class="flex justify-end flex-row gap-2 my-8 w-full">
-                                    <a href="{% url 'profile' %}" class="flex items-center gap-2 border-2 font-semibold border-slate-300 dark:border-slate-700 dark:bg-[#11182d] dark:hover:bg-[#080e1d] dark:text-[#a8b2d2] dark:hover:text-white text-slate-500 hover:bg-gray-100 hover:text-slate-700 text-center hover:transition transition hover:duration-300 duration-300 rounded-lg px-4 py-3">
+                                    <a href="{% url 'profile' %}" class="flex items-center text-sm gap-2 border-2 font-semibold border-slate-300 dark:border-slate-700 dark:bg-[#11182d] dark:hover:bg-[#080e1d] dark:text-[#a8b2d2] dark:hover:text-white text-slate-500 hover:bg-gray-100 hover:text-slate-700 text-center hover:transition transition hover:duration-300 duration-300 rounded-lg px-4 py-3">
                                         Cancelar
                                     </a>
                                     <button type="submit" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-800 text-center hover:transition transition hover:duration-300 duration-300 rounded-lg px-4 py-3 ">
-                                        <p class="w-full text-white font-semibold">Guardar cambios</p>
+                                        <p class="w-full text-white text-sm font-semibold">Guardar cambios</p>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="dark:bg-[#11182d] bg-white w-full shadow rounded-lg mb-10 p-4 md:p-8">
+
+                                {% comment %} 
+                                    Aca no se estan mostrando algunos mensajes de errores donde deberian de ir (por corregir)
+                                {% endcomment %}
+
+                                <h3 class="dark:text-white text-black font-bold text-xl">Contraseña</h3>
+                                <p class="dark:text-[#a8b2d2] text-slate-500">Actualiza tu contraseña actual</p>
+
+                                <div class="mt-8 flex flex-col">
+                                    <div class="flex md:flex-row flex-col gap-4 mb-5">
+                                        <div class="flex flex-col w-full">
+                                            <label for="id_password_actual" class="mb-1 text-base font-semibold text-slate-600 dark:text-white">Contraseña actual</label>
+                                            <input type="password" name="password_actual" id="id_password_actual" class="bg-white dark:bg-[#11182d] text-sm focus:outline-none focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 focus:transition focus:duration-300 rounded-lg h-12 border-2 p-3 border-slate-300 dark:border-slate-700 dark:placeholder:text-[#a8b2d2] dark:text-white" minlength="2" maxlength="45">
+                                        </div>
+                                    </div>
+                                    <div class="flex flex-col gap-5">
+                                        <div class="flex flex-col w-full">
+                                            <label for="id_password_nueva" class="mb-1 text-base font-semibold text-slate-600 dark:text-white">Nueva contraseña</label>
+                                            <input type="password" name="password_nueva" id="id_password_nueva" class="bg-white dark:bg-[#11182d] text-sm focus:outline-none focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 focus:transition focus:duration-300 rounded-lg h-12 border-2 p-3 border-slate-300 dark:border-slate-700 dark:placeholder:text-[#a8b2d2] dark:text-white" minlength="2" maxlength="45">
+                                        </div>
+
+                                        <div class="flex flex-col w-full">
+                                            <label for="id_password_confirmacion" class="mb-1 text-base font-semibold text-slate-600 dark:text-white">Confirmar contraseña</label>
+                                            <input type="password" name="password_confirmacion" id="id_password_confirmacion" class="bg-white dark:bg-[#11182d] text-sm focus:outline-none focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 focus:transition focus:duration-300 rounded-lg h-12 border-2 p-3 border-slate-300 dark:border-slate-700 dark:placeholder:text-[#a8b2d2] dark:text-white" minlength="2" maxlength="45">
+
+                                            {% if form.rut.errors %}
+                                            <div class="errors mb-2">
+                                                {% for error in form.rut.errors %}
+                                                <p class="text-red-500 text-sm">{{ error }}</p>
+                                                {% endfor %}
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>                                   
+                                </div>
+                                <div class="flex justify-end flex-row gap-2 my-8 w-full">
+                                    <a href="{% url 'profile' %}" class="flex items-center text-sm gap-2 border-2 font-semibold border-slate-300 dark:border-slate-700 dark:bg-[#11182d] dark:hover:bg-[#080e1d] dark:text-[#a8b2d2] dark:hover:text-white text-slate-500 hover:bg-gray-100 hover:text-slate-700 text-center hover:transition transition hover:duration-300 duration-300 rounded-lg px-4 py-3">
+                                        Cancelar
+                                    </a>
+                                    <button type="submit" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-800 text-center hover:transition transition hover:duration-300 duration-300 rounded-lg px-4 py-3 ">
+                                        <p class="w-full text-white text-sm font-semibold">Guardar cambios</p>
                                     </button>
                                 </div>
                             </div>
@@ -188,24 +257,24 @@
                                             <div class="flex flex-col items-center justify-center text-body pt-5 pb-6">
                                                 <svg class="w-20 h-20 mb-4 bg-gray-100 dark:bg-[#1c2239] text-slate-500 dark:text-[#a8b2d2] p-4 rounded-full" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h3a3 3 0 0 0 0-6h-.025a5.56 5.56 0 0 0 .025-.5A5.5 5.5 0 0 0 7.207 9.021C7.137 9.017 7.071 9 7 9a4 4 0 1 0 0 8h2.167M12 19v-9m0 0-2 2m2-2 2 2"/></svg>
                                                 <p class="mb-2 text-lg text-center font-bold text-slate-700 dark:text-white">Arrastra y suelta tu imagen aquí o haz clic para explorar</p>
-                                                <p class="text-sm text-center dark:text-[#a8b2d2] text-slate-500">MAX. 800x400px</p>
+                                                <p class="text-xs text-center dark:text-[#a8b2d2] text-slate-500">MAX. 800x400px</p>
                                             </div>
                                             <input id="id_avatar" type="file" name="avatar" class="hidden" accept="image/*" />
                                         </label>
 
                                         <div class="flex md:flex-row flex-col w-full gap-2 mt-4">
                                             <button type="submit" class="flex items-center gap-2 bg-blue-600 mt-4 hover:bg-blue-800 text-center hover:transition transition hover:duration-300 duration-300 rounded-lg px-4 py-3 w-full">
-                                                <p class="w-full text-white font-semibold">Guardar cambios</p>
+                                                <p class="w-full text-white text-sm font-semibold">Guardar cambios</p>
                                             </button>
                                             {% if request.user.avatar %}
                                             <button type="submit" name="avatar_clear" id="avatar-clear_id" value="Borrar imagen" class="flex items-center gap-2 bg-red-700 mt-4 hover:bg-red-900 text-center hover:transition transition hover:duration-300 duration-300 rounded-lg px-4 py-3 w-full">
-                                                <p class="w-full text-white font-semibold">Borrar imagen</p>
+                                                <p class="w-full text-white text-sm font-semibold">Borrar imagen</p>
                                             </button>
                                             {% endif %}
                                         </div>
                                     </div> 
 
-                                    <p class="text-sm text-center dark:text-[#a8b2d2] text-slate-500">SVG, PNG o JPG (MAX. 800x400px)</p>
+                                    <p class="text-xs text-center dark:text-[#a8b2d2] text-slate-500">SVG, PNG o JPG (MAX. 800x400px)</p>
                                 </div>
                             </div>                
                         </div>

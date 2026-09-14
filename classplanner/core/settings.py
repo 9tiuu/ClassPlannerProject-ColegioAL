@@ -41,6 +41,8 @@ CSRF_TRUSTED_ORIGINS = [
     'https://web-production-05d2b.up.railway.app',
 ]
 
+PASSWORD_RESET_TIMEOUT = 900
+
 # LOGOUT_REDIRECT_URL = 'login'
 
 LOGIN_REDIRECT_URL = 'home'
