@@ -37,7 +37,7 @@ class Asignatura(models.Model):
     ident = models.CharField(max_length=5)
     nombre = models.CharField(max_length=50)
     descripcion = models.TextField()
-    plan_diferencial_id = models.ForeignKey(PlanDiferencial, on_delete=models.SET_NULL, null=True)
+    plan_diferencial_id = models.ForeignKey(PlanDiferencial, on_delete=models.SET_NULL, blank=True, null=True)
 
     def __str__(self) -> str:
         return f'{self.ident} - {self.nombre}'
