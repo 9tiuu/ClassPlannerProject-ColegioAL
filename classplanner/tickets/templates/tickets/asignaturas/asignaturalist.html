@@ -5,33 +5,45 @@
 <div class="p-4 border border-slate-400 dark:border-slate-700 min-h-screen border-default border-dashed mt-10 rounded-lg overflow-hidden">
     <div class="user-list-content w-full">
 
-        <p class="mb-3 text-slate-500 dark:text-slate-300">Gestión / Asignaturas</p>
+        <p class="mb-3 text-slate-500 dark:text-[#a8b2d2]">Gestión / Asignaturas</p>
 
-        <h2 class="text-3xl font-bold text-[#234FA8] dark:text-blue-400 mb-4">Listado de Asignaturas</h2>
+        <h2 class="text-3xl font-bold text-[#234FA8] dark:text-blue-500 mb-4">Listado de Asignaturas</h2>
 
         <div class="mb-8 w-full gap-4 md:gap-0 flex flex-col md:flex-row md:justify-between justify-center">
 
-            <div class="flex items-center relative gap-4">
-
-                <div class="flex items-center relative">
-                    <input type="text" class="w-96 h-full border-2 border-slate-300 form-control bg-white dark:bg-[#11182d] dark:border-slate-800 focus:outline-none focus:border-blue-600 transition focus:transition dark:placeholder:text-[#a8b2d2] dark:text-white rounded px-2 py-2" placeholder="Buscar" maxlength="40">
-
-                    <i class="bi bi-search text-gray-400 dark:text-slate-300 absolute right-0 -translate-x-4"></i>
+            <div class="flex items-center relative gap-2 w-auto">
+                <div class="flex items-center relative w-full">
+                    <input type="text" class="bg-white dark:bg-[#11182d] text-sm focus:outline-none focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 focus:transition focus:duration-300 rounded-lg h-12 md:w-96 w-full border-2 p-3 border-slate-300 dark:border-slate-700 dark:placeholder:text-[#a8b2d2] dark:text-white" placeholder="Buscar" maxlength="40">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-search text-gray-400 dark:text-slate-300 absolute right-0 -translate-x-4">
+                        <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                        <path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" />
+                        <path d="M21 21l-6 -6" />
+                    </svg>
                 </div>
 
-                <button id="btntable" type="button" class="w-10 h-10 flex items-center justify-center rounded-lg bg-blue-600 hover:bg-blue-800 text-white transition duration-300">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 12h.007v.008H3.75V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1-.75 0Zm-.375 5.25h.007v.008H3.75v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
-                    </svg>
-                </button>
+                <div class="flex items-center justify-center gap-2 w-auto border-2 p-1 bg-white dark:bg-[#11182d] border-slate-300 dark:border-slate-700 rounded-lg">
+                    <button id="btntable" type="button" class="w-9 h-9 flex items-center outline-none justify-center border-slate-300 dark:border-slate-700 dark:bg-[#11182d] dark:hover:bg-[#1c2239] dark:text-[#a8b2d2] dark:hover:text-white text-slate-500 hover:bg-gray-100 hover:text-slate-700 text-center hover:transition transition hover:duration-300 duration-300 rounded-lg">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-list">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                            <path d="M21 6a1 1 0 0 1 -1 1h-10a1 1 0 1 1 0 -2h10a1 1 0 0 1 1 1" />
+                            <path d="M21 12a1 1 0 0 1 -1 1h-10a1 1 0 0 1 0 -2h10a1 1 0 0 1 1 1" />
+                            <path d="M21 18a1 1 0 0 1 -1 1h-10a1 1 0 0 1 0 -2h10a1 1 0 0 1 1 1" />
+                            <path d="M7 5.995v.02c0 1.099 -.895 1.99 -2 1.99s-2 -.891 -2 -1.99v-.02c0 -1.099 .895 -1.99 2 -1.99s2 .891 2 1.99" />
+                            <path d="M7 11.995v.02c0 1.099 -.895 1.99 -2 1.99s-2 -.891 -2 -1.99v-.02c0 -1.099 .895 -1.99 2 -1.99s2 .891 2 1.99" />
+                            <path d="M7 17.995v.02c0 1.099 -.895 1.99 -2 1.99s-2 -.891 -2 -1.99v-.02c0 -1.099 .895 -1.99 2 -1.99s2 .891 2 1.99" />
+                        </svg>
+                    </button>
 
-                <button id="btnicons" type="button" class="w-10 h-10 flex items-center justify-center rounded-lg bg-blue-600 hover:bg-blue-800 text-white transition duration-300">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                        <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                        <path d="M9 3a2 2 0 0 1 2 2v6a2 2 0 0 1 -2 2h-4a2 2 0 0 1 -2 -2v-6a2 2 0 0 1 2 -2zm0 12a2 2 0 0 1 2 2v2a2 2 0 0 1 -2 2h-4a2 2 0 0 1 -2 -2v-2a2 2 0 0 1 2 -2zm10 -4a2 2 0 0 1 2 2v6a2 2 0 0 1 -2 2h-4a2 2 0 0 1 -2 -2v-6a2 2 0 0 1 2 -2zm0 -8a2 2 0 0 1 2 2v2a2 2 0 0 1 -2 2h-4a2 2 0 0 1 -2 -2v-2a2 2 0 0 1 2 -2z" />
-                    </svg>
-                </button>
-
+                    <button id="btnicons" type="button" class="w-9 h-9 flex items-center outline-none justify-center border-slate-300 dark:border-slate-700 dark:bg-[#11182d] dark:hover:bg-[#1c2239] dark:text-[#a8b2d2] dark:hover:text-white text-slate-500 hover:bg-gray-100 hover:text-slate-700 text-center hover:transition transition hover:duration-300 duration-300 rounded-lg">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-layout-grid">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                            <path d="M9 3a2 2 0 0 1 2 2v4a2 2 0 0 1 -2 2h-4a2 2 0 0 1 -2 -2v-4a2 2 0 0 1 2 -2z" />
+                            <path d="M19 3a2 2 0 0 1 2 2v4a2 2 0 0 1 -2 2h-4a2 2 0 0 1 -2 -2v-4a2 2 0 0 1 2 -2z" />
+                            <path d="M9 13a2 2 0 0 1 2 2v4a2 2 0 0 1 -2 2h-4a2 2 0 0 1 -2 -2v-4a2 2 0 0 1 2 -2z" />
+                            <path d="M19 13a2 2 0 0 1 2 2v4a2 2 0 0 1 -2 2h-4a2 2 0 0 1 -2 -2v-4a2 2 0 0 1 2 -2z" />
+                        </svg>
+                    </button>
+                </div>
             </div>
 
             <a href="{% url 'usercreate' %}" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-800 text-center hover:transition transition hover:duration-300 duration-300 rounded-lg px-8 py-3">
@@ -44,11 +56,11 @@
 
         <div id="asigicon" class="hidden w-full">
 
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 w-full">
 
                 {% for a in asignatura %}
 
-                <div id="asignatura-{{ a.ident }}" class="relative w-full min-w-0 bg-white dark:bg-[#11182d] border border-slate-300 dark:border-slate-800 rounded-xl p-5 h-64 shadow-sm hover:shadow-md transition duration-300">
+                <div id="asignatura-{{ a.ident }}" class="relative w-full bg-white dark:bg-[#11182d] border border-slate-300 dark:border-slate-800 rounded-xl p-5 shadow-sm transition duration-300">
 
                     <div class="color-selector absolute top-4 right-4 z-50" data-ident="{{ a.ident }}">
 
@@ -58,15 +70,15 @@
 
                         <div id="color-palette-{{ a.ident }}" class="color-palette absolute top-0 right-9 hidden items-center gap-2 bg-white dark:bg-[#11182d] border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 shadow-lg">
 
-                            <button type="button" onclick="cambiarColorIcono('{{ a.ident }}', '#ffffff')" class="w-6 h-6 rounded-full bg-white border-2 border-black hover:scale-125 transition" title="Blanco"></button>
-                            <button type="button" onclick="cambiarColorIcono('{{ a.ident }}', '#ef444425')" class="w-6 h-6 rounded-full bg-red-400 border-2 border-black hover:scale-125 transition" title="Rojo"></button>
-                            <button type="button" onclick="cambiarColorIcono('{{ a.ident }}', '#f9731625')" class="w-6 h-6 rounded-full bg-orange-400 border-2 border-black hover:scale-125 transition" title="Naranja"></button>
-                            <button type="button" onclick="cambiarColorIcono('{{ a.ident }}', '#eab30825')" class="w-6 h-6 rounded-full bg-yellow-400 border-2 border-black hover:scale-125 transition" title="Amarillo"></button>
-                            <button type="button" onclick="cambiarColorIcono('{{ a.ident }}', '#22c55e25')" class="w-6 h-6 rounded-full bg-green-400 border-2 border-black hover:scale-125 transition" title="Verde"></button>
-                            <button type="button" onclick="cambiarColorIcono('{{ a.ident }}', '#06b6d425')" class="w-6 h-6 rounded-full bg-cyan-400 border-2 border-black hover:scale-125 transition" title="Celeste"></button>
-                            <button type="button" onclick="cambiarColorIcono('{{ a.ident }}', '#3b82f625')" class="w-6 h-6 rounded-full bg-blue-400 border-2 border-black hover:scale-125 transition" title="Azul"></button>
-                            <button type="button" onclick="cambiarColorIcono('{{ a.ident }}', '#8b5cf625')" class="w-6 h-6 rounded-full bg-violet-400 border-2 border-black hover:scale-125 transition" title="Violeta"></button>
-                            <button type="button" onclick="cambiarColorIcono('{{ a.ident }}', '#ec489925')" class="w-6 h-6 rounded-full bg-pink-400 border-2 border-black hover:scale-125 transition" title="Rosado"></button>
+                            <button type="button" onclick="cambiarColorIcono('{{ a.ident }}', '#ffffff')" class="w-6 h-6 rounded-full bg-white border-2 border-slate-300 dark:border-slate-700 hover:scale-125 transition" title="Blanco"></button>
+                            <button type="button" onclick="cambiarColorIcono('{{ a.ident }}', '#ef444425')" class="w-6 h-6 rounded-full bg-red-400 border-2 border-slate-300 dark:border-slate-700 hover:scale-125 transition" title="Rojo"></button>
+                            <button type="button" onclick="cambiarColorIcono('{{ a.ident }}', '#f9731625')" class="w-6 h-6 rounded-full bg-orange-400 border-2 border-slate-300 dark:border-slate-700 hover:scale-125 transition" title="Naranja"></button>
+                            <button type="button" onclick="cambiarColorIcono('{{ a.ident }}', '#eab30825')" class="w-6 h-6 rounded-full bg-yellow-400 border-2 border-slate-300 dark:border-slate-700 hover:scale-125 transition" title="Amarillo"></button>
+                            <button type="button" onclick="cambiarColorIcono('{{ a.ident }}', '#22c55e25')" class="w-6 h-6 rounded-full bg-green-400 border-2 border-slate-300 dark:border-slate-700 hover:scale-125 transition" title="Verde"></button>
+                            <button type="button" onclick="cambiarColorIcono('{{ a.ident }}', '#06b6d425')" class="w-6 h-6 rounded-full bg-cyan-400 border-2 border-slate-300 dark:border-slate-700 hover:scale-125 transition" title="Celeste"></button>
+                            <button type="button" onclick="cambiarColorIcono('{{ a.ident }}', '#3b82f625')" class="w-6 h-6 rounded-full bg-blue-400 border-2 border-slate-300 dark:border-slate-700 hover:scale-125 transition" title="Azul"></button>
+                            <button type="button" onclick="cambiarColorIcono('{{ a.ident }}', '#8b5cf625')" class="w-6 h-6 rounded-full bg-violet-400 border-2 border-slate-300 dark:border-slate-700 hover:scale-125 transition" title="Violeta"></button>
+                            <button type="button" onclick="cambiarColorIcono('{{ a.ident }}', '#ec489925')" class="w-6 h-6 rounded-full bg-pink-400 border-2 border-slate-300 dark:border-slate-700 hover:scale-125 transition" title="Rosado"></button>
 
                         </div>
                     </div>
@@ -79,11 +91,16 @@
 
                         <div class="min-w-0 flex-1">
 
-                            <h3 id="nombre-{{ a.ident }}" class="text-lg font-bold text-black dark:text-white truncate">
-                                {{ a.nombre }}
-                            </h3>
+                            <div class="flex items-center gap-1">
+                                <h3 id="nombre-{{ a.ident }}" class="text-lg font-bold text-slate-700 dark:text-white truncate">
+                                    {{ a.nombre }}
+                                </h3>
+                                <p id="ident-{{ a.ident }}" class="text-sm text-slate-500 dark:text-[#a8b2d2] font-bold">
+                                    #{{ a.ident }}
+                                </p>
+                            </div>
                             
-                            <p id="descripcion-{{ a.ident }}" class="text-sm text-black dark:text-white mt-1 line-clamp-2">
+                            <p id="descripcion-{{ a.ident }}" class="text-sm text-slate-500 dark:text-[#a8b2d2] line-clamp-2 truncate">
                                 {{ a.descripcion }}
                             </p>
 
@@ -91,28 +108,28 @@
 
                     </div>
 
-                    <div class="absolute left-5 top-28">
+                    <div class="border-t mt-4 border-slate-300 dark:border-slate-700 pt-3 flex items-center justify-between">
 
-                        <p id="plan-{{ a.ident }}" class="text-sm bg-slate-400/20 px-4 py-1 rounded-full text-slate-500 dark:text-white font-medium">
+                        <p id="plan-{{ a.ident }}" class="text-xs bg-slate-400/20 px-4 py-1 w-auto rounded-lg text-slate-500 dark:text-white font-medium truncate">
                             {{ a.plan_diferencial_id }}
-                        </p>
-
-                    </div>
-
-                    <div class="absolute bottom-5 left-5 right-5 border-t border-black/30 dark:border-white/30 pt-4 flex items-center justify-between">
-
-                        <p id="ident-{{ a.ident }}" class="text-xs text-black dark:text-white font-semibold">
-                            IDENT: {{ a.ident }}
                         </p>
 
                         <div class="flex gap-2">
 
-                            <button type="button" class="bg-blue-600 hover:bg-blue-800 text-white w-9 h-9 flex items-center justify-center rounded-lg transition duration-300" title="Editar">
-                                <i class="bi bi-pencil-square"></i>
+                            <button type="button" class="bg-sky-600 hover:bg-sky-700 text-white w-8 h-8 flex items-center justify-center text-center hover:transition transition hover:duration-300 duration-300 rounded-lg" title="Editar">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-edit">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                                    <path d="M8 7a1 1 0 0 1 -1 1h-1a1 1 0 0 0 -1 1v9a1 1 0 0 0 1 1h9a1 1 0 0 0 1 -1v-1a1 1 0 0 1 2 0v1a3 3 0 0 1 -3 3h-9a3 3 0 0 1 -3 -3v-9a3 3 0 0 1 3 -3h1a1 1 0 0 1 1 1" />
+                                    <path d="M14.596 5.011l4.392 4.392l-6.28 6.303a1 1 0 0 1 -.708 .294h-3a1 1 0 0 1 -1 -1v-3a1 1 0 0 1 .294 -.708zm6.496 -2.103a3.097 3.097 0 0 1 .165 4.203l-.164 .18l-.693 .694l-4.387 -4.387l.695 -.69a3.1 3.1 0 0 1 4.384 0" />
+                                </svg>
                             </button>
 
-                            <button type="button" class="bg-red-600 hover:bg-red-800 text-white w-9 h-9 flex items-center justify-center rounded-lg transition duration-300" title="Eliminar">
-                                <i class="bi bi-trash-fill"></i>
+                            <button type="button" class="bg-red-500 hover:bg-red-600 text-white w-8 h-8 flex items-center justify-center text-center hover:transition transition hover:duration-300 duration-300 rounded-lg" title="Eliminar">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-trash">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                                    <path d="M20 6a1 1 0 0 1 .117 1.993l-.117 .007h-.081l-.919 11a3 3 0 0 1 -2.824 2.995l-.176 .005h-8c-1.598 0 -2.904 -1.249 -2.992 -2.75l-.005 -.167l-.923 -11.083h-.08a1 1 0 0 1 -.117 -1.993l.117 -.007zm-10 4a1 1 0 0 0 -1 1v6a1 1 0 0 0 2 0v-6a1 1 0 0 0 -1 -1m4 0a1 1 0 0 0 -1 1v6a1 1 0 0 0 2 0v-6a1 1 0 0 0 -1 -1" />
+                                    <path d="M14 2a2 2 0 0 1 2 2a1 1 0 0 1 -1.993 .117l-.007 -.117h-4l-.007 .117a1 1 0 0 1 -1.993 -.117a2 2 0 0 1 1.85 -1.995l.15 -.005z" />
+                                </svg>
                             </button>
 
                         </div>
@@ -158,11 +175,11 @@
 
                 </thead>
 
-                <tbody class="dark:text-[#a8b2d2] text-slate-500 h-20">
+                <tbody class="dark:text-[#a8b2d2] text-slate-500">
 
                     {% for a in asignatura %}
 
-                    <tr class="border-b border-default odd:bg-white dark:odd:bg-[#1c2239] dark:border-b-slate-800">
+                    <tr class="border-b border-default odd:bg-white even:bg-white even:dark:bg-[#1c2239] dark:odd:bg-[#1c2239] dark:border-b-slate-800">
 
                         <td class="px-6 py-4 whitespace-nowrap md:whitespace-normal capitalize">
                             {{ a.ident }}
@@ -184,12 +201,19 @@
 
                             <div class="flex gap-2">
 
-                                <a href="#" class="bg-blue-600 hover:bg-blue-800 text-white w-9 h-9 flex items-center justify-center text-center hover:transition transition hover:duration-300 duration-300 rounded-lg">
-                                    <i class="bi bi-pencil-square"></i>
+                                <a href="#" class="bg-sky-600 hover:bg-sky-700 text-white w-9 h-9 flex items-center justify-center text-center hover:transition transition hover:duration-300 duration-300 rounded-lg">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-edit">
+                                        <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                                        <path d="M8 7a1 1 0 0 1 -1 1h-1a1 1 0 0 0 -1 1v9a1 1 0 0 0 1 1h9a1 1 0 0 0 1 -1v-1a1 1 0 0 1 2 0v1a3 3 0 0 1 -3 3h-9a3 3 0 0 1 -3 -3v-9a3 3 0 0 1 3 -3h1a1 1 0 0 1 1 1" />
+                                        <path d="M14.596 5.011l4.392 4.392l-6.28 6.303a1 1 0 0 1 -.708 .294h-3a1 1 0 0 1 -1 -1v-3a1 1 0 0 1 .294 -.708zm6.496 -2.103a3.097 3.097 0 0 1 .165 4.203l-.164 .18l-.693 .694l-4.387 -4.387l.695 -.69a3.1 3.1 0 0 1 4.384 0" />
+                                    </svg>
                                 </a>
-
-                                <a href="#" class="bg-red-600 hover:bg-red-800 text-white w-9 h-9 flex items-center justify-center text-center hover:transition transition hover:duration-300 duration-300 rounded-lg">
-                                    <i class="bi bi-trash-fill"></i>
+                                <a href="#" class="bg-red-500 hover:bg-red-600 text-white w-9 h-9 flex items-center justify-center text-center hover:transition transition hover:duration-300 duration-300 rounded-lg">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-trash">
+                                        <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                                        <path d="M20 6a1 1 0 0 1 .117 1.993l-.117 .007h-.081l-.919 11a3 3 0 0 1 -2.824 2.995l-.176 .005h-8c-1.598 0 -2.904 -1.249 -2.992 -2.75l-.005 -.167l-.923 -11.083h-.08a1 1 0 0 1 -.117 -1.993l.117 -.007zm-10 4a1 1 0 0 0 -1 1v6a1 1 0 0 0 2 0v-6a1 1 0 0 0 -1 -1m4 0a1 1 0 0 0 -1 1v6a1 1 0 0 0 2 0v-6a1 1 0 0 0 -1 -1" />
+                                        <path d="M14 2a2 2 0 0 1 2 2a1 1 0 0 1 -1.993 .117l-.007 -.117h-4l-.007 .117a1 1 0 0 1 -1.993 -.117a2 2 0 0 1 1.85 -1.995l.15 -.005z" />
+                                    </svg>
                                 </a>
 
                             </div>
