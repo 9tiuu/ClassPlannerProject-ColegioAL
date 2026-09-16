@@ -29,11 +29,13 @@ def validar_rut(rut):
     return True
 
 # ----------------------------------- # HOME / DASHBOARD
+
 @login_required
 def Home(request):
     return render(request, 'tickets/base.html', {})
 
 # ----------------------------------- # ROLES
+
 @method_decorator(login_required, name='dispatch')
 class CreateRol(UserPassesTestMixin, CreateView):
     model = Rol
@@ -96,6 +98,7 @@ class DeleteRol(UserPassesTestMixin, DeleteView):
         return super().form_valid(form)
 
 # ----------------------------------- # USUARIOS
+
 @method_decorator(login_required, name='dispatch')
 class CreateUsuario(UserPassesTestMixin, CreateView):
     model = Usuario
@@ -221,6 +224,7 @@ class ListPlanDeEstudio(UserPassesTestMixin, ListView):
             return rol in ['root', 'Administrador', 'Profesor']
 
 # ----------------------------------- #
+
 def custom_logout(request):
     logout(request)  
     return redirect('login') 

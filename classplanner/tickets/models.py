@@ -21,6 +21,7 @@ class Usuario(AbstractUser):
     telefono = models.CharField(max_length=12, blank=True, null=True) # falta validacion
     rol = models.ForeignKey(Rol, on_delete=models.RESTRICT, null=True)
     avatar = models.ImageField(upload_to='avatars', blank=True, null=True)
+    passwd_changed = models.BooleanField(default=False, blank=True)
     # abstractuser tiene campo is_active
 
     def __str__(self) -> str:
@@ -36,7 +37,7 @@ class Asignatura(models.Model):
     ident = models.CharField(max_length=5)
     nombre = models.CharField(max_length=50)
     descripcion = models.TextField()
-    plan_diferencial_id = models.ForeignKey(PlanDiferencial, on_delete=models.SET_NULL, null=True)
+    plan_diferencial_id = models.ForeignKey(PlanDiferencial, on_delete=models.SET_NULL, blank=True, null=True)
 
     def __str__(self) -> str:
         return f'{self.ident} - {self.nombre}'

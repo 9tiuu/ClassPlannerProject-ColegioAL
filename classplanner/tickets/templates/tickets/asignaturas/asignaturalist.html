@@ -2,64 +2,436 @@
 
 {% block content %}
 
-<div class="p-4 border border-slate-400 dark:border-slate-700 h-screen border-default border-dashed mt-10 rounded-lg">
-    <div class="user-list-content">
-        <p class="mb-3 text-slate-500">Gestión / Asignaturas</p>
-        <h2 class="text-3xl font-bold text-[#234FA8] mb-4">Listado de Asignaturas</h2>
+<div class="p-4 border border-slate-400 dark:border-slate-700 min-h-screen border-default border-dashed mt-10 rounded-lg overflow-hidden">
+    <div class="user-list-content w-full">
+
+        <p class="mb-3 text-slate-500 dark:text-[#a8b2d2]">Gestión / Asignaturas</p>
+
+        <h2 class="text-3xl font-bold text-[#234FA8] dark:text-blue-500 mb-4">Listado de Asignaturas</h2>
 
         <div class="mb-8 w-full gap-4 md:gap-0 flex flex-col md:flex-row md:justify-between justify-center">
-            <div class="flex items-center relative">
-                <input type="text" class="w-96 h-full border-2 border-slate-300 form-control bg-white dark:bg-[#11182d] dark:border-slate-800 focus:outline-none focus:border-blue-600 transition focus:transition dark:placeholder:text-[#a8b2d2] dark:text-white rounded px-2 py-2" placeholder="Buscar" maxlength="40">
-                <i class="bi bi-search text-gray-400 dark:text-slate-300 absolute right-0 -translate-x-4"></i>
+
+            <div class="flex items-center relative gap-2 w-auto">
+                <div class="flex items-center relative w-full">
+                    <input type="text" class="bg-white dark:bg-[#11182d] text-sm focus:outline-none focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 focus:transition focus:duration-300 rounded-lg h-12 md:w-96 w-full border-2 p-3 border-slate-300 dark:border-slate-700 dark:placeholder:text-[#a8b2d2] dark:text-white" placeholder="Buscar" maxlength="40">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-search text-gray-400 dark:text-slate-300 absolute right-0 -translate-x-4">
+                        <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                        <path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" />
+                        <path d="M21 21l-6 -6" />
+                    </svg>
+                </div>
+
+                <div class="flex items-center justify-center gap-2 w-auto border-2 p-1 bg-white dark:bg-[#11182d] border-slate-300 dark:border-slate-700 rounded-lg">
+                    <button id="btntable" type="button" class="w-9 h-9 flex items-center outline-none justify-center border-slate-300 dark:border-slate-700 dark:bg-[#11182d] dark:hover:bg-[#1c2239] dark:text-[#a8b2d2] dark:hover:text-white text-slate-500 hover:bg-gray-100 hover:text-slate-700 text-center hover:transition transition hover:duration-300 duration-300 rounded-lg">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-list">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                            <path d="M21 6a1 1 0 0 1 -1 1h-10a1 1 0 1 1 0 -2h10a1 1 0 0 1 1 1" />
+                            <path d="M21 12a1 1 0 0 1 -1 1h-10a1 1 0 0 1 0 -2h10a1 1 0 0 1 1 1" />
+                            <path d="M21 18a1 1 0 0 1 -1 1h-10a1 1 0 0 1 0 -2h10a1 1 0 0 1 1 1" />
+                            <path d="M7 5.995v.02c0 1.099 -.895 1.99 -2 1.99s-2 -.891 -2 -1.99v-.02c0 -1.099 .895 -1.99 2 -1.99s2 .891 2 1.99" />
+                            <path d="M7 11.995v.02c0 1.099 -.895 1.99 -2 1.99s-2 -.891 -2 -1.99v-.02c0 -1.099 .895 -1.99 2 -1.99s2 .891 2 1.99" />
+                            <path d="M7 17.995v.02c0 1.099 -.895 1.99 -2 1.99s-2 -.891 -2 -1.99v-.02c0 -1.099 .895 -1.99 2 -1.99s2 .891 2 1.99" />
+                        </svg>
+                    </button>
+
+                    <button id="btnicons" type="button" class="w-9 h-9 flex items-center outline-none justify-center border-slate-300 dark:border-slate-700 dark:bg-[#11182d] dark:hover:bg-[#1c2239] dark:text-[#a8b2d2] dark:hover:text-white text-slate-500 hover:bg-gray-100 hover:text-slate-700 text-center hover:transition transition hover:duration-300 duration-300 rounded-lg">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-layout-grid">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                            <path d="M9 3a2 2 0 0 1 2 2v4a2 2 0 0 1 -2 2h-4a2 2 0 0 1 -2 -2v-4a2 2 0 0 1 2 -2z" />
+                            <path d="M19 3a2 2 0 0 1 2 2v4a2 2 0 0 1 -2 2h-4a2 2 0 0 1 -2 -2v-4a2 2 0 0 1 2 -2z" />
+                            <path d="M9 13a2 2 0 0 1 2 2v4a2 2 0 0 1 -2 2h-4a2 2 0 0 1 -2 -2v-4a2 2 0 0 1 2 -2z" />
+                            <path d="M19 13a2 2 0 0 1 2 2v4a2 2 0 0 1 -2 2h-4a2 2 0 0 1 -2 -2v-4a2 2 0 0 1 2 -2z" />
+                        </svg>
+                    </button>
+                </div>
             </div>
+
             <a href="{% url 'usercreate' %}" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-800 text-center hover:transition transition hover:duration-300 duration-300 rounded-lg px-8 py-3">
                 <p class="w-full text-white font-semibold">+ Nueva asignatura</p>
             </a>
+
         </div>
 
         {% if asignatura %}
-        <div class="relative max-h-[70vh] b-white overflow-x-auto bg-neutral-primary-soft shadow-xs rounded-base border border-default border-slate-300 dark:border-slate-800 rounded-lg">
+
+        <div id="asigicon" class="hidden w-full">
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 w-full">
+
+                {% for a in asignatura %}
+
+                <div id="asignatura-{{ a.ident }}" class="relative w-full bg-white dark:bg-[#11182d] border border-slate-300 dark:border-slate-800 rounded-xl p-5 shadow-sm transition duration-300">
+
+                    <div class="color-selector absolute top-4 right-4 z-50" data-ident="{{ a.ident }}">
+
+                        <button id="color-button-{{ a.ident }}" type="button" data-color-button="{{ a.ident }}" class="w-8 h-8 flex items-center justify-center text-slate-700 dark:text-slate-300 hover:text-black dark:hover:text-white hover:scale-110 transition duration-200" title="Cambiar color">
+                            <i class="bi bi-three-dots-vertical text-xl"></i>
+                        </button>
+
+                        <div id="color-palette-{{ a.ident }}" class="color-palette absolute top-0 right-9 hidden items-center gap-2 bg-white dark:bg-[#11182d] border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 shadow-lg">
+
+                            <button type="button" onclick="cambiarColorIcono('{{ a.ident }}', '#ffffff')" class="w-6 h-6 rounded-full bg-white border-2 border-slate-300 dark:border-slate-700 hover:scale-125 transition" title="Blanco"></button>
+                            <button type="button" onclick="cambiarColorIcono('{{ a.ident }}', '#ef444425')" class="w-6 h-6 rounded-full bg-red-400 border-2 border-slate-300 dark:border-slate-700 hover:scale-125 transition" title="Rojo"></button>
+                            <button type="button" onclick="cambiarColorIcono('{{ a.ident }}', '#f9731625')" class="w-6 h-6 rounded-full bg-orange-400 border-2 border-slate-300 dark:border-slate-700 hover:scale-125 transition" title="Naranja"></button>
+                            <button type="button" onclick="cambiarColorIcono('{{ a.ident }}', '#eab30825')" class="w-6 h-6 rounded-full bg-yellow-400 border-2 border-slate-300 dark:border-slate-700 hover:scale-125 transition" title="Amarillo"></button>
+                            <button type="button" onclick="cambiarColorIcono('{{ a.ident }}', '#22c55e25')" class="w-6 h-6 rounded-full bg-green-400 border-2 border-slate-300 dark:border-slate-700 hover:scale-125 transition" title="Verde"></button>
+                            <button type="button" onclick="cambiarColorIcono('{{ a.ident }}', '#06b6d425')" class="w-6 h-6 rounded-full bg-cyan-400 border-2 border-slate-300 dark:border-slate-700 hover:scale-125 transition" title="Celeste"></button>
+                            <button type="button" onclick="cambiarColorIcono('{{ a.ident }}', '#3b82f625')" class="w-6 h-6 rounded-full bg-blue-400 border-2 border-slate-300 dark:border-slate-700 hover:scale-125 transition" title="Azul"></button>
+                            <button type="button" onclick="cambiarColorIcono('{{ a.ident }}', '#8b5cf625')" class="w-6 h-6 rounded-full bg-violet-400 border-2 border-slate-300 dark:border-slate-700 hover:scale-125 transition" title="Violeta"></button>
+                            <button type="button" onclick="cambiarColorIcono('{{ a.ident }}', '#ec489925')" class="w-6 h-6 rounded-full bg-pink-400 border-2 border-slate-300 dark:border-slate-700 hover:scale-125 transition" title="Rosado"></button>
+
+                        </div>
+                    </div>
+
+                    <div class="flex items-start gap-4 pr-8">
+
+                        <div id="icon-{{ a.ident }}" class="shrink-0 w-14 h-14 flex items-center justify-center rounded-xl bg-blue-600/15 text-blue-600 dark:text-blue-400 transition duration-300">
+                            <i id="icon-symbol-{{ a.ident }}" class="bi bi-book text-3xl transition duration-300"></i>
+                        </div>
+
+                        <div class="min-w-0 flex-1">
+
+                            <div class="flex items-center gap-1">
+                                <h3 id="nombre-{{ a.ident }}" class="text-lg font-bold text-slate-700 dark:text-white truncate">
+                                    {{ a.nombre }}
+                                </h3>
+                                <p id="ident-{{ a.ident }}" class="text-sm text-slate-500 dark:text-[#a8b2d2] font-bold">
+                                    #{{ a.ident }}
+                                </p>
+                            </div>
+                            
+                            <p id="descripcion-{{ a.ident }}" class="text-sm text-slate-500 dark:text-[#a8b2d2] line-clamp-2 truncate">
+                                {{ a.descripcion }}
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                    <div class="border-t mt-4 border-slate-300 dark:border-slate-700 pt-3 flex items-center justify-between">
+
+                        <p id="plan-{{ a.ident }}" class="text-xs bg-slate-400/20 px-4 py-1 w-auto rounded-lg text-slate-500 dark:text-white font-medium truncate">
+                            {{ a.plan_diferencial_id }}
+                        </p>
+
+                        <div class="flex gap-2">
+
+                            <button type="button" class="bg-sky-600 hover:bg-sky-700 text-white w-8 h-8 flex items-center justify-center text-center hover:transition transition hover:duration-300 duration-300 rounded-lg" title="Editar">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-edit">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                                    <path d="M8 7a1 1 0 0 1 -1 1h-1a1 1 0 0 0 -1 1v9a1 1 0 0 0 1 1h9a1 1 0 0 0 1 -1v-1a1 1 0 0 1 2 0v1a3 3 0 0 1 -3 3h-9a3 3 0 0 1 -3 -3v-9a3 3 0 0 1 3 -3h1a1 1 0 0 1 1 1" />
+                                    <path d="M14.596 5.011l4.392 4.392l-6.28 6.303a1 1 0 0 1 -.708 .294h-3a1 1 0 0 1 -1 -1v-3a1 1 0 0 1 .294 -.708zm6.496 -2.103a3.097 3.097 0 0 1 .165 4.203l-.164 .18l-.693 .694l-4.387 -4.387l.695 -.69a3.1 3.1 0 0 1 4.384 0" />
+                                </svg>
+                            </button>
+
+                            <button type="button" class="bg-red-500 hover:bg-red-600 text-white w-8 h-8 flex items-center justify-center text-center hover:transition transition hover:duration-300 duration-300 rounded-lg" title="Eliminar">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-trash">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                                    <path d="M20 6a1 1 0 0 1 .117 1.993l-.117 .007h-.081l-.919 11a3 3 0 0 1 -2.824 2.995l-.176 .005h-8c-1.598 0 -2.904 -1.249 -2.992 -2.75l-.005 -.167l-.923 -11.083h-.08a1 1 0 0 1 -.117 -1.993l.117 -.007zm-10 4a1 1 0 0 0 -1 1v6a1 1 0 0 0 2 0v-6a1 1 0 0 0 -1 -1m4 0a1 1 0 0 0 -1 1v6a1 1 0 0 0 2 0v-6a1 1 0 0 0 -1 -1" />
+                                    <path d="M14 2a2 2 0 0 1 2 2a1 1 0 0 1 -1.993 .117l-.007 -.117h-4l-.007 .117a1 1 0 0 1 -1.993 -.117a2 2 0 0 1 1.85 -1.995l.15 -.005z" />
+                                </svg>
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                {% endfor %}
+
+            </div>
+
+        </div>
+
+        <div id="asigtable" class="relative max-h-[70vh] overflow-x-auto bg-neutral-primary-soft shadow-xs rounded-base border border-default border-slate-300 dark:border-slate-800 rounded-lg">
+
             <table class="min-w-full text-sm text-left rtl:text-right text-body">
+
                 <thead class="text-sm text-left text-slate-700 dark:text-white bg-slate-200 dark:bg-[#11182d] text-body bg-neutral-secondary-soft border-b rounded-base border-default dark:border-slate-800">
+
                     <tr>
+
+                        <th scope="col" class="px-6 py-3 font-bold whitespace-nowrap md:whitespace-normal">
+                            Identificador
+                        </th>
+
                         <th scope="col" class="px-6 py-3 font-bold whitespace-nowrap md:whitespace-normal">
                             Asignatura
                         </th>
+
                         <th scope="col" class="px-6 py-3 font-bold whitespace-nowrap md:whitespace-normal">
-                            Horas totales
+                            Descripción
                         </th>
+
+                        <th scope="col" class="px-6 py-3 font-bold whitespace-nowrap md:whitespace-normal">
+                            Plan Diferencial
+                        </th>
+
                         <th scope="col" class="px-6 py-3 font-bold whitespace-nowrap md:whitespace-normal">
                             Acción
                         </th>
                     </tr>
+
                 </thead>
-                <tbody class="dark:text-[#a8b2d2] text-slate-500 h-20">
+
+                <tbody class="dark:text-[#a8b2d2] text-slate-500">
+
                     {% for a in asignatura %}
-                    <tr class="border-b border-default odd:bg-white even:bg-slate-100 dark:odd:bg-[#1c2239] dark:border-b-slate-800">
-                        <td class="px-6 py-4 whitespace-nowrap md:whitespace-normal capitalize">{{ a.nombre }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap md:whitespace-normal">{{ a.hrs_asignatura }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap md:whitespace-normal flex gap-2 ">
-                            <a href="#" class="bg-blue-600 hover:bg-blue-800 text-white w-9 h-9 flex items-center justify-center text-center hover:transition transition hover:duration-300 duration-300 rounded-lg">
-                                <i class="bi bi-pencil-square"></i>
-                            </a>
-                            <a href="#" class="bg-red-600 hover:bg-red-800 text-white w-9 h-9 flex items-center justify-center text-center hover:transition transition hover:duration-300 duration-300 rounded-lg">
-                                <i class="bi bi-trash-fill"></i>
-                            </a>
+
+                    <tr class="border-b border-default odd:bg-white even:bg-white even:dark:bg-[#1c2239] dark:odd:bg-[#1c2239] dark:border-b-slate-800">
+
+                        <td class="px-6 py-4 whitespace-nowrap md:whitespace-normal capitalize">
+                            {{ a.ident }}
                         </td>
-                    <tr>
+
+                        <td class="px-6 py-4 whitespace-nowrap md:whitespace-normal capitalize">
+                            {{ a.nombre }}
+                        </td>
+
+                        <td class="px-6 py-4 whitespace-nowrap md:whitespace-normal">
+                            {{ a.descripcion }}
+                        </td>
+
+                        <td class="px-6 py-4 whitespace-nowrap md:whitespace-normal">
+                            {{ a.plan_diferencial_id }}
+                        </td>
+
+                        <td class="px-6 py-4 whitespace-nowrap md:whitespace-normal">
+
+                            <div class="flex gap-2">
+
+                                <a href="#" class="bg-sky-600 hover:bg-sky-700 text-white w-9 h-9 flex items-center justify-center text-center hover:transition transition hover:duration-300 duration-300 rounded-lg">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-edit">
+                                        <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                                        <path d="M8 7a1 1 0 0 1 -1 1h-1a1 1 0 0 0 -1 1v9a1 1 0 0 0 1 1h9a1 1 0 0 0 1 -1v-1a1 1 0 0 1 2 0v1a3 3 0 0 1 -3 3h-9a3 3 0 0 1 -3 -3v-9a3 3 0 0 1 3 -3h1a1 1 0 0 1 1 1" />
+                                        <path d="M14.596 5.011l4.392 4.392l-6.28 6.303a1 1 0 0 1 -.708 .294h-3a1 1 0 0 1 -1 -1v-3a1 1 0 0 1 .294 -.708zm6.496 -2.103a3.097 3.097 0 0 1 .165 4.203l-.164 .18l-.693 .694l-4.387 -4.387l.695 -.69a3.1 3.1 0 0 1 4.384 0" />
+                                    </svg>
+                                </a>
+                                <a href="#" class="bg-red-500 hover:bg-red-600 text-white w-9 h-9 flex items-center justify-center text-center hover:transition transition hover:duration-300 duration-300 rounded-lg">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-trash">
+                                        <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                                        <path d="M20 6a1 1 0 0 1 .117 1.993l-.117 .007h-.081l-.919 11a3 3 0 0 1 -2.824 2.995l-.176 .005h-8c-1.598 0 -2.904 -1.249 -2.992 -2.75l-.005 -.167l-.923 -11.083h-.08a1 1 0 0 1 -.117 -1.993l.117 -.007zm-10 4a1 1 0 0 0 -1 1v6a1 1 0 0 0 2 0v-6a1 1 0 0 0 -1 -1m4 0a1 1 0 0 0 -1 1v6a1 1 0 0 0 2 0v-6a1 1 0 0 0 -1 -1" />
+                                        <path d="M14 2a2 2 0 0 1 2 2a1 1 0 0 1 -1.993 .117l-.007 -.117h-4l-.007 .117a1 1 0 0 1 -1.993 -.117a2 2 0 0 1 1.85 -1.995l.15 -.005z" />
+                                    </svg>
+                                </a>
+
+                            </div>
+
+                        </td>
+
+                    </tr>
+
                     {% endfor %}
+
                 </tbody>
+
             </table>
+
         </div>
 
         {% else %}
+
         <h4>No existen asignaturas registradas...</h4>
+
         {% endif %}
+
     </div>
-    
 </div>
 
+<script>
+    const asigicon = document.getElementById('asigicon');
+    const asigtable = document.getElementById('asigtable');
+    const btntable = document.getElementById('btntable');
+    const btnicons = document.getElementById('btnicons');
 
+    btntable?.addEventListener('click', () => {
+        asigicon.classList.add('hidden');
+        asigtable.classList.remove('hidden');
+    });
 
-{% endblock  %}
+    btnicons?.addEventListener('click', () => {
+        asigicon.classList.remove('hidden');
+        asigtable.classList.add('hidden');
+    });
 
+    function obtenerColorBase(color) {
+        return color.substring(0, 7);
+    }
+
+    function convertirRGB(color) {
+        const hex = obtenerColorBase(color);
+
+        return {
+            r: parseInt(hex.substring(1, 3), 16),
+            g: parseInt(hex.substring(3, 5), 16),
+            b: parseInt(hex.substring(5, 7), 16)
+        };
+    }
+
+    function colorClaro(color, intensidad) {
+        const { r, g, b } = convertirRGB(color);
+
+        return `rgb(
+            ${Math.round(255 + (r - 255) * intensidad)},
+            ${Math.round(255 + (g - 255) * intensidad)},
+            ${Math.round(255 + (b - 255) * intensidad)}
+        )`;
+    }
+
+    function colorOscuro(color, intensidad) {
+        const { r, g, b } = convertirRGB(color);
+
+        return `rgb(
+            ${Math.round(r * intensidad)},
+            ${Math.round(g * intensidad)},
+            ${Math.round(b * intensidad)}
+        )`;
+    }
+
+    function cambiarColorIcono(ident, color, guardar = true) {
+        const tarjeta = document.getElementById(`asignatura-${ident}`);
+        const icono = document.getElementById(`icon-${ident}`);
+        const simbolo = document.getElementById(`icon-symbol-${ident}`);
+
+        if (!tarjeta || !icono || !simbolo) {            
+            return;
+        }
+
+        if (color === '#ffffff') {
+            tarjeta.style.removeProperty('background-color');
+            icono.style.removeProperty('background-color');
+            icono.style.removeProperty('color');
+            simbolo.style.removeProperty('color');
+
+            if (guardar) {
+                localStorage.removeItem(`color-${ident}`);
+            }
+
+            return;
+        }
+
+        const colorBase = obtenerColorBase(color);
+        const modoOscuro = document.documentElement.classList.contains('dark');
+        let colorSuave;
+        let colorIntenso;
+
+        if (modoOscuro) {
+            colorSuave = colorOscuro(colorBase, 0.25);
+            colorIntenso = colorOscuro(colorBase, 0.85);
+        } else {
+            colorSuave = colorClaro(colorBase, 0.10);
+            colorIntenso = colorClaro(colorBase, 1);
+        }
+
+        tarjeta.style.setProperty(
+            'background-color',
+            color,
+            'important'
+        );
+
+        icono.style.setProperty(
+            'background-color',
+            colorSuave,
+            'important'
+        );
+
+        icono.style.setProperty(
+            'color',
+            colorIntenso,
+            'important'
+        );
+
+        simbolo.style.setProperty(
+            'color',
+            colorIntenso,
+            'important'
+        );
+
+        if (guardar) {
+            localStorage.setItem(`color-${ident}`, color);
+        }
+    }
+
+    function aplicarColoresGuardados() {
+        document.querySelectorAll('.color-selector').forEach(selector => {
+            const ident = selector.dataset.ident;
+            const clave = `color-${ident}`;
+            const color = localStorage.getItem(clave);
+
+            if (color) {
+                cambiarColorIcono(ident, color, false);
+            }
+        });
+    }
+
+    document.querySelectorAll('.color-selector').forEach(selector => {
+        const palette = selector.querySelector('.color-palette');
+        const button = selector.querySelector('[data-color-button]');
+        let timeout;
+
+        button.addEventListener('click', (event) => {
+            event.stopPropagation();
+
+            document.querySelectorAll('.color-palette').forEach(otraPalette => {
+                if (otraPalette !== palette) {
+                    otraPalette.classList.add('hidden');
+                    otraPalette.classList.remove('flex');
+                }
+            });
+
+            palette.classList.toggle('hidden');
+            palette.classList.toggle('flex');
+        });
+
+        selector.addEventListener('mouseenter', () => {
+            clearTimeout(timeout);
+        });
+
+        selector.addEventListener('mouseleave', () => {
+            timeout = setTimeout(() => {
+                palette.classList.add('hidden');
+                palette.classList.remove('flex');
+            }, 200);
+        });
+
+        palette.querySelectorAll('button').forEach(colorButton => {
+            colorButton.addEventListener('click', () => {
+                const color = colorButton.getAttribute('data-color');
+
+                if (color) {
+                    cambiarColorIcono(selector.dataset.ident, color);
+                }
+
+                palette.classList.add('hidden');
+                palette.classList.remove('flex');
+            });
+        });
+    });
+
+    document.addEventListener('click', () => {
+        document.querySelectorAll('.color-palette').forEach(palette => {
+            palette.classList.add('hidden');
+            palette.classList.remove('flex');
+        });
+    });
+
+    const observer = new MutationObserver((mutations) => {
+        const cambioModo = mutations.some(
+            mutation => mutation.attributeName === 'class'
+        );
+
+        if (cambioModo) {
+            aplicarColoresGuardados();
+        }
+    });
+
+    observer.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['class']
+    });
+
+    aplicarColoresGuardados();
+</script>
+
+{% endblock %}

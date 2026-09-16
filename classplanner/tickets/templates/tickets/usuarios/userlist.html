@@ -4,16 +4,20 @@
 
 <div class="p-4 border border-slate-400 dark:border-slate-700 h-screen border-default border-dashed mt-10 rounded-lg">
     <div class="user-list-content">
-        <p class="mb-3 text-slate-500">Gestión / Usuarios</p>
-        <h2 class="text-3xl font-bold text-[#234FA8] mb-4">Listado de usuarios</h2>
+        <p class="mb-3 text-slate-500 dark:text-[#a8b2d2]">Gestión / Usuarios</p>
+        <h2 class="text-3xl font-bold text-[#234FA8] dark:text-blue-500 mb-4">Listado de usuarios</h2>
 
         <div class="mb-8 w-full gap-4 md:gap-0 flex flex-col md:flex-row md:justify-between justify-center">
             <div class="flex items-center relative">
-                <input type="text" class="w-96 h-full border-2 border-slate-300 form-control bg-white dark:bg-[#11182d] dark:border-slate-800 focus:outline-none focus:border-blue-600 transition focus:transition dark:placeholder:text-[#a8b2d2] dark:text-white rounded px-2 py-2" placeholder="Buscar" maxlength="40">
-                <i class="bi bi-search text-gray-400 dark:text-slate-300 absolute right-0 -translate-x-4"></i>
+                <input type="text" class="bg-white dark:bg-[#11182d] text-sm focus:outline-none focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 focus:transition focus:duration-300 rounded-lg h-12 w-96 border-2 p-3 border-slate-300 dark:border-slate-700 dark:placeholder:text-[#a8b2d2] dark:text-white" placeholder="Buscar" maxlength="40">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-search text-gray-400 dark:text-slate-300 absolute right-0 -translate-x-4">
+                    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                    <path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" />
+                    <path d="M21 21l-6 -6" />
+                </svg>
             </div>
             <a href="{% url 'usercreate' %}" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-800 text-center hover:transition transition hover:duration-300 duration-300 rounded-lg px-8 py-3">
-                <p class="w-full text-white font-semibold">+ Nuevo usuario</p>
+                <p class="w-full text-white font-semibold text-sm">+ Nuevo usuario</p>
             </a>
         </div>
 
@@ -56,19 +60,41 @@
                                 <p>{{ u.name }} {{ u.last_name }}</p>
                             </div>
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap md:whitespace-normal">{{ u.rol }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap md:whitespace-normal flex">    
+                            {% if u.rol.name == 'root' %}
+                            <p class="text-purple-500 text-xs font-semibold bg-purple-600/20 px-3 py-1 text-center w-auto rounded-full">
+                                {{ u.rol }}
+                            </p>
+                            {% elif u.rol.name == 'Docente' %}
+                            <p class="text-blue-500 text-xs font-semibold bg-blue-600/20 px-3 py-1 text-center w-auto rounded-full">
+                                {{ u.rol }}
+                            </p>
+                            {% elif u.rol.name == 'Director' %}
+                            <p class="text-orange-500 text-xs font-semibold bg-orange-600/20 px-3 py-1 text-center w-auto rounded-full">
+                                {{ u.rol }}
+                            </p>
+                            {% endif %}
+                        </td>
                         <td class="px-6 py-4 whitespace-nowrap md:whitespace-normal">{{ u.rut }}</td>
                         <td class="px-6 py-4 whitespace-nowrap md:whitespace-normal">{{ u.email }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap md:whitespace-normal">+56911112222</td>
+                        <td class="px-6 py-4 whitespace-nowrap md:whitespace-normal">{{ u.telefono }}</td>
                         <td class="px-6 py-4 whitespace-nowrap md:whitespace-normal flex gap-2 ">
                             {% if request.user.rol.name != 'root' and u.rol.name == 'root' or request.user.rol.name != 'root' and u.rol.name == 'Administrador' %}
                                 <p class="text-danger">NO AUTORIZADO</p>
                             {% else %}
-                                <a href="{% url 'userupdate' u.id %}" class="bg-blue-600 hover:bg-blue-800 text-white w-9 h-9 flex items-center justify-center text-center hover:transition transition hover:duration-300 duration-300 rounded-lg">
-                                    <i class="bi bi-pencil-square"></i>
+                                <a href="{% url 'userupdate' u.id %}" class="bg-sky-600 hover:bg-sky-700 text-white w-9 h-9 flex items-center justify-center text-center hover:transition transition hover:duration-300 duration-300 rounded-lg">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-edit">
+                                        <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                                        <path d="M8 7a1 1 0 0 1 -1 1h-1a1 1 0 0 0 -1 1v9a1 1 0 0 0 1 1h9a1 1 0 0 0 1 -1v-1a1 1 0 0 1 2 0v1a3 3 0 0 1 -3 3h-9a3 3 0 0 1 -3 -3v-9a3 3 0 0 1 3 -3h1a1 1 0 0 1 1 1" />
+                                        <path d="M14.596 5.011l4.392 4.392l-6.28 6.303a1 1 0 0 1 -.708 .294h-3a1 1 0 0 1 -1 -1v-3a1 1 0 0 1 .294 -.708zm6.496 -2.103a3.097 3.097 0 0 1 .165 4.203l-.164 .18l-.693 .694l-4.387 -4.387l.695 -.69a3.1 3.1 0 0 1 4.384 0" />
+                                    </svg>
                                 </a>
-                                <a href="{% url 'userdelete' u.id %}" class="bg-red-600 hover:bg-red-800 text-white w-9 h-9 flex items-center justify-center text-center hover:transition transition hover:duration-300 duration-300 rounded-lg">
-                                    <i class="bi bi-trash-fill"></i>
+                                <a href="{% url 'userdelete' u.id %}" class="bg-red-500 hover:bg-red-600 text-white w-9 h-9 flex items-center justify-center text-center hover:transition transition hover:duration-300 duration-300 rounded-lg">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-trash">
+                                        <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                                        <path d="M20 6a1 1 0 0 1 .117 1.993l-.117 .007h-.081l-.919 11a3 3 0 0 1 -2.824 2.995l-.176 .005h-8c-1.598 0 -2.904 -1.249 -2.992 -2.75l-.005 -.167l-.923 -11.083h-.08a1 1 0 0 1 -.117 -1.993l.117 -.007zm-10 4a1 1 0 0 0 -1 1v6a1 1 0 0 0 2 0v-6a1 1 0 0 0 -1 -1m4 0a1 1 0 0 0 -1 1v6a1 1 0 0 0 2 0v-6a1 1 0 0 0 -1 -1" />
+                                        <path d="M14 2a2 2 0 0 1 2 2a1 1 0 0 1 -1.993 .117l-.007 -.117h-4l-.007 .117a1 1 0 0 1 -1.993 -.117a2 2 0 0 1 1.85 -1.995l.15 -.005z" />
+                                    </svg>
                                 </a>
                             {% endif %}
                         </td>
