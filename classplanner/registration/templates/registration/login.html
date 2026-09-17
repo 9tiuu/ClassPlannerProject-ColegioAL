@@ -24,11 +24,11 @@
 <body>
     <div class="flex flex-row-reverse w-full h-screen">
         <div class="absolute bottom-0 left-0 ml-4 mb-4">
-            <button id="darkModeButton" class="w-12 h-12 rounded-full bg-white dark:bg-[#232945] dark:text-white border-2 border-gray-300 dark:border-slate-700 flex items-center justify-center">
+            <button id="darkModeButton" class="w-12 h-12 rounded-full bg-white dark:bg-[#141826] dark:text-white border-2 border-gray-300 dark:border-slate-800 flex items-center justify-center">
                 {% comment %} cambio de tema dark/light {% endcomment %}
             </button>
         </div>
-        <div class="flex items-center md:p-4 p-6 justify-center w-[100rem] h-screen bg-white dark:bg-[#080e1d]">
+        <div class="flex items-center md:p-4 p-6 justify-center w-[100rem] h-screen bg-white dark:bg-[#0c0e16]">
             <form method="post" class="md:w-[35rem] w-full">
                 <div class="flex items-center mb-10">
                     {% load static %}
@@ -46,11 +46,11 @@
                 {% csrf_token %}
                 <p class="mb-4 flex flex-col">
                     <label for="username" class="mb-1 text-base font-semibold text-slate-600 dark:text-white">Ingresar con correo o RUT <b class="text-red-600">*</b></label>
-                    <input type="text" name="username" class="bg-white dark:bg-[#11182d] text-sm focus:outline-none focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 focus:transition focus:duration-300 rounded-lg h-12 border-2 p-3 border-slate-300 dark:border-slate-700 dark:placeholder:text-[#a8b2d2] dark:text-white" placeholder="ejemplo@outlook.com o 12345678-K" required>
+                    <input type="text" name="username" class="bg-white dark:bg-[#141826] text-sm focus:outline-none focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 focus:transition focus:duration-300 rounded-lg h-12 border p-3 border-slate-300 dark:border-slate-800 dark:placeholder:text-[#a8b2d2] dark:text-white" placeholder="ejemplo@outlook.com o 12345678-K" required>
                 </p>
                 <p class="mb-2 flex flex-col">
                     <label for="password" class="mb-1 text-base font-semibold text-slate-600 dark:text-white">Contraseña <b class="text-red-600">*</b></label>
-                    <input type="password" name="password" class="bg-white dark:bg-[#11182d] text-sm focus:outline-none focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 focus:transition focus:duration-300 rounded-lg h-12 border-2 p-3 border-slate-300 dark:border-slate-700 dark:placeholder:text-[#a8b2d2] dark:text-white" placeholder="************" minlength="4" maxlength="45" required>
+                    <input type="password" name="password" class="bg-white dark:bg-[#141826] text-sm focus:outline-none focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 focus:transition focus:duration-300 rounded-lg h-12 border p-3 border-slate-300 dark:border-slate-800 dark:placeholder:text-[#a8b2d2] dark:text-white" placeholder="************" minlength="4" maxlength="45" required>
                 </p>
                 {% comment %} <p class="text-right text-blue-600 cursor-pointer hover:underline hover:transition transition">¿Olvidaste tu contraseña?</p> {% endcomment %}
                 {% if form.non_field_errors %}
