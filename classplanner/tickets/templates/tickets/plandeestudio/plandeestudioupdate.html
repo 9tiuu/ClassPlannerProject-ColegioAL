@@ -1,0 +1,19 @@
+{% extends "tickets/base.html" %}
+
+{% block content %}
+
+<!--editar por curso, traer sus asignaturas para cambiar las horas + checkbox asignaturas de /plandeestudiocreate.html-->
+
+<div class="p-4 border border-slate-400 dark:border-slate-700 h-screen border-default border-dashed mt-10 rounded-lg">
+    <div class="user-list-content">
+        <p class="mb-3 text-slate-500"><a class="hover:underline" href="{% url 'home' %}">Gestión</a> / <a class="hover:underline" href="{% url 'plandeestudio' %}">Planes de Estudio</a>
+        <h2 class="text-3xl font-bold text-[#234FA8] mb-4">Editar Plan de Estudio</h2>
+
+        <form method="POST" action="{% url 'plandeestudioupdate' plandeestudio.id %}">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit" class="bg-blue-600 hover:bg-blue-800 text-white font-semibold py-2 px-4 rounded">Guardar Cambios</button>
+        </form>
+    </div>
+
+    {% endblock  %}

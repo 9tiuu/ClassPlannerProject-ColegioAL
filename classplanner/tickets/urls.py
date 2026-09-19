@@ -1,6 +1,12 @@
 from django.urls import path
 from . import views
-from .views import CreateRol, CreateUsuario, ListUsuario, UpdateUsuario, DeleteUsuario, ListRol, UpdateRol, DeleteRol, ListAsignatura, ListPlanDeEstudio
+from .views import (
+    CreateUsuario, ListUsuario, UpdateUsuario, DeleteUsuario,
+    ListRol, UpdateRol, DeleteRol, CreateRol,
+    ListCursos, CreateCurso, UpdateCurso, DeleteCurso,
+    ListAsignatura,
+    ListPlanDeEstudio, CreatePlanDeEstudio, UpdatePlanDeEstudio
+)
 from .views import custom_logout
 # from django.contrib.auth.views import LoginView
 
@@ -20,11 +26,20 @@ urlpatterns = [
     path('userupdate/<int:pk>/', UpdateUsuario.as_view(), name='userupdate'),
     path('userdelete/<int:pk>/', DeleteUsuario.as_view(), name='userdelete'),
 
+    # CURSOS
+    path('cursos/', ListCursos.as_view(), name='cursos'),
+    path('cursocreate/', CreateCurso.as_view(), name='cursocreate'),
+    path('cursoupdate/<int:pk>/', UpdateCurso.as_view(), name='cursoupdate'),
+    path('cursodelete/<int:pk>/', DeleteCurso.as_view(), name='cursodelete'),
+
     # ASIGNATURAS
     path('asignaturas/', ListAsignatura.as_view(), name='asignaturas'),
 
-    # ASIGNATURAS POR DOCENTE / O HORARIOS
-    path('asignaturaspordocentes/', ListPlanDeEstudio.as_view(), name='asignaturaspordocente'),
+    # PLAN DE ESTUDIOS
+    path('plandeestudios/', views.ListPlanDeEstudio, name='plandeestudio'),
+    path('plandeestudiocreate/', views.CreatePlanDeEstudio, name='plandeestudiocreate'),
+    path('plandeestudiocreateform/', views.CreatePlanDeEstudioForm, name='plandeestudiocreateform'),
+    path('plandeestudioupdate/<int:pk>/', UpdatePlanDeEstudio.as_view(), name='plandeestudioupdate'),
 
     # AUTENTICACION
     path('logout/', custom_logout, name='logout'),

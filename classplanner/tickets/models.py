@@ -110,7 +110,7 @@ class Bloque(models.Model):
 class PlanDeEstudio(models.Model):
     hrs_asignatura = models.FloatField()
     curso_id = models.ForeignKey(Curso, on_delete=models.CASCADE)
-    asignatura_id = models.ForeignKey(Asignatura, on_delete=models.CASCADE)
+    asignatura_id = models.ForeignKey(Asignatura, on_delete=models.RESTRICT)
 
     def __str__(self) -> str:
         return f'{self.curso_id}: {self.hrs_asignatura}hrs. {self.asignatura_id}'

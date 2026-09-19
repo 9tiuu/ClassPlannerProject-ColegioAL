@@ -1,0 +1,74 @@
+{% extends "tickets/base.html" %}
+
+{% block content %}
+
+<div class="p-4 border border-slate-300 dark:border-slate-700 h-screen border-default border mt-10 rounded-lg">
+    <div id="user-list-content">
+        <p class="mb-3 text-slate-500"><button class="hover:underline" id="home-link" data-url="{% url 'home' %}" onclick="exitConfirm(this)">Gestión</button> / <button class="hover:underline" id="plandeestudio-link" data-url="{% url 'plandeestudio' %}" onclick="exitConfirm(this)">Planes de Estudio</button> / Crear</p>
+        <h2 class="text-3xl font-bold text-[#234FA8] mb-4">Crear Plan de Estudio</h2>
+
+        <div id="plan-div" style="display: flex; gap: 3rem">
+            <div>
+                <h2 class="text-2xl font-bold text-[#234FA8] mb-4">Asignaturas</h2>
+                <div id="asignaturas-select" style="gap: 1rem">
+                    {% for a in asignaturas %}
+                           <input type="checkbox"
+                               id="{{ a.id }}"
+                               value="{{ a.id }}"
+                               data-nombre="{{ a }}"
+                               onchange="ipt_asignatura()">{{ a }}
+                        <br>
+                    {% endfor %}
+                </div>
+            </div>
+            <div>
+                <div style="display: flex; flex-direction: column; align-content: center;">
+                    <!-- hx-vals envía parámetro del total de formularios en pantalla, por url -->
+                    <button
+                        id="agregar-curso"
+                        class="max-w-md bg-blue-600 hover:bg-blue-800 text-white font-semibold py-2 px-4 rounded disabled:opacity-70"
+                        type="submit"
+                        disabled
+                        hx-get="{% url 'plandeestudiocreateform' %}"
+                        hx-vals='js:{forms_count: document.querySelectorAll("#plan-form > form").length}'
+                        hx-target="#plan-form"
+                        hx-swap="beforeend"
+                        >+ Curso</button>
+
+                    <div id="plan-form" style="display: flex;">
+                        {% include 'tickets/plandeestudio/plandeestudioform.html' %}
+                    </div>
+                </div>
+                
+                <div id="crear-plan">
+                    <button type="submit"
+                    disabled
+                    id="submit-all"
+                    class="shadow-lg fixed bottom-8 right-8 bg-blue-600 hover:bg-blue-800 text-white font-semibold py-2 px-4 rounded disabled:opacity-70"
+                    >Crear plan de estudio</button>
+                </div>
+
+                <div id="error-msg">
+                    {% include 'tickets/plandeestudio/plandeestudioformerror.html' %}
+                </div>
+                {% if messages %}
+                    {% for message in messages %}
+                        <script>
+                            Swal.fire({
+                                "title": "{% if 'error' in message.tags %}¡Error!{% elif 'success' in message.tags %}Listo!{% else %}Información{% endif %}",
+                                "text": "{{ message }}",
+                                "icon": "{% if 'error' in message.tags %}error{% elif 'success' in message.tags %}success{% elif 'warning' in message.tags %}warning{% else %}info{% endif %}",
+                                "confirmButtonColor": "{% if 'error' in message.tags %}#d33{% elif 'success' in message.tags %}#0d6efd{% elif 'warning' in message.tags %}#f39c12{% else %}#3085d6{% endif %}"
+                            });
+                        </script>
+                    {% endfor %}
+                {% endif %}
+
+            </div>
+        </div>
+    </div>
+
+    {% load static %}
+    <script src="{% static 'tickets/js/plandeestudioform.js' %}"></script>
+
+{% endblock %}
