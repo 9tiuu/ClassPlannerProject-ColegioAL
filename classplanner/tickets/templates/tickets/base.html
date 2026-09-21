@@ -17,7 +17,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.4.1/html2canvas.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.10/dist/htmx.min.js" integrity="sha384-H5SrcfygHmAuTDZphMHqBJLc3FhssKjG7w/CeCpFReSfwBWDTKpkzPP8c+cLsK+V" crossorigin="anonymous"></script>
 
-
     <script src="https://cdn.tailwindcss.com"></script>
 
     <script>
@@ -35,7 +34,7 @@
         <div class="px-3 py-3 lg:px-5 lg:pl-3">
             <div class="flex items-center justify-between">
                 <div class="flex items-center justify-start rtl:justify-end">
-                    <button data-drawer-target="top-bar-sidebar" id="sidebar-button" data-drawer-toggle="top-bar-sidebar" aria-controls="top-bar-sidebar" type="button" class="sm:hidden text-heading dark:text-white rounded-lg bg-transparent box-border border border-transparent hover:bg-neutral-secondary-medium focus:ring-4 focus:ring-neutral-tertiary font-medium leading-5 rounded-base text-sm p-2 focus:outline-none focus:ring-slate-800">
+                    <button data-drawer-target="top-bar-sidebar" id="sidebar-buttom" data-drawer-toggle="top-bar-sidebar" aria-controls="top-bar-sidebar" type="button" class="sm:hidden text-heading dark:text-white rounded-lg bg-transparent box-border border border-transparent hover:bg-neutral-secondary-medium focus:ring-4 focus:ring-neutral-tertiary font-medium leading-5 rounded-base text-sm p-2 focus:outline-none focus:ring-slate-800">
                         <span class="sr-only">Open sidebar</span>
                         <svg class="w-6 h-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
                             <path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M5 7h14M5 12h14M5 17h10"/>
@@ -59,7 +58,7 @@
                                 <button id="darkModeButton" class="w-10 h-10 rounded-full bg-whit hover:bg-gray-100 dark:bg-[#141826] dark:hover:bg-[#1d2236] dark:text-white border-2 border-gray-300 dark:border-slate-800 flex items-center justify-center hover:transition transition hover:duration-300 duration-300">
                                     {% comment %} cambio de tema dark/light {% endcomment %}
                                 </button>
-                                <div class="flex gap-2 cursor-pointer" id="user-button">
+                                <div class="flex gap-2 cursor-pointer" id="user-buttom">
                                     <button type="button" class="text-sm border-2 border-gray-300 dark:border-slate-700 flex rounded-full" aria-expanded="false" data-dropdown-toggle="dropdown-user">
                                         <span class="sr-only">Open user menu</span>
                                         {% if request.user.is_authenticated %}
@@ -196,7 +195,7 @@
     <!-- Interfaces -->
     <div class="p-4 bg-slate-100 dark:bg-[#0c0e16] sm:ml-72 mt-14">
         {% block content %}
-            <div class="p-4 border-1 border-default border-dashed border-gray-400 mt-10 rounded-lg">
+            <div class="p-4 border-slate-300 dark:border-slate-700 min-h-screen border-default border mt-10 rounded-lg">
                 <div class="grid grid-cols-3 gap-4 mb-4">
                     <div class="flex items-center justify-center h-24 rounded-base bg-gray-200 dark:bg-[#141826]">
                         <p class="text-gray-600">

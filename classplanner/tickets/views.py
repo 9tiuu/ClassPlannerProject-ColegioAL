@@ -295,7 +295,7 @@ class DeleteCurso(UserPassesTestMixin, DeleteView):
     def form_valid(self, form):
         messages.success(self.request, '¡Curso eliminado con exito!')
         return super().form_valid(form)
-    
+
 # ----------------------------------- # ASIGNATURAS
 
 class ListAsignatura(UserPassesTestMixin, ListView):

@@ -58,5 +58,4 @@ class PlanDeEstudioUpdateForm(forms.ModelForm):
             'curso_id': 'Curso',
             'asignatura_id': 'Asignaturas'
         }
-        widgets = {
-        }
+        widgets = {}
