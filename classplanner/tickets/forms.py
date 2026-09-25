@@ -1,5 +1,5 @@
 from django import forms
-from .models import Curso, PlanDeEstudio, Usuario, Rol
+from .models import Curso, PlanDeEstudio, Usuario, Rol, Asignatura
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 # from django.contrib.auth.forms import AuthenticationForm
 
@@ -59,3 +59,8 @@ class PlanDeEstudioUpdateForm(forms.ModelForm):
             'asignatura_id': 'Asignaturas'
         }
         widgets = {}
+
+class AsignaturasCreateForm(forms.ModelForm):
+    class Meta:
+        model = Asignatura
+        fields = ['ident', 'nombre', 'descripcion', 'plan_diferencial_id']

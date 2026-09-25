@@ -1,125 +1,135 @@
 {% extends 'tickets/base.html' %}
 
 {% block content %}
-<div class="create-users-forms">
-    <div>
-        <h2 class="text-primary mb-2">Crear nuevo Usuario</h2>
-    </div>
-    <form method="POST" enctype="multipart/form-data" class="users-c-form">
-        {% csrf_token %}  
-            
-        <div>
-            <label for="id_username" class="mb-2 blue-sys">Nombre de usuario</label>
-            <input type="text" name="username" id="id_username" value="{{ form.username.value|default:"" }}" class="form-control form-crud" minlength="2" maxlength="45" required>
+<div class="p-4 border-slate-300 dark:border-slate-700 min-h-screen border-default border mt-10 rounded-lg">
+    <p class="mb-3 text-slate-500 dark:text-[#a8b2d2]">Gestión / Usuarios / Crear</p>
+    <h2 class="text-3xl font-bold text-[#234FA8] dark:text-blue-500 mb-1">Nuevo usuario</h2>
+    <p class="text-slate-500 dark:text-[#a8b2d2] mb-5 text-sm">Registre un nuevo usuario completando los siguientes campos:</p>
 
-            {% if form.username.errors %}
-            <div class="errors mb-2">
-                {% for error in form.username.errors %}
-                <p class="text-danger">{{ error }}</p>
-                {% endfor %}
-            </div>
-            {% endif %}
-        </div>
-        <div class="dual-form">
-            <div class="w-100">
-                <label for="id_username" class="mb-2 blue-sys">Nombre</label>
-                <input type="text" name="name" id="id_name" value="{{ form.name.value|default:"" }}" class="form-control form-crud" minlength="2" maxlength="45" required>
-
-                {% if form.name.errors %}
-                <div class="errors mb-2">
-                    {% for error in form.name.errors %}
-                    <p class="text-danger">{{ error }}</p>
-                    {% endfor %}
-                </div>
-                {% endif %}
-            </div>
-            <div class="w-100">
-                <label for="last_name" class="mb-2 blue-sys">Apellido</label>
-                <input type="text" name="last_name" id="id_last_name" value="{{ form.last_name.value|default:"" }}" class="form-control form-crud" minlength="2" maxlength="45" required>
+    <div class="p-4 bg-white dark:bg-[#141826] rounded-lg">
+        <form method="POST" enctype="multipart/form-data" class="users-c-form">
+            {% csrf_token %}  
                 
-                {% if form.last_name.errors %}
+            <div class="flex flex-col w-full mb-5">
+                <label for="username" class="mb-1 text-base font-semibold text-slate-600 dark:text-white">Nombre de usuario <b class="text-red-600">*</b></label>
+                <input type="text" name="username" id="id_username" value="{{ form.username.value|default:"" }}" class="bg-white dark:bg-[#141826] text-sm focus:outline-none focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 focus:transition focus:duration-300 rounded-lg h-12 border-2 p-3 border-slate-300 dark:border-slate-700 dark:placeholder:text-[#a8b2d2] dark:text-white" minlength="2" maxlength="45" placeholder="Ej: camilotorres" required>
+
+                {% if form.username.errors %}
                 <div class="errors mb-2">
-                    {% for error in form.last_name.errors %}
+                    {% for error in form.username.errors %}
                     <p class="text-danger">{{ error }}</p>
                     {% endfor %}
                 </div>
                 {% endif %}
             </div>
-        </div>
-        <div>
-            <label for="email" class="mb-2 blue-sys">Correo</label>
-            <input type="email" name="email" id="id_email" value="{{ form.email.value|default:"" }}" class="form-control form-crud" minlength="4" maxlength="45" required>
+            <div class="flex md:flex-row flex-col w-full gap-5 mb-5">
+                <div class="flex flex-col w-full">
+                    <label for="id_name" class="mb-1 text-base font-semibold text-slate-600 dark:text-white">Nombre <b class="text-red-600">*</b></label>
+                    <input type="text" name="name" id="id_name" value="{{ form.name.value|default:"" }}" class="bg-white dark:bg-[#141826] text-sm focus:outline-none focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 focus:transition focus:duration-300 rounded-lg h-12 border-2 p-3 border-slate-300 dark:border-slate-700 dark:placeholder:text-[#a8b2d2] dark:text-white" placeholder="Ej: Camilo" minlength="2" maxlength="45" required>
 
-            {% if form.email.errors %}
-                <div class="errors mb-2">
-                    {% for error in form.email.errors %}
-                    <p class="text-danger">{{ error }}</p>
-                    {% endfor %}
+                    {% if form.name.errors %}
+                    <div class="errors mb-2">
+                        {% for error in form.name.errors %}
+                        <p class="text-danger">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
                 </div>
+                <div class="flex flex-col w-full">
+                    <label for="last_name" class="mb-1 text-base font-semibold text-slate-600 dark:text-white">Apellido <b class="text-red-600">*</b></label>
+                    <input type="text" name="last_name" id="id_last_name" value="{{ form.last_name.value|default:"" }}" class="bg-white dark:bg-[#141826] text-sm focus:outline-none focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 focus:transition focus:duration-300 rounded-lg h-12 border-2 p-3 border-slate-300 dark:border-slate-700 dark:placeholder:text-[#a8b2d2] dark:text-white" placeholder="Ej: Torres" minlength="2" maxlength="45" required>
+                    
+                    {% if form.last_name.errors %}
+                    <div class="errors mb-2">
+                        {% for error in form.last_name.errors %}
+                        <p class="text-danger">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="flex flex-col w-full mb-5">
+                <label for="email" class="mb-1 text-base font-semibold text-slate-600 dark:text-white">Correo <b class="text-red-600">*</b></label>
+                <input type="email" name="email" id="id_email" value="{{ form.email.value|default:"" }}" class="bg-white dark:bg-[#141826] text-sm focus:outline-none focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 focus:transition focus:duration-300 rounded-lg h-12 border-2 p-3 border-slate-300 dark:border-slate-700 dark:placeholder:text-[#a8b2d2] dark:text-white" minlength="4" maxlength="45" placeholder="Ej: ejemplo@outlook.com" required>
+
+                {% if form.email.errors %}
+                    <div class="errors mb-2">
+                        {% for error in form.email.errors %}
+                        <p class="text-danger">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+            <div class="flex flex-col w-full gap-5 mb-5">
+                <div class="flex flex-col w-full">
+                    <label for="rut" class="mb-1 text-base font-semibold text-slate-600 dark:text-white">RUT <b class="text-red-600">*</b></label>
+                    <input type="text" name="rut" id="id_rut" value="{{ form.rut.value|default:"" }}" class="bg-white dark:bg-[#141826] text-sm focus:outline-none focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 focus:transition focus:duration-300 rounded-lg h-12 border-2 p-3 border-slate-300 dark:border-slate-700 dark:placeholder:text-[#a8b2d2] dark:text-white" minlength="10" maxlength="10" placeholder="Ej: 12345678-K" required>
+
+                    {% if form.rut.errors %}
+                    <div class="errors mb-2">
+                        {% for error in form.rut.errors %}
+                        <p class="text-danger">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="flex flex-col w-full">
+                    <label for="rol" class="mb-1 text-base font-semibold text-slate-600 dark:text-white">Rol de usuario <b class="text-red-600">*</b></label>
+                    <select name="rol" id="id_rol" class="bg-white dark:bg-[#141826] text-sm focus:outline-none focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 focus:transition focus:duration-300 rounded-lg h-12 border-2 p-3 border-slate-300 dark:border-slate-700 dark:placeholder:text-[#a8b2d2] dark:text-white">
+                        <option value="" {% if not form.rol.value %} selected {% endif %}>Por seleccionar...</option>
+                        {% for option in form.rol.field.queryset %}
+                            <option value="{{ option.id }}" {% if option.id == form.rol.value %} selected {% endif %}>
+                                {{ option }}
+                            </option>
+                        {% endfor %}
+                    </select>
+
+                    {% if form.rol.errors %}
+                    <div class="errors mb-2">
+                        {% for error in form.rol.errors %}
+                        <p class="text-danger">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="flex md:flex-row flex-col w-full gap-5 mb-5">
+                <div class="flex flex-col w-full">
+                    <label for="id_password1" class="mb-1 text-base font-semibold text-slate-600 dark:text-white">Contraseña <b class="text-red-600">*</b> <span class="font-normal cursor-pointer dark:text-blue-500 text-blue-600 hover:underline text-xs">Generar contraseña</span></label>
+                    <input type="password" name="password1" id="id_password1" value="{{ form.passoword1.value|default:"" }}" class="bg-white dark:bg-[#141826] text-sm focus:outline-none focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 focus:transition focus:duration-300 rounded-lg h-12 border-2 p-3 border-slate-300 dark:border-slate-700 dark:placeholder:text-[#a8b2d2] dark:text-white" placeholder="**********" minlength="8" required>
+
+                    {% if form.password1.errors %}
+                    <div class="errors">
+                        {% for error in form.password1.errors %}
+                        <p class="text-danger">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="flex flex-col w-full">
+                    <label for="id_password2" class="mb-1 text-base font-semibold text-slate-600 dark:text-white">Confirmar contraseña <b class="text-red-600">*</b></label>
+                    <input type="password" name="password2" id="id_password2" value="{{ form.passoword2.value|default:"" }}" class="bg-white dark:bg-[#141826] text-sm focus:outline-none focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 focus:transition focus:duration-300 rounded-lg h-12 border-2 p-3 border-slate-300 dark:border-slate-700 dark:placeholder:text-[#a8b2d2] dark:text-white" placeholder="**********" minlength="8" required>
+                </div>
+
+            </div>
+            {% if form.password2.errors %}
+                    <div class="errors mb-2">
+                        {% for error in form.password2.errors %}
+                        <p class="text-danger">{{ error }}</p>
+                        {% endfor %}
+                    </div>
             {% endif %}
-        </div>
-        <div class="dual-form">
-            <div class="w-100">
-                <label for="rut" class="mb-2 blue-sys">Rut</label>
-                <input type="text" name="rut" id="id_rut" value="{{ form.rut.value|default:"" }}" class="form-control form-crud" minlength="10" maxlength="10" required>
 
-                {% if form.rut.errors %}
-                <div class="errors mb-2">
-                    {% for error in form.rut.errors %}
-                    <p class="text-danger">{{ error }}</p>
-                    {% endfor %}
-                </div>
-                {% endif %}
+            <div class="flex justify-end flex-row gap-2 my-8 w-full">              
+                <a href="{% url 'userlist' %}" class="flex items-center text-sm gap-2 border-2 font-semibold border-slate-300 dark:border-slate-700 dark:bg-[#141826] dark:hover:bg-[#1d2236] dark:text-[#a8b2d2] dark:hover:text-white text-slate-500 hover:bg-gray-100 hover:text-slate-700 text-center hover:transition transition hover:duration-300 duration-300 rounded-lg px-4 py-3">
+                    Volver atrás
+                </a>
+                <button type="submit" class="flex items-center gap-2 text-white text-sm font-semibold bg-blue-600 hover:bg-blue-800 text-center hover:transition transition hover:duration-300 duration-300 rounded-lg px-4 py-3 ">
+                    Crear usuario
+                </button>
             </div>
-            <div class="w-100">
-                <label for="rol" class="mb-2 blue-sys">Rol de usuario</label>
-                <select name="rol" id="id_rol" class="form-control form-crud">
-                    <option value="" {% if not form.rol.value %} selected {% endif %}>Seleccione un rol</option>
-                    {% for option in form.rol.field.queryset %}
-                        <option value="{{ option.id }}" {% if option.id == form.rol.value %} selected {% endif %}>
-                            {{ option }}
-                        </option>
-                    {% endfor %}
-                </select>
-
-                {% if form.rol.errors %}
-                <div class="errors mb-2">
-                    {% for error in form.rol.errors %}
-                    <p class="text-danger">{{ error }}</p>
-                    {% endfor %}
-                </div>
-                {% endif %}
-            </div>
-        </div>
-        <div class="dual-form">
-            <div class="w-100">
-                <label for="id_password1" class="mb-2 blue-sys">Contraseña</label>
-                <input type="password" name="password1" id="id_password1" value="{{ form.passoword1.value|default:"" }}" class="form-control form-crud" minlength="8" required>
-
-                {% if form.password1.errors %}
-                <div class="errors">
-                    {% for error in form.password1.errors %}
-                    <p class="text-danger">{{ error }}</p>
-                    {% endfor %}
-                </div>
-                {% endif %}
-            </div>
-
-            <div class="w-100">
-                <label for="id_password2" class="mb-2 blue-sys">Confirmar contraseña</label>
-                <input type="password" name="password2" id="id_password2" value="{{ form.passoword2.value|default:"" }}" class="form-control form-crud" minlength="8" required>
-            </div>
-
-        </div>
-        {% if form.password2.errors %}
-                <div class="errors mb-2">
-                    {% for error in form.password2.errors %}
-                    <p class="text-danger">{{ error }}</p>
-                    {% endfor %}
-                </div>
-        {% endif %}
-        <button type="submit" class="btn btn-primary">Crear usuario</button>
-        <a href="{% url 'userlist' %}" class="btn btn-dark mx-2">Volver atrás</a>
-    </form>
+        </form>
+    </div>
 </div>
 {% endblock %}

@@ -15,7 +15,7 @@ from .models import Rol, Usuario, Asignatura, PlanDeEstudio, Curso
 from .forms import (
     RolForm, UsuarioForm, UserUpdateForm,
     PlanDeEstudioCreateForm, PlanDeEstudioUpdateForm,
-    CursoForm
+    CursoForm, AsignaturasCreateForm
 )
 
 from django.contrib.auth import logout
@@ -306,6 +306,20 @@ class ListAsignatura(UserPassesTestMixin, ListView):
     def test_func(self):
             rol = self.request.user.rol.name
             return rol in ['root', 'Administrador']
+
+class CreateAsignatura(UserPassesTestMixin, CreateView):
+    model = Asignatura
+    form_class = AsignaturasCreateForm
+    template_name = 'tickets/asignaturas/asignaturacreate.html'
+    success_url = reverse_lazy('asignaturas')
+
+    def test_func(self):
+        rol = self.request.user.rol.name
+        return rol in ['root', 'Administrador']
+
+    def form_valid(self, form):
+            messages.success(self.request, '¡Asignatura creada con exito!')
+            return super().form_valid(form)
 
 # ----------------------------------- # PLAN DE ESTUDIO
 
