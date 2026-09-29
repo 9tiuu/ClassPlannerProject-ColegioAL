@@ -1,0 +1,22 @@
+{% extends "tickets/base.html" %}
+
+{% block content %}
+
+<div class="p-4 border-slate-300 dark:border-slate-700 min-h-screen border-default border mt-10 rounded-lg">
+    <div class="user-list-content">
+        <p class="mb-3 text-slate-500">Gestión / Cursos</p>
+        <h2 class="text-3xl font-bold text-[#234FA8] mb-4">Eliminar Curso</h2>
+        {% if curso %}
+        <div class="message-content">
+            <h3>¿Eliminar Curso: <b class="blue-sys">{{ curso.nivel }} {{ curso.letra }}</b>?</h3>
+            <p class="text-secondary mb-4">Al confirmar, se eliminará el curso de manera definitiva del sistema...</p>
+            <form method="post">
+                {% csrf_token %}
+                <input type="submit" value="Eliminar" class="btn btn-danger mx-3">
+                <a href="{% url 'cursos' %}" class="btn btn-primary">Cancelar</a>
+            </form>
+        </div>
+        {% endif %}
+    </div>
+
+{% endblock  %}

@@ -2,7 +2,7 @@
 
 {% block content %}
 
-<div class="p-4 border border-slate-400 dark:border-slate-700 min-h-screen border-default border-dashed mt-10 rounded-lg overflow-hidden">
+<div class="p-4 border-slate-300 dark:border-slate-700 min-h-screen border-default border mt-10 rounded-lg">
     <div class="user-list-content w-full">
 
         <p class="mb-3 text-slate-500 dark:text-[#a8b2d2]">Gestión / Asignaturas</p>
@@ -46,7 +46,7 @@
                 </div>
             </div>
 
-            <a href="{% url 'usercreate' %}" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-800 text-center hover:transition transition hover:duration-300 duration-300 rounded-lg px-8 py-3">
+            <a href="{% url 'asignaturacreate' %}" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-800 text-center hover:transition transition hover:duration-300 duration-300 rounded-lg px-8 py-3">
                 <p class="w-full text-white font-semibold">+ Nueva asignatura</p>
             </a>
 
@@ -111,7 +111,7 @@
                     <div class="border-t mt-4 border-slate-300 dark:border-slate-700 pt-3 flex items-center justify-between">
 
                         <p id="plan-{{ a.ident }}" class="text-xs bg-slate-400/20 px-4 py-1 w-auto rounded-lg text-slate-500 dark:text-white font-medium truncate">
-                            {{ a.plan_diferencial_id }}
+                            {% if a.plan_diferencial_id %} {{ a.plan_diferencial_id }} {% else %} --- {% endif %}
                         </p>
 
                         <div class="flex gap-2">
@@ -194,7 +194,7 @@
                         </td>
 
                         <td class="px-6 py-4 whitespace-nowrap md:whitespace-normal">
-                            {{ a.plan_diferencial_id }}
+                            {% if a.plan_diferencial_id %} {{ a.plan_diferencial_id }} {% else %} --- {% endif %}
                         </td>
 
                         <td class="px-6 py-4 whitespace-nowrap md:whitespace-normal">

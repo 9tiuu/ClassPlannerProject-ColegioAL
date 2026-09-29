@@ -15,6 +15,7 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.rawgit.com/davidshimjs/qrcodejs/gh-pages/qrcode.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.4.1/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.10/dist/htmx.min.js" integrity="sha384-H5SrcfygHmAuTDZphMHqBJLc3FhssKjG7w/CeCpFReSfwBWDTKpkzPP8c+cLsK+V" crossorigin="anonymous"></script>
 
     <script src="https://cdn.tailwindcss.com"></script>
 
@@ -27,7 +28,7 @@
     {% load static %} 
     <link rel="stylesheet" href="{% static 'tickets/css/styles.css' %}"> 
 </head>
-<body class="bg-slate-100 dark:bg-[#0c0e16]">
+<body class="bg-slate-100 dark:bg-[#0c0e16]" hx-headers='{"x-csrftoken": "{{ csrf_token }}"}'>
     <!-- Navbar -->
     <nav class="fixed bg-white dark:bg-[#141826] top-0 z-50 w-full border-b border-slate-300 dark:border-slate-800">
         <div class="px-3 py-3 lg:px-5 lg:pl-3">
@@ -171,13 +172,16 @@
                             <span class="flex-1 text-sm ms-2 whitespace-nowrap group-hover:text-slate-700 font-semibold dark:group-hover:text-white group-hover:transition transition">Asignaturas</span>
                         </a>
                     </li>
+                    <li>
+                        <a href="{% url 'plandeestudio' %}" class="flex items-center rounded-lg dark:bg-[#141826] dark:hover:bg-[#1d2236] dark:text-[#a8b2d2] dark:hover:text-white text-slate-500 hover:bg-gray-100 hover:text-slate-700 hover:transition transition hover:duration-200 duration-200 px-2 py-3 text-body group">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="currentColor" class="icon bg-slate-500/15 dark:bg-[#1d2236] group-hover:text-blue-500 group-hover:bg-blue-600/20 hover:transition transition hover:duration-200 duration-200 rounded p-1.5 icon-tabler icons-tabler-filled icon-tabler-book">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                                <path d="M21.5 5.134a1 1 0 0 1 .493 .748l.007 .118v13a1 1 0 0 1 -1.5 .866a8 8 0 0 0 -7.5 -.266v-15.174a10 10 0 0 1 8.5 .708m-10.5 -.707l.001 15.174a8 8 0 0 0 -7.234 .117l-.327 .18l-.103 .044l-.049 .016l-.11 .026l-.061 .01l-.117 .006h-.042l-.11 -.012l-.077 -.014l-.108 -.032l-.126 -.056l-.095 -.056l-.089 -.067l-.06 -.056l-.073 -.082l-.064 -.089l-.022 -.036l-.032 -.06l-.044 -.103l-.016 -.049l-.026 -.11l-.01 -.061l-.004 -.049l-.002 -13.068a1 1 0 0 1 .5 -.866a10 10 0 0 1 8.5 -.707" />
+                            </svg>
+                            <span class="flex-1 text-sm ms-2 whitespace-nowrap group-hover:text-slate-700 font-semibold dark:group-hover:text-white group-hover:transition transition">Planes de estudio</span>
+                        </a>
+                    </li>
                 </div>
-                {% comment %} <li>
-                    <a href="{% url 'asignaturaspordocente' %}" class="flex items-center rounded-lg dark:bg-[#11182d] dark:hover:bg-[#1d2236] dark:text-[#a8b2d2] dark:hover:text-white text-slate-500 hover:bg-gray-100 hover:text-slate-700 hover:transition transition hover:duration-200 duration-200 px-2 py-3 text-body group">
-                        <svg class="group-hover:text-slate-700 dark:group-hover:text-white group-hover:transition transition shrink-0 w-5 h-5 duration-75 group-hover:text-fg-brand" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M16 19h4a1 1 0 0 0 1-1v-1a3 3 0 0 0-3-3h-2m-2.236-4a3 3 0 1 0 0-4M3 18v-1a3 3 0 0 1 3-3h4a3 3 0 0 1 3 3v1a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1Zm8-10a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>
-                        <span class="flex-1 ms-2 whitespace-nowrap group-hover:text-slate-700 font-semibold dark:group-hover:text-white group-hover:transition transition">Horarios</span>
-                    </a>
-                </li> {% endcomment %}
             </ul>
             <ul class="space-y-0 font-medium mt-24 ml-2">
                 <li>
@@ -191,7 +195,7 @@
     <!-- Interfaces -->
     <div class="p-4 bg-slate-100 dark:bg-[#0c0e16] sm:ml-72 mt-14">
         {% block content %}
-            <div class="p-4 border-1 border-default border-dashed border-gray-400 mt-10 rounded-lg">
+            <div class="p-4 border-slate-300 dark:border-slate-700 min-h-screen border-default border mt-10 rounded-lg">
                 <div class="grid grid-cols-3 gap-4 mb-4">
                     <div class="flex items-center justify-center h-24 rounded-base bg-gray-200 dark:bg-[#141826]">
                         <p class="text-gray-600">
@@ -304,4 +308,5 @@
     {% load static %}
     <script src="{% static 'tickets/js/script.js' %}"></script>
     <script src="{% static 'tickets/js/darkmode.js' %}"></script>
+    <script src="{% static 'tickets/js/plandeestudio.js' %}"></script>
 </html>

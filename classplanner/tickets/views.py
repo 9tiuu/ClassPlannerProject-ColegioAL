@@ -1,4 +1,5 @@
 from django.forms import ValidationError
+from django.http import request
 from django.shortcuts import render
 from django.urls import reverse_lazy
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
@@ -8,12 +9,18 @@ from django.views import View
 from django.contrib import messages
 from datetime import datetime
 import re
+from math import floor
 
 from .models import Rol, Usuario, Asignatura, PlanDeEstudio, Curso
-from .forms import RolForm, UsuarioForm, UserUpdateForm
+from .forms import (
+    RolForm, UsuarioForm, UserUpdateForm,
+    PlanDeEstudioCreateForm, PlanDeEstudioUpdateForm,
+    CursoForm, AsignaturasCreateForm
+)
 
 from django.contrib.auth import logout
 from django.shortcuts import redirect
+from django.db import transaction
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.contrib.auth.mixins import UserPassesTestMixin
@@ -201,6 +208,94 @@ class DeleteUsuario(UserPassesTestMixin, DeleteView):
         messages.success(self.request, '¡Usuario Eliminado con exito!')
         return super().form_valid(form)
 
+# ----------------------------------- # CURSOS
+
+class ListCursos(UserPassesTestMixin, ListView):
+    model = Curso
+    template_name = 'tickets/cursos/cursolist.html'
+    context_object_name = 'curso'
+
+    def test_func(self):
+            rol = self.request.user.rol.name
+            return rol in ['root', 'Administrador']
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+
+        # mostrar horas como entero si es XX,0
+        hrs = self.request.GET.get('hrs')
+        for curso in queryset:
+            if curso.horas_plan_total == int(curso.horas_plan_total):
+                curso.horas_plan_total = floor(curso.horas_plan_total)
+        return queryset
+
+class CreateCurso(UserPassesTestMixin, CreateView):
+    model = Curso
+    form_class = CursoForm
+    template_name = 'tickets/cursos/cursocreate.html'
+    success_url = reverse_lazy('cursos')
+
+    def test_func(self):
+        rol = self.request.user.rol.name
+        return rol in ['root', 'Administrador']
+
+    def form_valid(self, form):
+        # Validar que no exista otro curso con el mismo nivel y letra
+        nivel = form.cleaned_data.get('nivel')
+        letra = form.cleaned_data.get('letra')
+        if Curso.objects.filter(nivel=nivel, letra=letra).exists():
+            raise ValueError("Ya existe este curso.")
+
+        # Validar que no exista otro curso con la misma jefatura
+        usuario_id = form.cleaned_data.get('usuario_id')
+        if usuario_id and Curso.objects.filter(usuario_id=usuario_id).exists():
+            raise ValueError("El docente seleccionado ya tiene jefatura.")
+
+        form.instance.letra = str(form.instance.letra).capitalize()
+        curso = form.save()
+        messages.success(self.request, '¡Curso agregado con exito!')
+        return super().form_valid(form)
+
+class UpdateCurso(UserPassesTestMixin, UpdateView):
+    model = Curso
+    form_class = CursoForm
+    template_name = 'tickets/cursos/cursoupdate.html'
+    success_url = reverse_lazy('cursolist')
+    context_object_name = 'curso'
+
+    def test_func(self):
+        rol = self.request.user.rol.name
+        return rol in ['root', 'Administrador']
+
+    def form_valid(self, form):
+        # Validar que no exista otro curso con el mismo nivel y letra
+        nivel = form.cleaned_data.get('nivel')
+        letra = form.cleaned_data.get('letra')
+        if Curso.objects.filter(nivel=nivel, letra=letra).exclude(pk=self.pk).exists():
+            raise ValueError("Ya existe este curso.")
+
+        # Validar que no exista otro curso con la misma jefatura
+        usuario_id = form.cleaned_data.get('usuario_id')
+        if usuario_id and Curso.objects.filter(usuario_id=usuario_id).exclude(pk=self.pk).exists():
+            raise ValueError("El docente seleccionado ya tiene jefatura.")
+        curso = form.save()
+        messages.success(self.request, '¡Curso actualizado con exito!')
+        return super().form_valid(form)
+
+class DeleteCurso(UserPassesTestMixin, DeleteView):
+    model = Curso
+    template_name = 'tickets/cursos/cursodelete.html'
+    context_object_name = 'curso'
+    success_url = reverse_lazy('cursolist')
+
+    def test_func(self):
+        rol = self.request.user.rol.name
+        return rol in ['root', 'Administrador']
+
+    def form_valid(self, form):
+        messages.success(self.request, '¡Curso eliminado con exito!')
+        return super().form_valid(form)
+
 # ----------------------------------- # ASIGNATURAS
 
 class ListAsignatura(UserPassesTestMixin, ListView):
@@ -212,16 +307,189 @@ class ListAsignatura(UserPassesTestMixin, ListView):
             rol = self.request.user.rol.name
             return rol in ['root', 'Administrador']
 
+class CreateAsignatura(UserPassesTestMixin, CreateView):
+    model = Asignatura
+    form_class = AsignaturasCreateForm
+    template_name = 'tickets/asignaturas/asignaturacreate.html'
+    success_url = reverse_lazy('asignaturas')
+
+    def test_func(self):
+        rol = self.request.user.rol.name
+        return rol in ['root', 'Administrador']
+
+    def form_valid(self, form):
+            messages.success(self.request, '¡Asignatura creada con exito!')
+            return super().form_valid(form)
+
 # ----------------------------------- # PLAN DE ESTUDIO
 
-class ListPlanDeEstudio(UserPassesTestMixin, ListView):
+def ListPlanDeEstudio(request): 
+    cursosModel = Curso.objects.all()
+    plandeestudio = PlanDeEstudio.objects.all()
+
+    cursos = []
+    planes = {}
+    for p in plandeestudio.values_list('curso_id', flat=True).distinct():
+        if p == cursosModel.filter(id=p).first().id:
+            c = cursosModel.filter(id=p).first()
+            cursos.append(c)
+
+    horas = [sum(plandeestudio.filter(curso_id=c.id).values_list('hrs_asignatura', flat=True)) for c in cursos]
+    # agregar curso, asignaturas y sumar horas semanales al diccionario para iterar en lista
+    # por hacer
+    planes.update({"curso": list(plandeestudio.filter(curso_id=c.id).values_list('curso_id', flat=True)) for c in cursos})
+    planes.update({"asignaturas": list(plandeestudio.filter(curso_id=c.id).values_list('asignatura_id', flat=True)) for c in cursos})
+    planes.update({"horas": horas})
+
+    cursos.sort(key=lambda c: (c.nivel, c.letra))  # Ordenar por nivel y letra
+
+    print(f"cursos: {cursos}\nplandeestudio: {planes}")
+
+    context = {'plandeestudio': plandeestudio, 'cursos': cursos}
+
+    return render(request, 'tickets/plandeestudio/plandeestudiolist.html', context)
+
+def HorasPlanCurso(): # horas totales semanales, para validación en create
+    basica_1_4 = 30
+    basica_5_6 = 30
+    basica_7_8 = 33
+    media_1_2 = 33
+    media_3_4 = 36
+
+def CreatePlanDeEstudio(request):
+    asignaturas = Asignatura.objects.all()
+    context = {'form': PlanDeEstudioCreateForm(), 'asignaturas': asignaturas}
+
+    return render(request, 'tickets/plandeestudio/plandeestudiocreate.html', context)
+
+def CreatePlanDeEstudioForm(request):
+    max_forms = 7
+    curso_id = request.POST.get('curso_id')
+    horas = request.POST.getlist('hrs_asignatura')
+    asignaturas = request.POST.getlist('asignatura_id')
+
+    if request.method == 'POST':
+        planes = []
+        form = PlanDeEstudioCreateForm(request.POST)
+        curso_ids = list(PlanDeEstudio.objects.values_list('curso_id', flat=True))
+        
+        for raw_curso_id in request.POST.getlist('curso_id'):
+            if raw_curso_id in ('', None):
+                continue
+            try:
+                curso_ids.append(int(raw_curso_id))
+            except (TypeError, ValueError):
+                curso_ids.append(raw_curso_id)
+                form.add_error(None, 'Uno de los cursos ingresados no es válido')
+        print(f"curso_ids: {curso_ids}\ncurso_ids[:-1]: {curso_ids[:-1]}\nplanes: {planes}")
+
+        if not horas or len(horas) != len(asignaturas):
+            form.add_error(None, 'Por favor, complete todos los campos')
+        else:
+            print("campos completos")
+            curso_repetido = int(curso_id) in curso_ids[:-1] # probar con mas de 1 form
+            curso_ids_validos = [curso_id for curso_id in curso_ids if isinstance(curso_id, int)]
+            cursos_existentes = set(
+                Curso.objects.filter(pk__in=curso_ids_validos).values_list('pk', flat=True)
+            )
+            cursos_invalidos = [curso_id for curso_id in curso_ids_validos if curso_id not in cursos_existentes]
+            print(f"curso actual: {curso_id}\ncurso repetido: {curso_repetido}\ncursos_invalidos: {cursos_invalidos}")
+
+            for hrs, asignatura_id in zip(horas, asignaturas):
+                item_form = PlanDeEstudioCreateForm({
+                    'curso_id': curso_id,
+                    'hrs_asignatura': hrs,
+                    'asignatura_id': asignatura_id,
+                })
+
+                if not curso_ids_validos or curso_repetido or cursos_invalidos:
+                    if curso_repetido:
+                        form.add_error(None, 'No puede crear 2 planes de estudio para un mismo curso')
+                    else:
+                        form.add_error(None, 'Uno de los cursos ingresados no es válido')
+                    return render(
+                        request,
+                        'tickets/plandeestudio/plandeestudioformerror.html',
+                        {'form': form},
+                    )
+
+                if item_form.is_valid():
+                    planes.append(item_form.cleaned_data)
+                else:
+                    form = PlanDeEstudioCreateForm(request.POST)
+                    form.add_error(None, 'Datos inválidos')
+                    form = item_form
+                    break
+            else:
+                with transaction.atomic():
+                    PlanDeEstudio.objects.bulk_create(
+                        [PlanDeEstudio(**plan) for plan in planes]
+                    )
+                messages.success(
+                    request,
+                    'Planes de estudio agregados exitosamente.'
+                )
+                response = render(
+                    request,
+                    'tickets/plandeestudio/plandeestudioform.html',
+                )
+                response['X-Planes-Guardados'] = 'true'
+                return response
+    elif request.method == 'GET':
+        try:
+            forms_count = int(request.GET.get('forms_count', 0))
+        except (TypeError, ValueError):
+            forms_count = 0
+
+        if forms_count >= max_forms:
+            messages.error(
+                request,
+                'Solo se pueden agregar los planes de estudio de 7 cursos a la vez.'
+            )
+            return render(
+                request,
+                'tickets/plandeestudio/plandeestudioform.html',
+                {'form': None}
+            )
+
+        form = PlanDeEstudioCreateForm()
+
+    for i in horas:
+        print(i)
+        if int(i) > 8:
+            form = PlanDeEstudioCreateForm(request.POST)
+            form.add_error(None, 'Selecciona una asignatura e indica sus horas.')
+
+    if request.method == 'POST' and form.errors:
+        return render(
+            request,
+            'tickets/plandeestudio/plandeestudioformerror.html',
+            {'form': form},
+        )
+
+    return render(request, 'tickets/plandeestudio/plandeestudioform.html', {'form': form})
+
+@method_decorator(login_required, name='dispatch')
+class UpdatePlanDeEstudio(UserPassesTestMixin, UpdateView):
     model = PlanDeEstudio
-    template_name = 'tickets/plandeestudio/plandeestudiolist.html'
+    form_class = PlanDeEstudioUpdateForm
+    template_name = 'tickets/plandeestudio/plandeestudioupdate.html'
+    success_url = reverse_lazy('plandeestudiolist')
     context_object_name = 'plandeestudio'
 
     def test_func(self):
-            rol = self.request.user.rol.name
-            return rol in ['root', 'Administrador', 'Profesor']
+        rol = self.request.user.rol.name
+        return rol in ['root', 'Administrador']
+
+    def form_valid(self, form):
+        hrs = form.cleaned_data.get('hrs_asignatura')
+        if hrs < 0:
+            form.add_error('hrs_asignatura', 'Las horas de asignatura no pueden ser menor a 0.')
+            return self.form_invalid(form)
+        
+        user = form.save()
+        messages.success(self.request, '¡Plan de Estudio actualizado con exito!')
+        return super().form_valid(form)
 
 # ----------------------------------- #
 

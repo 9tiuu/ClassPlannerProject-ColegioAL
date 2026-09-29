@@ -1,0 +1,18 @@
+{% extends "tickets/base.html" %}
+
+{% block content %}
+
+<div class="p-4 border-slate-300 dark:border-slate-700 min-h-screen border-default border mt-10 rounded-lg">
+    <div class="user-list-content">
+        <p class="mb-3 text-slate-500">Gestión / Cursos</p>
+        <h2 class="text-3xl font-bold text-[#234FA8] mb-4">Crear Curso</h2>
+
+        <form method="POST" action="{% url 'cursocreate' %}" class="dark:text-slate-500">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit" class="bg-blue-600 hover:bg-blue-800 text-white font-semibold py-2 px-4 rounded">Guardar Cambios</button>
+        </form>
+    </div>
+</div>
+
+{% endblock  %}
