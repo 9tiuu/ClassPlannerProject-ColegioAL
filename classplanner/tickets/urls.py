@@ -4,7 +4,7 @@ from .views import (
     CreateUsuario, ListUsuario, UpdateUsuario, DeleteUsuario,
     ListRol, UpdateRol, DeleteRol, CreateRol,
     ListCursos, CreateCurso, UpdateCurso, DeleteCurso,
-    ListAsignatura, CreateAsignatura,
+    ListAsignatura, CreateAsignatura, UpdateAsignatura, DeleteAsignatura,
     ListPlanDeEstudio, CreatePlanDeEstudio, UpdatePlanDeEstudio
 )
 from .views import custom_logout
@@ -35,6 +35,8 @@ urlpatterns = [
     # ASIGNATURAS
     path('asignaturas/', ListAsignatura.as_view(), name='asignaturas'),
     path('asignaturacreate/', CreateAsignatura.as_view(), name='asignaturacreate'),
+    path('asignaturaupdate/<int:pk>/', UpdateAsignatura.as_view(), name='asignaturaupdate'),
+    path('asignaturadelete/<int:pk>/', DeleteAsignatura.as_view(), name='asignaturadelete'),
 
     # PLAN DE ESTUDIOS
     path('plandeestudios/', views.ListPlanDeEstudio, name='plandeestudio'),

@@ -64,3 +64,8 @@ class AsignaturasCreateForm(forms.ModelForm):
     class Meta:
         model = Asignatura
         fields = ['ident', 'nombre', 'descripcion', 'plan_diferencial_id']
+
+class AsignaturaUpdateForm(forms.ModelForm):
+    class Meta:
+        model = Asignatura
+        fields = ['ident', 'nombre', 'descripcion', 'plan_diferencial_id']

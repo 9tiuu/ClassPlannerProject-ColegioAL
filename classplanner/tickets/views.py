@@ -15,7 +15,7 @@ from .models import Rol, Usuario, Asignatura, PlanDeEstudio, Curso
 from .forms import (
     RolForm, UsuarioForm, UserUpdateForm,
     PlanDeEstudioCreateForm, PlanDeEstudioUpdateForm,
-    CursoForm, AsignaturasCreateForm
+    CursoForm, AsignaturasCreateForm, AsignaturaUpdateForm
 )
 
 from django.contrib.auth import logout
@@ -321,6 +321,34 @@ class CreateAsignatura(UserPassesTestMixin, CreateView):
             messages.success(self.request, '¡Asignatura creada con exito!')
             return super().form_valid(form)
 
+class UpdateAsignatura(UserPassesTestMixin, UpdateView):
+    model = Asignatura
+    form_class = AsignaturaUpdateForm
+    template_name = 'tickets/asignaturas/asignaturupdate.html'
+    success_url = reverse_lazy('asignaturas')
+    context_object_name = 'asignatura'
+
+    def test_func(self):
+        rol = self.request.user.rol.name
+        return rol in ['root', 'Administrador']
+
+    def form_valid(self, form):
+        messages.success(self.request, '¡Asignatura actualizada con éxito!')
+        return super().form_valid(form)
+
+class DeleteAsignatura(UserPassesTestMixin, DeleteView):
+    model = Asignatura
+    template_name = 'tickets/asignaturas/asignaturadelete.html'
+    success_url = reverse_lazy('asignaturas')
+    context_object_name = 'asignatura'
+
+    def test_func(self):
+        rol = self.request.user.rol.name
+        return rol in ['root', 'Administrador']
+
+    def form_valid(self, form):
+        messages.success(self.request, '¡Asignatura eliminada con éxito!')
+        return super().form_valid(form)
 # ----------------------------------- # PLAN DE ESTUDIO
 
 def ListPlanDeEstudio(request): 
