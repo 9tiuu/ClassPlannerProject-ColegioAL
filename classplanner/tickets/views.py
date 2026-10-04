@@ -11,11 +11,12 @@ from datetime import datetime
 import re
 from math import floor
 
-from .models import Rol, Usuario, Asignatura, PlanDeEstudio, Curso
+from .models import Rol, Usuario, Asignatura, PlanDeEstudio, Curso, PlanDiferencial
 from .forms import (
     RolForm, UsuarioForm, UserUpdateForm,
     PlanDeEstudioCreateForm, PlanDeEstudioUpdateForm,
-    CursoForm, AsignaturasCreateForm, AsignaturaUpdateForm
+    CursoForm, AsignaturasCreateForm, AsignaturaUpdateForm,
+    PlanDiferencialCreateForm, PlanDiferencialUpdateForm
 )
 
 from django.contrib.auth import logout
@@ -296,6 +297,60 @@ class DeleteCurso(UserPassesTestMixin, DeleteView):
         messages.success(self.request, '¡Curso eliminado con exito!')
         return super().form_valid(form)
 
+# ----------------------------------- # PLAN DIFERENCIAL
+
+class ListPlanDiferencial(UserPassesTestMixin, ListView):
+    model = PlanDiferencial
+    template_name = 'tickets/plandiferencial/plandiferenciallist.html'
+    context_object_name = 'plandiferencial'
+
+    def test_func(self):
+        rol = self.request.user.rol.name
+        return rol in ['root', 'Administrador']
+
+class CreatePlanDiferencial(UserPassesTestMixin, CreateView):
+    model = PlanDiferencial
+    form_class = PlanDiferencialCreateForm
+    template_name = 'tickets/plandiferencial/plandiferencialcreate.html'
+    success_url = reverse_lazy('plandiferencial')
+
+    def test_func(self):
+        rol = self.request.user.rol.name
+        return rol in ['root', 'Administrador']
+
+    def form_valid(self, form):
+        messages.success(self.request, '¡Plan diferencial creado con exito!')
+        return super().form_valid(form)
+
+class UpdatePlanDiferencial(UserPassesTestMixin, UpdateView):
+    model = PlanDiferencial
+    form_class = PlanDiferencialUpdateForm
+    template_name = 'tickets/plandiferencial/plandiferencialupdate.html'
+    success_url = reverse_lazy('plandiferencial')
+    context_object_name = 'plandiferencial'
+
+    def test_func(self):
+        rol = self.request.user.rol.name
+        return rol in ['root', 'Administrador']
+
+    def form_valid(self, form):
+        messages.success(self.request, '¡Plan diferencial actualizado con éxito!')
+        return super().form_valid(form)
+
+class DeletePlanDiferencial(UserPassesTestMixin, DeleteView):
+    model = PlanDiferencial
+    template_name = 'tickets/plandiferencial/plandiferencialdelete.html'
+    success_url = reverse_lazy('plandiferencial')
+    context_object_name = 'plandiferencial'
+
+    def test_func(self):
+        rol = self.request.user.rol.name
+        return rol in ['root', 'Administrador']
+
+    def form_valid(self, form):
+        messages.success(self.request, '¡Plan diferencial eliminado con éxito!')
+        return super().form_valid(form)
+
 # ----------------------------------- # ASIGNATURAS
 
 class ListAsignatura(UserPassesTestMixin, ListView):
@@ -304,8 +359,8 @@ class ListAsignatura(UserPassesTestMixin, ListView):
     context_object_name = 'asignatura'
 
     def test_func(self):
-            rol = self.request.user.rol.name
-            return rol in ['root', 'Administrador']
+        rol = self.request.user.rol.name
+        return rol in ['root', 'Administrador']
 
 class CreateAsignatura(UserPassesTestMixin, CreateView):
     model = Asignatura
@@ -318,8 +373,8 @@ class CreateAsignatura(UserPassesTestMixin, CreateView):
         return rol in ['root', 'Administrador']
 
     def form_valid(self, form):
-            messages.success(self.request, '¡Asignatura creada con exito!')
-            return super().form_valid(form)
+        messages.success(self.request, '¡Asignatura creada con exito!')
+        return super().form_valid(form)
 
 class UpdateAsignatura(UserPassesTestMixin, UpdateView):
     model = Asignatura

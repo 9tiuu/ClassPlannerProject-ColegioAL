@@ -1,0 +1,39 @@
+{% extends 'tickets/base.html' %}
+
+{% block content %}
+<div class="p-4 border-slate-300 dark:border-slate-700 min-h-screen border-default border mt-10 rounded-lg">
+    <p class="mb-3 text-slate-500 dark:text-[#a8b2d2]">Gestión / Planes Diferenciales / Crear</p>
+    <h2 class="text-3xl font-bold text-[#234FA8] dark:text-blue-500 mb-1">Nuevo plan diferencial</h2>
+    <p class="text-slate-500 dark:text-[#a8b2d2] mb-5 text-sm">Registre un nuevo plan diferencial completando los siguientes campos:</p>
+
+    <div class="p-4 bg-white dark:bg-[#141826] rounded-lg">
+        <form method="POST" enctype="multipart/form-data" class="users-c-form">
+            {% csrf_token %}
+
+            <div class="flex flex-col w-full gap-5 mb-5">
+                <div class="flex flex-col w-full">
+                    <label for="id_nombre" class="mb-1 text-base font-semibold text-slate-600 dark:text-white">Nombre <b class="text-red-600">*</b></label>
+                    <input type="text" name="nombre" id="id_nombre" value="{{ form.nombre.value|default:"" }}" class="bg-white dark:bg-[#141826] text-sm focus:outline-none focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 focus:transition focus:duration-300 rounded-lg h-12 border-2 p-3 border-slate-300 dark:border-slate-700 dark:placeholder:text-[#a8b2d2] dark:text-white" placeholder="Ej: Electivo de Ciencias Naturales" minlength="2" maxlength="45" required>
+
+                    {% if form.nombre.errors %}
+                    <div class="errors mb-2">
+                        {% for error in form.nombre.errors %}
+                        <p class="text-danger">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="flex justify-end flex-row gap-2 my-8 w-full">              
+                <a href="{% url 'plandiferencial' %}" class="flex items-center text-sm gap-2 border-2 font-semibold border-slate-300 dark:border-slate-700 dark:bg-[#141826] dark:hover:bg-[#1d2236] dark:text-[#a8b2d2] dark:hover:text-white text-slate-500 hover:bg-gray-100 hover:text-slate-700 text-center hover:transition transition hover:duration-300 duration-300 rounded-lg px-4 py-3">
+                    Volver atrás
+                </a>
+                <button type="submit" class="flex items-center gap-2 text-white text-sm font-semibold bg-blue-600 hover:bg-blue-800 text-center hover:transition transition hover:duration-300 duration-300 rounded-lg px-4 py-3 ">
+                    Crear plan diferencial
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
