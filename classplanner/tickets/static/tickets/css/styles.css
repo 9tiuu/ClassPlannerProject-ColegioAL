@@ -1,0 +1,11 @@
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+    --darkmode1: #0c0e16; /* main bg1 */
+    --darkmode2: #141826; /* main bg2 */
+    --darkmode3: #1d2236; /* bg-hover */
+    --darkmode4: #10141f; /* dark table bg1 */
+    --darkmode5: #171c2b; /* dark table bg2 */
+    --darkmode6: #a8b2d2; /* dark text */
+}

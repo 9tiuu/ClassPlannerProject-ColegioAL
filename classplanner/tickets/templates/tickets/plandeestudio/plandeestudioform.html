@@ -1,0 +1,43 @@
+{% if form %}
+<form
+    hx-post="{% url 'plandeestudiocreateform' %}"
+    hx-target="#error-msg"
+    hx-swap="innerHTML"
+    hx-on::after-request="if (event.detail.successful && event.detail.xhr.getResponseHeader('X-Planes-Guardados') === 'true') this.remove()"
+    hx-trigger="click from:#submit-all"
+    class="m-3 px-2 py-2 relative max-h-[30vh] max-w-[20vh] b-white overflow-x-auto bg-neutral-primary-soft shadow-xs rounded-base border border-default border-slate-300 dark:border-slate-800 rounded-lg">
+    {% csrf_token %}
+    <div style="display: flex;">
+        <div>
+            {{ form.curso_id }}
+        </div>
+        <button
+            name="btn-delete-form"
+            onclick="this.closest('form').remove(); inputTrigger()"
+            type="button"
+            disabled
+            class="ml-2 my-2 w-10 h-10 text-red-300 dark:text-red-100 rounded bg-red-100 dark:bg-red-900 dark:text-white border border-red-200 dark:border-slate-700 flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-x" viewBox="0 0 16 16">
+            <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708"/>
+            </svg>
+        </button>
+    </div>
+    <div>
+        <div class="hrs-asignaturas"></div>
+    </div>
+
+    <div id="hrs-crear-plan" style="display: flex; flex-direction: column;"></div>
+</form>
+{% endif %}
+{% if messages %}
+    {% for message in messages %}
+        <script>
+            Swal.fire({
+                "title": "{% if 'error' in message.tags %}¡Error!{% elif 'success' in message.tags %}Listo!{% else %}Información{% endif %}",
+                "text": "{{ message }}",
+                "icon": "{% if 'error' in message.tags %}error{% elif 'success' in message.tags %}success{% elif 'warning' in message.tags %}warning{% else %}info{% endif %}",
+                "confirmButtonColor": "{% if 'error' in message.tags %}#d33{% elif 'success' in message.tags %}#0d6efd{% elif 'warning' in message.tags %}#f39c12{% else %}#3085d6{% endif %}"
+            });
+        </script>
+    {% endfor %}
+{% endif %}

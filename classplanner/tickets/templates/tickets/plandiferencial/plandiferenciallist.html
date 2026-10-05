@@ -1,0 +1,64 @@
+{% extends "tickets/base.html" %}
+
+{% block content %}
+
+<div class="p-4 border-slate-300 dark:border-slate-700 min-h-screen border-default border mt-10 rounded-lg">
+    <div class="user-list-content">
+        <p class="mb-3 text-slate-500">Gestión / Plan Diferencial</p>
+        <h2 class="text-3xl font-bold text-[#234FA8] mb-4">Listado de Planes Diferenciales</h2>
+
+        <div class="mb-8 w-full gap-4 md:gap-0 flex flex-col md:flex-row md:justify-between justify-center">
+            <div class="flex items-center relative">
+                <input type="text" class="w-96 h-full border-2 border-slate-300 form-control bg-white dark:bg-[#11182d] dark:border-slate-800 focus:outline-none focus:border-blue-600 transition focus:transition dark:placeholder:text-[#a8b2d2] dark:text-white rounded px-2 py-2" placeholder="Buscar" maxlength="40">
+                <i class="bi bi-search text-gray-400 dark:text-slate-300 absolute right-0 -translate-x-4"></i>
+            </div>
+            <a href="{% url 'plandiferencialcreate' %}" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-800 text-center hover:transition transition hover:duration-300 duration-300 rounded-lg px-8 py-3">
+                <p class="w-full text-white font-semibold">+ Nuevo plan diferencial</p>
+            </a>
+        </div>
+
+        {% if plandiferencial %}
+        <div class="relative max-h-[70vh] b-white overflow-x-auto bg-neutral-primary-soft shadow-xs rounded-base border border-default border-slate-300 dark:border-slate-800 rounded-lg">
+            <table class="w-full text-sm text-left rtl:text-right text-body">
+                <thead class="text-sm text-left text-slate-700 dark:text-white bg-slate-200 dark:bg-[#11182d] text-body bg-neutral-secondary-soft border-b rounded-base border-default dark:border-slate-800">
+                    <tr>
+                        <th scope="col" class="px-6 py-3 font-bold whitespace-nowrap md:whitespace-normal">
+                            Nombre
+                        </th>
+                        <th scope="col" class="px-6 py-3 font-bold whitespace-nowrap md:whitespace-normal">
+                            Acción
+                        </th>
+                    </tr>
+                </thead>
+                <tbody class="dark:text-[#a8b2d2] text-slate-500">
+                    {% for p in plandiferencial %}
+                    <tr class="border-b border-default odd:bg-white even:bg-slate-100 dark:odd:bg-[#1c2239] dark:border-b-slate-800">
+                        <td class="px-6 py-4 whitespace-nowrap md:whitespace-normal">{{ p.nombre }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap md:whitespace-normal flex gap-2 ">
+                            {% if request.user.rol.name != 'root' and request.user.rol.name != 'Administrador' %}
+                                <p class="text-danger">NO AUTORIZADO</p>
+                            {% else %}
+                                <a href="{% url 'plandiferencialupdate' p.id %}" class="bg-blue-600 hover:bg-blue-800 text-white w-9 h-9 flex items-center justify-center text-center hover:transition transition hover:duration-300 duration-300 rounded-lg">
+                                    <i class="bi bi-pencil-square"></i>
+                                </a>
+                                <a href="{% url 'plandiferencialdelete' p.id %}" class="bg-red-600 hover:bg-red-800 text-white w-9 h-9 flex items-center justify-center text-center hover:transition transition hover:duration-300 duration-300 rounded-lg">
+                                    <i class="bi bi-trash-fill"></i>
+                                </a>
+                            {% endif %}
+                        </td>
+                    <tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% else %}
+        <h4>No existen planes diferenciales registrados...</h4>
+        {% endif %}
+    </div>
+    
+</div>
+
+
+
+{% endblock  %}
