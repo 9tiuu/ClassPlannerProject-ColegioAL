@@ -1,5 +1,6 @@
 from django.forms import ValidationError
 from django.http import request
+from django.core.exceptions import PermissionDenied
 from django.shortcuts import render
 from django.urls import reverse_lazy
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
@@ -11,6 +12,7 @@ from datetime import datetime
 import re
 from math import floor
 
+from easyaudit.models import CRUDEvent
 from .models import Rol, Usuario, Asignatura, PlanDeEstudio, Curso, PlanDiferencial
 from .forms import (
     RolForm, UsuarioForm, UserUpdateForm,
@@ -209,6 +211,22 @@ class DeleteUsuario(UserPassesTestMixin, DeleteView):
         messages.success(self.request, '¡Usuario Eliminado con exito!')
         return super().form_valid(form)
 
+# ----------------------------------- # REGISTROS
+
+class ListRegistros(UserPassesTestMixin, ListView):
+    model = CRUDEvent
+    template_name = 'tickets/registros/registroslist.html'
+    context_object_name = 'registros'
+
+    # filtros
+
+    def test_func(self):
+        try:
+            rol = self.request.user.rol.name
+            return rol in ['root', 'Administrador']
+        except AttributeError:
+            raise PermissionDenied('Ha intentado visitar una página a la que no tiene acceso')
+
 # ----------------------------------- # CURSOS
 
 class ListCursos(UserPassesTestMixin, ListView):
@@ -404,6 +422,7 @@ class DeleteAsignatura(UserPassesTestMixin, DeleteView):
     def form_valid(self, form):
         messages.success(self.request, '¡Asignatura eliminada con éxito!')
         return super().form_valid(form)
+    
 # ----------------------------------- # PLAN DE ESTUDIO
 
 def ListPlanDeEstudio(request): 

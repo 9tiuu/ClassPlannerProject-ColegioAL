@@ -2,6 +2,7 @@ from django.urls import path
 from . import views
 from .views import (
     CreateUsuario, ListUsuario, UpdateUsuario, DeleteUsuario,
+    ListRegistros,
     ListRol, UpdateRol, DeleteRol, CreateRol,
     ListCursos, CreateCurso, UpdateCurso, DeleteCurso,
     ListPlanDiferencial, CreatePlanDiferencial, UpdatePlanDiferencial, DeletePlanDiferencial,
@@ -26,6 +27,9 @@ urlpatterns = [
     path('userlist/', ListUsuario.as_view(), name='userlist'),
     path('userupdate/<int:pk>/', UpdateUsuario.as_view(), name='userupdate'),
     path('userdelete/<int:pk>/', DeleteUsuario.as_view(), name='userdelete'),
+
+    # REGISTROS
+    path('registros/', ListRegistros.as_view(), name='registros'),
 
     # CURSOS
     path('cursos/', ListCursos.as_view(), name='cursos'),

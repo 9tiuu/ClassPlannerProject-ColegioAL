@@ -1,0 +1,13 @@
+{% extends "tickets/base.html" %}
+
+{% block content %}
+<div class="p-4">
+    <h1 class="text-2xl font-bold text-red-500">Acceso denegado</h1>
+    {% if exception %}
+      <p class="text-slate-500 dark:text-[#a8b2d2]">{{ exception }}.</p>
+    {% else %}
+      <p>Ha intentado visitar una página a la que no tiene acceso.</p>
+    {% endif %}
+    <a href="{% url 'home' %}" class="text-blue-500 hover:text-blue-700">Volver a la página principal</a>
+    </div>
+{% endblock %}
