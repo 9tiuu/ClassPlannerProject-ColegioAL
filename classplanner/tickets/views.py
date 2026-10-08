@@ -21,12 +21,14 @@ from .forms import (
     PlanDiferencialCreateForm, PlanDiferencialUpdateForm
 )
 
-from django.contrib.auth import logout
+from django.contrib.auth import logout, get_user_model
 from django.shortcuts import redirect
 from django.db import transaction
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.contrib.auth.mixins import UserPassesTestMixin
+from django.contrib.contenttypes.models import ContentType
+from django.db.models import Q
 
 # Create your views here.
 
@@ -218,7 +220,59 @@ class ListRegistros(UserPassesTestMixin, ListView):
     template_name = 'tickets/registros/registroslist.html'
     context_object_name = 'registros'
 
-    # filtros
+    def get_queryset(self):
+        user_model = get_user_model()
+        user_content_type = ContentType.objects.get_for_model(user_model)
+
+        queryset = (
+            CRUDEvent.objects
+            .select_related("content_type", "user")
+            .order_by("-datetime")
+        )
+
+        # Excluir update last_login
+        queryset = queryset.exclude(
+            Q(content_type=user_content_type) &
+            Q(event_type=CRUDEvent.UPDATE) &
+            Q(changed_fields__icontains="last_login")
+        )
+
+        # Filtros
+        fecha_desde = self.request.GET.get("fecha_desde")
+        if fecha_desde:
+            queryset = queryset.filter(datetime__date__gte=fecha_desde)
+
+        fecha_hasta = self.request.GET.get("fecha_hasta")
+        if fecha_hasta:
+            queryset = queryset.filter(datetime__date__lte=fecha_hasta)
+
+        modulo = self.request.GET.get("modulo")
+        if modulo:
+            queryset = queryset.filter(content_type_id=modulo)
+
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        # Módulos utilizados en los registros de auditoría
+        context["modulos"] = (
+            ContentType.objects
+            .filter(
+                id__in=CRUDEvent.objects.values_list(
+                    "content_type_id",
+                    flat=True
+                )
+            )
+            .order_by("model")
+        )
+
+        # Mantener los valores seleccionados en el formulario
+        context["fecha_desde"] = self.request.GET.get("fecha_desde", "")
+        context["fecha_hasta"] = self.request.GET.get("fecha_hasta", "")
+        context["modulo_seleccionado"] = self.request.GET.get("modulo", "")
+
+        return context
 
     def test_func(self):
         try:

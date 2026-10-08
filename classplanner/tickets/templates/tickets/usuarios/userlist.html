@@ -21,7 +21,6 @@
             </a>
         </div>
 
-        {% if usersys %}
         <div class="relative max-h-[70vh] b-white overflow-x-auto bg-neutral-primary-soft shadow-xs rounded-base border border-default border-slate-300 dark:border-slate-800 rounded-lg">
             <table class="w-full text-sm text-left rtl:text-right text-body">
                 <thead class="text-sm text-left text-slate-700 dark:text-white bg-slate-200 dark:bg-[#10141f] text-body bg-neutral-secondary-soft border-b rounded-base border-default dark:border-slate-800">
@@ -47,8 +46,9 @@
                     </tr>
                 </thead>
                 <tbody class="dark:text-[#a8b2d2] text-slate-500">
+                    {% if usersys %}
                     {% for u in usersys %}
-                    <tr class="border-b border-default odd:bg-white even:bg-slate-100 dark:odd:bg-[#171c2b] dark:border-b-slate-800">
+                    <tr class="border-b border-default bg-white dark:bg-[#171c2b] dark:border-b-slate-800">
                         <td class="px-6 py-4 whitespace-nowrap md:whitespace-normal">
                             <div class="flex items-center gap-2">
                                 {% if u.avatar %}
@@ -63,6 +63,10 @@
                         <td class="px-6 py-4 whitespace-nowrap md:whitespace-normal flex">    
                             {% if u.rol.name == 'root' %}
                             <p class="text-purple-500 text-xs font-semibold bg-purple-600/20 px-3 py-1 text-center w-auto rounded-full">
+                                {{ u.rol }}
+                            </p>
+                            {% elif u.rol.name == 'Administrador' %}
+                            <p class="text-green-500 text-xs font-semibold bg-green-600/20 px-3 py-1 text-center w-auto rounded-full">
                                 {{ u.rol }}
                             </p>
                             {% elif u.rol.name == 'Docente' %}
@@ -98,20 +102,19 @@
                                 </a>
                             {% endif %}
                         </td>
-                    <tr>
+                    </tr>
                     {% endfor %}
+                    {% else %}
+                    <tr class="border-b border-default bg-white dark:bg-[#171c2b] dark:border-b-slate-800">
+                        <td colspan="5" class="px-6 py-4 whitespace-nowrap md:whitespace-normal text-center bg-white text-slate-500 font-medium">Sin registros</td>
+                    </tr>
+                    {% endif %}
                 </tbody>
             </table>
         </div>
-
-        {% else %}
-        <h4>No existen usuarios registrados...</h4>
-        {% endif %}
     </div>
     
 </div>
-
-
 
 {% endblock  %}
 
