@@ -1,5 +1,6 @@
 from django.forms import ValidationError
 from django.http import request
+from django.core.exceptions import PermissionDenied
 from django.shortcuts import render
 from django.urls import reverse_lazy
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
@@ -11,6 +12,7 @@ from datetime import datetime
 import re
 from math import floor
 
+from easyaudit.models import CRUDEvent
 from .models import Rol, Usuario, Asignatura, PlanDeEstudio, Curso, PlanDiferencial
 from .forms import (
     RolForm, UsuarioForm, UserUpdateForm,
@@ -19,12 +21,14 @@ from .forms import (
     PlanDiferencialCreateForm, PlanDiferencialUpdateForm
 )
 
-from django.contrib.auth import logout
+from django.contrib.auth import logout, get_user_model
 from django.shortcuts import redirect
 from django.db import transaction
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.contrib.auth.mixins import UserPassesTestMixin
+from django.contrib.contenttypes.models import ContentType
+from django.db.models import Q
 
 # Create your views here.
 
@@ -141,7 +145,6 @@ class CreateUsuario(UserPassesTestMixin, CreateView):
             form.add_error('last_name', 'El apellido solo puede contener letras y espacios.')
             return self.form_invalid(form)
         
-        user = form.save()
         messages.success(self.request, '¡Usuario Registrado con exito!')
         return super().form_valid(form)
     
@@ -190,7 +193,6 @@ class UpdateUsuario(UserPassesTestMixin, UpdateView):
             form.add_error('last_name', 'El apellido solo puede contener letras y espacios.')
             return self.form_invalid(form)
         
-        user = form.save()
         messages.success(self.request, '¡Usuario Registrado con exito!')
         return super().form_valid(form)
 
@@ -208,6 +210,74 @@ class DeleteUsuario(UserPassesTestMixin, DeleteView):
     def form_valid(self, form):
         messages.success(self.request, '¡Usuario Eliminado con exito!')
         return super().form_valid(form)
+
+# ----------------------------------- # REGISTROS
+
+class ListRegistros(UserPassesTestMixin, ListView):
+    model = CRUDEvent
+    template_name = 'tickets/registros/registroslist.html'
+    context_object_name = 'registros'
+
+    def get_queryset(self):
+        user_model = get_user_model()
+        user_content_type = ContentType.objects.get_for_model(user_model)
+
+        queryset = (
+            CRUDEvent.objects
+            .select_related("content_type", "user")
+            .order_by("-datetime")
+        )
+
+        # Excluir update last_login
+        queryset = queryset.exclude(
+            Q(content_type=user_content_type) &
+            Q(event_type=CRUDEvent.UPDATE) &
+            Q(changed_fields__icontains="last_login")
+        )
+
+        # Filtros
+        fecha_desde = self.request.GET.get("fecha_desde")
+        if fecha_desde:
+            queryset = queryset.filter(datetime__date__gte=fecha_desde)
+
+        fecha_hasta = self.request.GET.get("fecha_hasta")
+        if fecha_hasta:
+            queryset = queryset.filter(datetime__date__lte=fecha_hasta)
+
+        modulo = self.request.GET.get("modulo")
+        if modulo:
+            queryset = queryset.filter(content_type_id=modulo)
+
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        # Módulos utilizados en los registros de auditoría
+        context["modulos"] = (
+            ContentType.objects
+            .filter(
+                id__in=CRUDEvent.objects.values_list(
+                    "content_type_id",
+                    flat=True
+                )
+            )
+            .order_by("model")
+        )
+
+        # Mantener los valores seleccionados en el formulario
+        context["fecha_desde"] = self.request.GET.get("fecha_desde", "")
+        context["fecha_hasta"] = self.request.GET.get("fecha_hasta", "")
+        context["modulo_seleccionado"] = self.request.GET.get("modulo", "")
+
+        return context
+
+    def test_func(self):
+        try:
+            rol = self.request.user.rol.name
+            return rol in ['root', 'Administrador']
+        except AttributeError:
+            raise PermissionDenied('Ha intentado visitar una página a la que no tiene acceso')
 
 # ----------------------------------- # CURSOS
 
@@ -379,7 +449,7 @@ class CreateAsignatura(UserPassesTestMixin, CreateView):
 class UpdateAsignatura(UserPassesTestMixin, UpdateView):
     model = Asignatura
     form_class = AsignaturaUpdateForm
-    template_name = 'tickets/asignaturas/asignaturupdate.html'
+    template_name = 'tickets/asignaturas/asignaturaupdate.html'
     success_url = reverse_lazy('asignaturas')
     context_object_name = 'asignatura'
 
@@ -404,9 +474,10 @@ class DeleteAsignatura(UserPassesTestMixin, DeleteView):
     def form_valid(self, form):
         messages.success(self.request, '¡Asignatura eliminada con éxito!')
         return super().form_valid(form)
+    
 # ----------------------------------- # PLAN DE ESTUDIO
 
-def ListPlanDeEstudio(request): 
+def ListPlanDeEstudio(request):
     cursosModel = Curso.objects.all()
     plandeestudio = PlanDeEstudio.objects.all()
 

@@ -59,6 +59,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'tickets',
     'registration',
+    'easyaudit',
 ]
 
 MIDDLEWARE = [
@@ -70,6 +71,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'easyaudit.middleware.easyaudit.EasyAuditMiddleware',
 ]
 
 ROOT_URLCONF = 'core.urls'
@@ -152,3 +154,8 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+DJANGO_EASY_AUDIT_WATCH_MODEL_EVENTS = True
+DJANGO_EASY_AUDIT_WATCH_AUTH_EVENTS = True
+DJANGO_EASY_AUDIT_WATCH_REQUEST_EVENTS = False
+DJANGO_EASY_AUDIT_REGISTERED_CLASSES = ['tickets.Estudiante', 'tickets.Horario', 'tickets.Usuario']

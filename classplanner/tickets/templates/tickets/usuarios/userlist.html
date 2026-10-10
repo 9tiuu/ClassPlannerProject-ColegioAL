@@ -48,7 +48,7 @@
                 </thead>
                 <tbody class="dark:text-[#a8b2d2] text-slate-500">
                     {% for u in usersys %}
-                    <tr class="border-b border-default odd:bg-white even:bg-slate-100 dark:odd:bg-[#171c2b] dark:border-b-slate-800">
+                    <tr class="border-b border-default bg-white dark:bg-[#171c2b] dark:border-b-slate-800">
                         <td class="px-6 py-4 whitespace-nowrap md:whitespace-normal">
                             <div class="flex items-center gap-2">
                                 {% if u.avatar %}
@@ -65,6 +65,10 @@
                             <p class="text-purple-500 text-xs font-semibold bg-purple-600/20 px-3 py-1 text-center w-auto rounded-full">
                                 {{ u.rol }}
                             </p>
+                            {% elif u.rol.name == 'Administrador' %}
+                            <p class="text-green-500 text-xs font-semibold bg-green-600/20 px-3 py-1 text-center w-auto rounded-full">
+                                {{ u.rol }}
+                            </p>
                             {% elif u.rol.name == 'Docente' %}
                             <p class="text-blue-500 text-xs font-semibold bg-blue-600/20 px-3 py-1 text-center w-auto rounded-full">
                                 {{ u.rol }}
@@ -77,7 +81,11 @@
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap md:whitespace-normal">{{ u.rut }}</td>
                         <td class="px-6 py-4 whitespace-nowrap md:whitespace-normal">{{ u.email }}</td>
+                        {% if u.telefono == 'None' or u.telefono == NULL %}
+                        <td class="px-6 py-4 whitespace-nowrap md:whitespace-normal">---</td>
+                        {% else %}
                         <td class="px-6 py-4 whitespace-nowrap md:whitespace-normal">{{ u.telefono }}</td>
+                        {% endif %}
                         <td class="px-6 py-4 whitespace-nowrap md:whitespace-normal flex gap-2 ">
                             {% if request.user.rol.name != 'root' and u.rol.name == 'root' or request.user.rol.name != 'root' and u.rol.name == 'Administrador' %}
                                 <p class="text-danger">NO AUTORIZADO</p>
@@ -98,20 +106,17 @@
                                 </a>
                             {% endif %}
                         </td>
-                    <tr>
+                    </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
-
         {% else %}
-        <h4>No existen usuarios registrados...</h4>
+        {% include 'tickets/sin_registros.html' %}
         {% endif %}
     </div>
     
 </div>
-
-
 
 {% endblock  %}
 
