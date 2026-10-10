@@ -145,70 +145,81 @@
                 <div class="mb-4">
                     {% comment %} <p class="mb-2 text-slate-500 dark:text-[#a8b2d2] uppercase font-bold text-xs">Gestión</p> {% endcomment %}
                     {% if request.user.is_authenticated %}
-                    <li>
-                        <a href="{% url 'home' %}" class="flex items-center rounded-lg dark:bg-[#141826] dark:hover:bg-[#1d2236] dark:text-[#a8b2d2] dark:hover:text-white text-slate-500 hover:bg-gray-100 hover:text-slate-700 hover:transition transition hover:duration-200 duration-200 px-2 py-3 text-body group">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="currentColor" class="icon bg-slate-500/15 dark:bg-[#1d2236] group-hover:text-blue-500 group-hover:bg-blue-600/20 hover:transition transition hover:duration-200 duration-200 rounded p-1.5 icon-tabler icons-tabler-filled icon-tabler-layout-dashboard">
-                                <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                                <path d="M9 3a2 2 0 0 1 2 2v6a2 2 0 0 1 -2 2h-4a2 2 0 0 1 -2 -2v-6a2 2 0 0 1 2 -2zm0 12a2 2 0 0 1 2 2v2a2 2 0 0 1 -2 2h-4a2 2 0 0 1 -2 -2v-2a2 2 0 0 1 2 -2zm10 -4a2 2 0 0 1 2 2v6a2 2 0 0 1 -2 2h-4a2 2 0 0 1 -2 -2v-6a2 2 0 0 1 2 -2zm0 -8a2 2 0 0 1 2 2v2a2 2 0 0 1 -2 2h-4a2 2 0 0 1 -2 -2v-2a2 2 0 0 1 2 -2z" />
-                            </svg>
-                            <span class="ms-2 text-sm group-hover:text-slate-700 font-semibold dark:group-hover:text-white group-hover:transition transition">Dashboard</span>
-                        </a>
-                    </li>
-                    {% endif %}
-                    {% if request.user.rol.name == 'root' %}
                         <li>
-                            <a href="{% url 'userlist' %}" class="flex items-center rounded-lg dark:bg-[#141826] dark:hover:bg-[#1d2236] dark:text-[#a8b2d2] dark:hover:text-white text-slate-500 hover:bg-gray-100 hover:text-slate-700 hover:transition transition hover:duration-200 duration-200 px-2 py-3 text-body group">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" class="bi bi-people-fill bg-slate-500/15 dark:bg-[#1d2236] group-hover:text-blue-500 group-hover:bg-blue-600/20 hover:transition transition hover:duration-200 duration-200 rounded p-1.5" viewBox="0 0 16 16">
-                                    <path d="M7 14s-1 0-1-1 1-4 5-4 5 3 5 4-1 1-1 1zm4-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6m-5.784 6A2.24 2.24 0 0 1 5 13c0-1.355.68-2.75 1.936-3.72A6.3 6.3 0 0 0 5 9c-4 0-5 3-5 4s1 1 1 1zM4.5 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5"/>
+                            <a href="{% url 'home' %}" class="flex items-center rounded-lg dark:bg-[#141826] dark:hover:bg-[#1d2236] dark:text-[#a8b2d2] dark:hover:text-white text-slate-500 hover:bg-gray-100 hover:text-slate-700 hover:transition transition hover:duration-200 duration-200 px-2 py-3 text-body group">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="currentColor" class="icon bg-slate-500/15 dark:bg-[#1d2236] group-hover:text-blue-500 group-hover:bg-blue-600/20 hover:transition transition hover:duration-200 duration-200 rounded p-1.5 icon-tabler icons-tabler-filled icon-tabler-layout-dashboard">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                                    <path d="M9 3a2 2 0 0 1 2 2v6a2 2 0 0 1 -2 2h-4a2 2 0 0 1 -2 -2v-6a2 2 0 0 1 2 -2zm0 12a2 2 0 0 1 2 2v2a2 2 0 0 1 -2 2h-4a2 2 0 0 1 -2 -2v-2a2 2 0 0 1 2 -2zm10 -4a2 2 0 0 1 2 2v6a2 2 0 0 1 -2 2h-4a2 2 0 0 1 -2 -2v-6a2 2 0 0 1 2 -2zm0 -8a2 2 0 0 1 2 2v2a2 2 0 0 1 -2 2h-4a2 2 0 0 1 -2 -2v-2a2 2 0 0 1 2 -2z" />
                                 </svg>
-                                <span class="flex-1 text-sm ms-2 whitespace-nowrap group-hover:text-slate-700 font-semibold dark:group-hover:text-white group-hover:transition transition">Usuarios</span>
+                                <span class="ms-2 text-sm group-hover:text-slate-700 font-semibold dark:group-hover:text-white group-hover:transition transition">Dashboard</span>
                             </a>
                         </li>
-                    {% endif %}
+                        
+                        {% if request.user.rol.name == 'root' %}
+                            <li>
+                                <a href="{% url 'userlist' %}" class="flex items-center rounded-lg dark:bg-[#141826] dark:hover:bg-[#1d2236] dark:text-[#a8b2d2] dark:hover:text-white text-slate-500 hover:bg-gray-100 hover:text-slate-700 hover:transition transition hover:duration-200 duration-200 px-2 py-3 text-body group">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" class="bi bi-people-fill bg-slate-500/15 dark:bg-[#1d2236] group-hover:text-blue-500 group-hover:bg-blue-600/20 hover:transition transition hover:duration-200 duration-200 rounded p-1.5" viewBox="0 0 16 16">
+                                        <path d="M7 14s-1 0-1-1 1-4 5-4 5 3 5 4-1 1-1 1zm4-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6m-5.784 6A2.24 2.24 0 0 1 5 13c0-1.355.68-2.75 1.936-3.72A6.3 6.3 0 0 0 5 9c-4 0-5 3-5 4s1 1 1 1zM4.5 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5"/>
+                                    </svg>
+                                    <span class="flex-1 text-sm ms-2 whitespace-nowrap group-hover:text-slate-700 font-semibold dark:group-hover:text-white group-hover:transition transition">Usuarios</span>
+                                </a>
+                            </li>
+                        {% endif %}
 
-                    {% if request.user.rol.name == 'Administrador' or request.user.rol.name == 'root' %}
+                        {% if request.user.rol.name == 'Administrador' or request.user.rol.name == 'root' %}
+                            <li>
+                                <a href="{% url 'registros' %}" class="flex items-center rounded-lg dark:bg-[#141826] dark:hover:bg-[#1d2236] dark:text-[#a8b2d2] dark:hover:text-white text-slate-500 hover:bg-gray-100 hover:text-slate-700 hover:transition transition hover:duration-200 duration-200 px-2 py-3 text-body group">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" class="bi bi-people-fill bg-slate-500/15 dark:bg-[#1d2236] group-hover:text-blue-500 group-hover:bg-blue-600/20 hover:transition transition hover:duration-200 duration-200 rounded p-1.5" viewBox="0 0 16 16">
+                                        <path d="M7 14s-1 0-1-1 1-4 5-4 5 3 5 4-1 1-1 1zm4-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6m-5.784 6A2.24 2.24 0 0 1 5 13c0-1.355.68-2.75 1.936-3.72A6.3 6.3 0 0 0 5 9c-4 0-5 3-5 4s1 1 1 1zM4.5 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5"/>
+                                    </svg>
+                                    <span class="flex-1 text-sm ms-2 whitespace-nowrap group-hover:text-slate-700 font-semibold dark:group-hover:text-white group-hover:transition transition">Registros</span>
+                                </a>
+                            </li>
+                        {% endif %}
+
+                        {% if request.user.rol.name == 'Director' or request.user.rol.name == 'Administrador' or request.user.rol.name == 'root' %}
                         <li>
-                            <a href="{% url 'registros' %}" class="flex items-center rounded-lg dark:bg-[#141826] dark:hover:bg-[#1d2236] dark:text-[#a8b2d2] dark:hover:text-white text-slate-500 hover:bg-gray-100 hover:text-slate-700 hover:transition transition hover:duration-200 duration-200 px-2 py-3 text-body group">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" class="bi bi-people-fill bg-slate-500/15 dark:bg-[#1d2236] group-hover:text-blue-500 group-hover:bg-blue-600/20 hover:transition transition hover:duration-200 duration-200 rounded p-1.5" viewBox="0 0 16 16">
-                                    <path d="M7 14s-1 0-1-1 1-4 5-4 5 3 5 4-1 1-1 1zm4-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6m-5.784 6A2.24 2.24 0 0 1 5 13c0-1.355.68-2.75 1.936-3.72A6.3 6.3 0 0 0 5 9c-4 0-5 3-5 4s1 1 1 1zM4.5 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5"/>
+                            <a href="{% url 'plandiferencial' %}" class="flex items-center rounded-lg dark:bg-[#141826] dark:hover:bg-[#1d2236] dark:text-[#a8b2d2] dark:hover:text-white text-slate-500 hover:bg-gray-100 hover:text-slate-700 hover:transition transition hover:duration-200 duration-200 px-2 py-3 text-body group">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="currentColor" class="icon bg-slate-500/15 dark:bg-[#1d2236] group-hover:text-blue-500 group-hover:bg-blue-600/20 hover:transition transition hover:duration-200 duration-200 rounded p-1.5 icon-tabler icons-tabler-filled icon-tabler-book">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                                    <path d="M21.5 5.134a1 1 0 0 1 .493 .748l.007 .118v13a1 1 0 0 1 -1.5 .866a8 8 0 0 0 -7.5 -.266v-15.174a10 10 0 0 1 8.5 .708m-10.5 -.707l.001 15.174a8 8 0 0 0 -7.234 .117l-.327 .18l-.103 .044l-.049 .016l-.11 .026l-.061 .01l-.117 .006h-.042l-.11 -.012l-.077 -.014l-.108 -.032l-.126 -.056l-.095 -.056l-.089 -.067l-.06 -.056l-.073 -.082l-.064 -.089l-.022 -.036l-.032 -.06l-.044 -.103l-.016 -.049l-.026 -.11l-.01 -.061l-.004 -.049l-.002 -13.068a1 1 0 0 1 .5 -.866a10 10 0 0 1 8.5 -.707" />
                                 </svg>
-                                <span class="flex-1 text-sm ms-2 whitespace-nowrap group-hover:text-slate-700 font-semibold dark:group-hover:text-white group-hover:transition transition">Registros</span>
+                                <span class="flex-1 text-sm ms-2 whitespace-nowrap group-hover:text-slate-700 font-semibold dark:group-hover:text-white group-hover:transition transition">Planes Diferenciales</span>
                             </a>
                         </li>
-                    {% endif %}
+                        <li>
+                            <a href="{% url 'asignaturas' %}" class="flex items-center rounded-lg dark:bg-[#141826] dark:hover:bg-[#1d2236] dark:text-[#a8b2d2] dark:hover:text-white text-slate-500 hover:bg-gray-100 hover:text-slate-700 hover:transition transition hover:duration-200 duration-200 px-2 py-3 text-body group">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="currentColor" class="icon bg-slate-500/15 dark:bg-[#1d2236] group-hover:text-blue-500 group-hover:bg-blue-600/20 hover:transition transition hover:duration-200 duration-200 rounded p-1.5 icon-tabler icons-tabler-filled icon-tabler-book">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                                    <path d="M21.5 5.134a1 1 0 0 1 .493 .748l.007 .118v13a1 1 0 0 1 -1.5 .866a8 8 0 0 0 -7.5 -.266v-15.174a10 10 0 0 1 8.5 .708m-10.5 -.707l.001 15.174a8 8 0 0 0 -7.234 .117l-.327 .18l-.103 .044l-.049 .016l-.11 .026l-.061 .01l-.117 .006h-.042l-.11 -.012l-.077 -.014l-.108 -.032l-.126 -.056l-.095 -.056l-.089 -.067l-.06 -.056l-.073 -.082l-.064 -.089l-.022 -.036l-.032 -.06l-.044 -.103l-.016 -.049l-.026 -.11l-.01 -.061l-.004 -.049l-.002 -13.068a1 1 0 0 1 .5 -.866a10 10 0 0 1 8.5 -.707" />
+                                </svg>
+                                <span class="flex-1 text-sm ms-2 whitespace-nowrap group-hover:text-slate-700 font-semibold dark:group-hover:text-white group-hover:transition transition">Asignaturas</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'plandeestudio' %}" class="flex items-center rounded-lg dark:bg-[#141826] dark:hover:bg-[#1d2236] dark:text-[#a8b2d2] dark:hover:text-white text-slate-500 hover:bg-gray-100 hover:text-slate-700 hover:transition transition hover:duration-200 duration-200 px-2 py-3 text-body group">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="currentColor" class="icon bg-slate-500/15 dark:bg-[#1d2236] group-hover:text-blue-500 group-hover:bg-blue-600/20 hover:transition transition hover:duration-200 duration-200 rounded p-1.5 icon-tabler icons-tabler-filled icon-tabler-book">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                                    <path d="M21.5 5.134a1 1 0 0 1 .493 .748l.007 .118v13a1 1 0 0 1 -1.5 .866a8 8 0 0 0 -7.5 -.266v-15.174a10 10 0 0 1 8.5 .708m-10.5 -.707l.001 15.174a8 8 0 0 0 -7.234 .117l-.327 .18l-.103 .044l-.049 .016l-.11 .026l-.061 .01l-.117 .006h-.042l-.11 -.012l-.077 -.014l-.108 -.032l-.126 -.056l-.095 -.056l-.089 -.067l-.06 -.056l-.073 -.082l-.064 -.089l-.022 -.036l-.032 -.06l-.044 -.103l-.016 -.049l-.026 -.11l-.01 -.061l-.004 -.049l-.002 -13.068a1 1 0 0 1 .5 -.866a10 10 0 0 1 8.5 -.707" />
+                                </svg>
+                                <span class="flex-1 text-sm ms-2 whitespace-nowrap group-hover:text-slate-700 font-semibold dark:group-hover:text-white group-hover:transition transition">Planes de estudio</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'cursos' %}" class="flex items-center rounded-lg dark:bg-[#141826] dark:hover:bg-[#1d2236] dark:text-[#a8b2d2] dark:hover:text-white text-slate-500 hover:bg-gray-100 hover:text-slate-700 hover:transition transition hover:duration-200 duration-200 px-2 py-3 text-body group">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="currentColor" class="icon bg-slate-500/15 dark:bg-[#1d2236] group-hover:text-blue-500 group-hover:bg-blue-600/20 hover:transition transition hover:duration-200 duration-200 rounded p-1.5 icon-tabler icons-tabler-filled icon-tabler-book">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                                    <path d="M21.5 5.134a1 1 0 0 1 .493 .748l.007 .118v13a1 1 0 0 1 -1.5 .866a8 8 0 0 0 -7.5 -.266v-15.174a10 10 0 0 1 8.5 .708m-10.5 -.707l.001 15.174a8 8 0 0 0 -7.234 .117l-.327 .18l-.103 .044l-.049 .016l-.11 .026l-.061 .01l-.117 .006h-.042l-.11 -.012l-.077 -.014l-.108 -.032l-.126 -.056l-.095 -.056l-.089 -.067l-.06 -.056l-.073 -.082l-.064 -.089l-.022 -.036l-.032 -.06l-.044 -.103l-.016 -.049l-.026 -.11l-.01 -.061l-.004 -.049l-.002 -13.068a1 1 0 0 1 .5 -.866a10 10 0 0 1 8.5 -.707" />
+                                </svg>
+                                <span class="flex-1 text-sm ms-2 whitespace-nowrap group-hover:text-slate-700 font-semibold dark:group-hover:text-white group-hover:transition transition">Cursos</span>
+                            </a>
+                        </li>
 
-                    {% if request.user.rol.name == 'Administrador' or request.user.rol.name == 'root' or request.user.rol.name == 'Director' %}
-                    <li>
-                        <a href="{% url 'plandiferencial' %}" class="flex items-center rounded-lg dark:bg-[#141826] dark:hover:bg-[#1d2236] dark:text-[#a8b2d2] dark:hover:text-white text-slate-500 hover:bg-gray-100 hover:text-slate-700 hover:transition transition hover:duration-200 duration-200 px-2 py-3 text-body group">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="currentColor" class="icon bg-slate-500/15 dark:bg-[#1d2236] group-hover:text-blue-500 group-hover:bg-blue-600/20 hover:transition transition hover:duration-200 duration-200 rounded p-1.5 icon-tabler icons-tabler-filled icon-tabler-book">
-                                <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                                <path d="M21.5 5.134a1 1 0 0 1 .493 .748l.007 .118v13a1 1 0 0 1 -1.5 .866a8 8 0 0 0 -7.5 -.266v-15.174a10 10 0 0 1 8.5 .708m-10.5 -.707l.001 15.174a8 8 0 0 0 -7.234 .117l-.327 .18l-.103 .044l-.049 .016l-.11 .026l-.061 .01l-.117 .006h-.042l-.11 -.012l-.077 -.014l-.108 -.032l-.126 -.056l-.095 -.056l-.089 -.067l-.06 -.056l-.073 -.082l-.064 -.089l-.022 -.036l-.032 -.06l-.044 -.103l-.016 -.049l-.026 -.11l-.01 -.061l-.004 -.049l-.002 -13.068a1 1 0 0 1 .5 -.866a10 10 0 0 1 8.5 -.707" />
-                            </svg>
-                            <span class="flex-1 text-sm ms-2 whitespace-nowrap group-hover:text-slate-700 font-semibold dark:group-hover:text-white group-hover:transition transition">Planes Diferenciales</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{% url 'asignaturas' %}" class="flex items-center rounded-lg dark:bg-[#141826] dark:hover:bg-[#1d2236] dark:text-[#a8b2d2] dark:hover:text-white text-slate-500 hover:bg-gray-100 hover:text-slate-700 hover:transition transition hover:duration-200 duration-200 px-2 py-3 text-body group">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="currentColor" class="icon bg-slate-500/15 dark:bg-[#1d2236] group-hover:text-blue-500 group-hover:bg-blue-600/20 hover:transition transition hover:duration-200 duration-200 rounded p-1.5 icon-tabler icons-tabler-filled icon-tabler-book">
-                                <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                                <path d="M21.5 5.134a1 1 0 0 1 .493 .748l.007 .118v13a1 1 0 0 1 -1.5 .866a8 8 0 0 0 -7.5 -.266v-15.174a10 10 0 0 1 8.5 .708m-10.5 -.707l.001 15.174a8 8 0 0 0 -7.234 .117l-.327 .18l-.103 .044l-.049 .016l-.11 .026l-.061 .01l-.117 .006h-.042l-.11 -.012l-.077 -.014l-.108 -.032l-.126 -.056l-.095 -.056l-.089 -.067l-.06 -.056l-.073 -.082l-.064 -.089l-.022 -.036l-.032 -.06l-.044 -.103l-.016 -.049l-.026 -.11l-.01 -.061l-.004 -.049l-.002 -13.068a1 1 0 0 1 .5 -.866a10 10 0 0 1 8.5 -.707" />
-                            </svg>
-                            <span class="flex-1 text-sm ms-2 whitespace-nowrap group-hover:text-slate-700 font-semibold dark:group-hover:text-white group-hover:transition transition">Asignaturas</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{% url 'plandeestudio' %}" class="flex items-center rounded-lg dark:bg-[#141826] dark:hover:bg-[#1d2236] dark:text-[#a8b2d2] dark:hover:text-white text-slate-500 hover:bg-gray-100 hover:text-slate-700 hover:transition transition hover:duration-200 duration-200 px-2 py-3 text-body group">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="currentColor" class="icon bg-slate-500/15 dark:bg-[#1d2236] group-hover:text-blue-500 group-hover:bg-blue-600/20 hover:transition transition hover:duration-200 duration-200 rounded p-1.5 icon-tabler icons-tabler-filled icon-tabler-book">
-                                <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                                <path d="M21.5 5.134a1 1 0 0 1 .493 .748l.007 .118v13a1 1 0 0 1 -1.5 .866a8 8 0 0 0 -7.5 -.266v-15.174a10 10 0 0 1 8.5 .708m-10.5 -.707l.001 15.174a8 8 0 0 0 -7.234 .117l-.327 .18l-.103 .044l-.049 .016l-.11 .026l-.061 .01l-.117 .006h-.042l-.11 -.012l-.077 -.014l-.108 -.032l-.126 -.056l-.095 -.056l-.089 -.067l-.06 -.056l-.073 -.082l-.064 -.089l-.022 -.036l-.032 -.06l-.044 -.103l-.016 -.049l-.026 -.11l-.01 -.061l-.004 -.049l-.002 -13.068a1 1 0 0 1 .5 -.866a10 10 0 0 1 8.5 -.707" />
-                            </svg>
-                            <span class="flex-1 text-sm ms-2 whitespace-nowrap group-hover:text-slate-700 font-semibold dark:group-hover:text-white group-hover:transition transition">Planes de estudio</span>
-                        </a>
-                    </li>
-                    {% endif %}
+                        {% endif %}
 
-                    {% if request.user.rol.name == 'Administrador' or request.user.rol.name == 'root' or request.user.rol.name == 'Director' or request.user.rol.name == 'Docente' %}
-                        <!-- Módulo(s) profesores -->
+                        {% if request.user.rol.name == 'Docente' or request.user.rol.name == 'root' or request.user.rol.name == 'Director' or request.user.rol.name == 'Administrador' %}
+                            <!-- Módulo(s) profesores -->
+                        {% endif %}
                     {% endif %}
                 </div>
             </ul>

@@ -21,6 +21,7 @@
             </a>
         </div>
 
+        {% if usersys %}
         <div class="relative max-h-[70vh] b-white overflow-x-auto bg-neutral-primary-soft shadow-xs rounded-base border border-default border-slate-300 dark:border-slate-800 rounded-lg">
             <table class="w-full text-sm text-left rtl:text-right text-body">
                 <thead class="text-sm text-left text-slate-700 dark:text-white bg-slate-200 dark:bg-[#10141f] text-body bg-neutral-secondary-soft border-b rounded-base border-default dark:border-slate-800">
@@ -46,7 +47,6 @@
                     </tr>
                 </thead>
                 <tbody class="dark:text-[#a8b2d2] text-slate-500">
-                    {% if usersys %}
                     {% for u in usersys %}
                     <tr class="border-b border-default bg-white dark:bg-[#171c2b] dark:border-b-slate-800">
                         <td class="px-6 py-4 whitespace-nowrap md:whitespace-normal">
@@ -81,7 +81,11 @@
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap md:whitespace-normal">{{ u.rut }}</td>
                         <td class="px-6 py-4 whitespace-nowrap md:whitespace-normal">{{ u.email }}</td>
+                        {% if u.telefono == 'None' or u.telefono == NULL %}
+                        <td class="px-6 py-4 whitespace-nowrap md:whitespace-normal">---</td>
+                        {% else %}
                         <td class="px-6 py-4 whitespace-nowrap md:whitespace-normal">{{ u.telefono }}</td>
+                        {% endif %}
                         <td class="px-6 py-4 whitespace-nowrap md:whitespace-normal flex gap-2 ">
                             {% if request.user.rol.name != 'root' and u.rol.name == 'root' or request.user.rol.name != 'root' and u.rol.name == 'Administrador' %}
                                 <p class="text-danger">NO AUTORIZADO</p>
@@ -104,14 +108,12 @@
                         </td>
                     </tr>
                     {% endfor %}
-                    {% else %}
-                    <tr class="border-b border-default bg-white dark:bg-[#171c2b] dark:border-b-slate-800">
-                        <td colspan="5" class="px-6 py-4 whitespace-nowrap md:whitespace-normal text-center bg-white text-slate-500 font-medium">Sin registros</td>
-                    </tr>
-                    {% endif %}
                 </tbody>
             </table>
         </div>
+        {% else %}
+        {% include 'tickets/sin_registros.html' %}
+        {% endif %}
     </div>
     
 </div>

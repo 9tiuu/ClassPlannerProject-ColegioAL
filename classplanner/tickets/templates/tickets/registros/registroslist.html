@@ -161,7 +161,6 @@
 </div>
 
     {% if registros %}
-    {% for r in registros %}
     <div class="relative max-h-[70vh] b-white overflow-x-auto bg-neutral-primary-soft shadow-xs rounded-base border border-default border-slate-300 dark:border-slate-800 rounded-lg">
         <table class="w-full text-sm text-left rtl:text-right text-body">
             <thead class="text-sm text-left text-slate-700 dark:text-white bg-slate-200 dark:bg-[#10141f] text-body bg-neutral-secondary-soft border-b rounded-base border-default dark:border-slate-800">
@@ -184,6 +183,7 @@
                 </tr>
             </thead>
             <tbody class="dark:text-[#a8b2d2] text-slate-500">
+                {% for r in registros %}
                 <tr class="border-b border-default bg-white dark:bg-[#171c2b] dark:border-b-slate-800">
                     <td class="px-6 py-4 whitespace-nowrap md:whitespace-normal"> <!-- {{ r.get_event_type_display }} -->
                         {% if r.is_create %}
@@ -201,10 +201,10 @@
                     <td class="px-6 py-4 whitespace-nowrap md:whitespace-normal capitalize">{{ r.user.get_full_name }}</td>
                     <td class="px-6 py-4 whitespace-nowrap md:whitespace-normal">{{ r.datetime }}</td>
                 </tr>
+                {% endfor %}
             </tbody>
         </table>
     </div>
-    {% endfor %}
     {% else %}
         {% include 'tickets/sin_registros.html' %}
     {% endif %}

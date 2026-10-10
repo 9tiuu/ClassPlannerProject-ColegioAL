@@ -145,7 +145,6 @@ class CreateUsuario(UserPassesTestMixin, CreateView):
             form.add_error('last_name', 'El apellido solo puede contener letras y espacios.')
             return self.form_invalid(form)
         
-        user = form.save()
         messages.success(self.request, '¡Usuario Registrado con exito!')
         return super().form_valid(form)
     
@@ -194,7 +193,6 @@ class UpdateUsuario(UserPassesTestMixin, UpdateView):
             form.add_error('last_name', 'El apellido solo puede contener letras y espacios.')
             return self.form_invalid(form)
         
-        user = form.save()
         messages.success(self.request, '¡Usuario Registrado con exito!')
         return super().form_valid(form)
 
@@ -451,7 +449,7 @@ class CreateAsignatura(UserPassesTestMixin, CreateView):
 class UpdateAsignatura(UserPassesTestMixin, UpdateView):
     model = Asignatura
     form_class = AsignaturaUpdateForm
-    template_name = 'tickets/asignaturas/asignaturupdate.html'
+    template_name = 'tickets/asignaturas/asignaturaupdate.html'
     success_url = reverse_lazy('asignaturas')
     context_object_name = 'asignatura'
 
@@ -479,7 +477,7 @@ class DeleteAsignatura(UserPassesTestMixin, DeleteView):
     
 # ----------------------------------- # PLAN DE ESTUDIO
 
-def ListPlanDeEstudio(request): 
+def ListPlanDeEstudio(request):
     cursosModel = Curso.objects.all()
     plandeestudio = PlanDeEstudio.objects.all()
 
