@@ -5,9 +5,10 @@ from .views import (
     ListRegistros,
     ListRol, UpdateRol, DeleteRol, CreateRol,
     ListCursos, CreateCurso, UpdateCurso, DeleteCurso,
+    ListEstudiantes, CreateEstudiante, UpdateEstudiante, DeleteEstudiante,
     ListPlanDiferencial, CreatePlanDiferencial, UpdatePlanDiferencial, DeletePlanDiferencial,
     ListAsignatura, CreateAsignatura, UpdateAsignatura, DeleteAsignatura,
-    ListPlanDeEstudio, CreatePlanDeEstudio, UpdatePlanDeEstudio
+    UpdatePlanDeEstudio
 )
 from .views import custom_logout
 # from django.contrib.auth.views import LoginView
@@ -36,6 +37,12 @@ urlpatterns = [
     path('cursocreate/', CreateCurso.as_view(), name='cursocreate'),
     path('cursoupdate/<int:pk>/', UpdateCurso.as_view(), name='cursoupdate'),
     path('cursodelete/<int:pk>/', DeleteCurso.as_view(), name='cursodelete'),
+
+    # ESTUDIANTES
+    path('estudiantes/', ListEstudiantes.as_view(), name='estudiantes'),
+    path('estudiantecreate/', CreateEstudiante.as_view(), name='estudiantecreate'),
+    path('estudianteupdate/<str:rut>/<int:curso_id>/', UpdateEstudiante.as_view(), name='estudianteupdate'),
+    path('estudiantedelete/<str:rut>/<int:curso_id>/', DeleteEstudiante.as_view(), name='estudiantedelete'),
 
     # PLAN DIFERENCIAL
     path('plandiferencial/', ListPlanDiferencial.as_view(), name='plandiferencial'),

@@ -63,27 +63,40 @@ class Curso(models.Model):
     usuario_id = models.ForeignKey(Usuario, on_delete=models.RESTRICT)
     
     def __str__(self) -> str:
-        return f'{self.nivel} {self.letra}'
+        return f'{self.nivel} "{self.letra}"'
 
 class Estudiante(models.Model):
+    pk = models.CompositePrimaryKey('rut', 'curso_id')
     nombre = models.CharField(max_length=50)
     apellido_p = models.CharField(max_length=50)
     apellido_m = models.CharField(max_length=50)
     rut = models.CharField(max_length=10, unique=True)
-    promedio = models.FloatField()
+    promedio = models.FloatField(default=0, blank=True)
     curso_id = models.ForeignKey(Curso, on_delete=models.RESTRICT)
+    is_active = models.BooleanField(default=True, blank=True)
 
+    def delete(self, *args, **kwargs):
+       self.is_active = False
+       self.save()
     def __str__(self) -> str:
         return f'{self.nombre} {self.apellido_p} {self.apellido_m}'
 
 class Nota(models.Model):
     nota = models.CharField(max_length=50)
-    estudiante_id = models.ForeignKey(Estudiante, on_delete=models.CASCADE)
+    estudiante = models.ForeignObject(
+        Estudiante,
+        on_delete=models.CASCADE,
+        from_fields=('estudiante_rut', 'estudiante_curso'),
+        to_fields=('rut', 'curso_id'),
+    )
     asignatura_id = models.ForeignKey(Asignatura, on_delete=models.CASCADE)
 
-    def __str__(self) -> str:
-        return f'Promedio de {self.estudiante_id.rut} en {self.asignatura_id.ident}: {self.nota}'
-
+    def __str__(self):
+        return (
+            f'Promedio de {self.estudiante.rut} '
+            f'en {self.asignatura_id.ident}: {self.nota}'
+        )
+    
 class Aula(models.Model):
     nombre = models.CharField(max_length=50)
     cupos = models.IntegerField()

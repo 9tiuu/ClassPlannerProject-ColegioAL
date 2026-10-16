@@ -1,8 +1,14 @@
+<div name="div-errors" class="" id="error-msg-form"></div>
 
-{% if form.errors %}
-    <div class="bg-red-100 dark:bg-red-900 p-4 mb-4 text-sm text-red-700 rounded-lg dark:text-red-300" id="error-msg-form">
-        {% for error in form.non_field_errors %}
-            {{ error }}
-        {% endfor %}
-    </div>
+{% if form %}
+{% if form.non_field_errors %}
+        <script>
+            Swal.fire({
+                "title": "¡Error!",
+                "text": "{% for error in form.non_field_errors %}{{ error }}{% endfor %}",
+                "icon": "warning",
+                "confirmButtonColor": "#f39c12"
+            });
+        </script>
+{% endif %}
 {% endif %}

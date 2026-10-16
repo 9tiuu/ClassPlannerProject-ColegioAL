@@ -5,26 +5,29 @@
     hx-swap="innerHTML"
     hx-on::after-request="if (event.detail.successful && event.detail.xhr.getResponseHeader('X-Planes-Guardados') === 'true') this.remove()"
     hx-trigger="click from:#submit-all"
-    class="m-3 px-2 py-2 relative max-h-[30vh] max-w-[20vh] b-white overflow-x-auto bg-neutral-primary-soft shadow-xs rounded-base border border-default border-slate-300 dark:border-slate-800 rounded-lg">
+    class="w-full px-2 py-2 gap-2 lg:w-sm relative max-h-[60vh] min-w-[20vh] bg-white p-3 shadow-sm dark:border-slate-800 dark:bg-[#141826] b-white overflow-x-auto bg-neutral-primary-soft shadow-xs rounded-base border border-default border-slate-300 dark:border-slate-800 rounded-lg">
     {% csrf_token %}
-    <div style="display: flex;">
-        <div>
+    <div name="pde-form-curso" class="flex gap-1 items-center">
+        <div class="flex gap-1 w-full text-sm font-medium text-slate-700 dark:text-[#a8b2d2]">
+            <div class="mr-2 w-[5.5rem] flex items-center align-right text-sm font-medium text-slate-700 dark:text-[#a8b2d2]">
+                {{ form.curso_id.label }}:
+            </div>
             {{ form.curso_id }}
-        </div>
-        <button
+            <button
             name="btn-delete-form"
-            onclick="this.closest('form').remove(); inputTrigger()"
+            onclick="this.closest('form').remove(); window.inputTrigger()"
             type="button"
             disabled
-            class="ml-2 my-2 w-10 h-10 text-red-300 dark:text-red-100 rounded bg-red-100 dark:bg-red-900 dark:text-white border border-red-200 dark:border-slate-700 flex items-center justify-center">
+            class="ml-2 my-2 w-10 h-10 rounded border border-red-700 bg-red-600 text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:border-red-500 dark:bg-red-700 dark:hover:bg-red-600 dark:focus:ring-offset-[#171c2b] disabled:border-red-200 disabled:bg-red-50 disabled:text-red-300 disabled:dark:border-red-950 disabled:dark:bg-red-950 disabled:dark:text-red-800 flex items-center justify-center disabled:cursor-not-allowed disabled:opacity-80 transition duration-200">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-x" viewBox="0 0 16 16">
-            <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708"/>
+                <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708"/>
             </svg>
         </button>
     </div>
-    <div>
-        <div class="hrs-asignaturas"></div>
-    </div>
+</div>
+<div name="hrs-asignaturas-parent" class="flex flex-col gap-2 mt-2">
+    <div class="hrs-asignaturas"></div>
+</div>
 
     <div id="hrs-crear-plan" style="display: flex; flex-direction: column;"></div>
 </form>

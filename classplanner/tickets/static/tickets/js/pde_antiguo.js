@@ -2,12 +2,11 @@ const divPlan = document.getElementById("plan-div");
 const errorClasses = "bg-red-100 dark:bg-red-900 p-4 mb-4 text-sm text-red-700 rounded-lg dark:text-red-300";
 const btnSubmitAll = document.getElementById("submit-all");
 const errorBox = document.getElementById("error-msg");
-
 const getPlanForms = () => document.querySelectorAll("#plan-form > form");
 const getCheckedAsignaturas = () => {
-    const selectAsignaturas = document.getElementById("asignaturas-select");
-    return selectAsignaturas
-        ? selectAsignaturas.querySelectorAll('input[type="checkbox"]:checked')
+    const asignaturasSelect = document.getElementById("asignaturas-select");
+    return asignaturasSelect
+        ? asignaturasSelect.querySelectorAll('input[type="checkbox"]:checked')
         : [];
 };
 
@@ -39,6 +38,7 @@ const setFormInputsState = (enabled) => {
 };
 
 const inputTrigger = () => {
+    console.log("sdfsdgdf")
     const planForms = getPlanForms();
     const checkedAsignaturas = getCheckedAsignaturas();
 
@@ -54,7 +54,15 @@ const inputTrigger = () => {
         return;
     }
 
-    btnSubmitAll.disabled = planForms.length === 0;
+    const cursoSinSeleccion = planForms.length === 0 || Array.from(planForms).some(
+        planForm => !planForm.querySelector("[name='curso_id']")?.value
+    );
+    if (cursoSinSeleccion) {
+        btnSubmitAll.disabled = true;
+        errorBox.textContent = "Seleccione un curso para cada plan";
+        errorBox.className = errorClasses;
+        return;
+    }
 
     const cursos = Array.from(planForms)
         .map(planForm => planForm.querySelector("[name='curso_id']")?.value)
@@ -113,7 +121,7 @@ const inputTrigger = () => {
 
         if (cursoInput && cursosRepetidos.includes(cursoInput.value)) {
             errorMessage = "Hay cursos repetidos";
-        } else if (!errorMessage && (cursoVacio || asignaturaVacia) && !(horasInputs.length == 0)) {
+        } else if (!errorMessage && (cursoVacio || asignaturaVacia)) {
             errorMessage = "Por favor, complete todos los campos";
         } else if (!errorMessage && SobreHorasMax) {
             errorMessage = "Hay asignaturas que superan las horas máximas";
@@ -125,29 +133,44 @@ const inputTrigger = () => {
     errorBox.className = errorMessage ? errorClasses : "";
 };
 
-function exitConfirm(button) {
-    Swal.fire({
-        "title": "¿Está seguro que desea salir?",
-        "text": "No se guardarán los cambios.",
-        "icon": "warning",
-        "showCancelButton": true,
-        "confirmButtonColor": "#0d6efd",
-        "cancelButtonColor": '#d33',
-        "confirmButtonText": 'Si, salir',
-        "cancelButtonText": 'Cancelar',
-    }).then((r) => {
-        if (!r.isConfirmed) return;
+let eventPending = false;
+let firstEvent;
+let eventTimer;
 
-        if (button.id != '') {
-            window.location.assign(button.dataset.url);
-        } else {
-            window.location.assign('/home');
-        }
-    });
+const runActions = (event) => { // Funciones aquí
+    inputTrigger(event);
+};
+const handlePlanEvent = (event) => {
+    if (event.type === "submit") {
+        clearTimeout(eventTimer);
+        eventTimer = undefined;
+        eventPending = false;
+        firstEvent = undefined;
+        runActions(event);
+        return;
+    }
+
+    if (eventPending) return;
+
+    eventPending = true;
+    firstEvent = event;
+
+    eventTimer = setTimeout(() => {
+        if (!eventPending) return;
+
+        eventPending = false;
+        const eventToHandle = firstEvent;
+        firstEvent = undefined;
+        eventTimer = undefined;
+        runActions(eventToHandle);
+    }, 0);
 };
 
 if (divPlan) {
-    ['input', 'submit'].forEach(eventType => {
-        divPlan.addEventListener(eventType, inputTrigger);
-    });
-}
+    divPlan.addEventListener("input", handlePlanEvent);
+    divPlan.addEventListener("change", handlePlanEvent);
+    divPlan.addEventListener("submit", handlePlanEvent);
+} else {console.error("No se encontró el elemento con id 'plan-div'. No se pueden agregar los event listeners.");}
+
+window.inputTrigger = inputTrigger;
+inputTrigger();

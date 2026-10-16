@@ -1,7 +1,7 @@
 from django.forms import ValidationError
-from django.http import request
+from django.http import request, Http404, HttpResponse
 from django.core.exceptions import PermissionDenied
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.urls import reverse_lazy
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django.views.generic.list import ListView
@@ -13,12 +13,13 @@ import re
 from math import floor
 
 from easyaudit.models import CRUDEvent
-from .models import Rol, Usuario, Asignatura, PlanDeEstudio, Curso, PlanDiferencial
+from .models import Rol, Usuario, Asignatura, PlanDeEstudio, Curso, PlanDiferencial, Estudiante
 from .forms import (
     RolForm, UsuarioForm, UserUpdateForm,
     PlanDeEstudioCreateForm, PlanDeEstudioUpdateForm,
     CursoForm, AsignaturasCreateForm, AsignaturaUpdateForm,
-    PlanDiferencialCreateForm, PlanDiferencialUpdateForm
+    PlanDiferencialCreateForm, PlanDiferencialUpdateForm,
+    EstudiantesCreateForm, EstudiantesUpdateForm
 )
 
 from django.contrib.auth import logout, get_user_model
@@ -367,6 +368,123 @@ class DeleteCurso(UserPassesTestMixin, DeleteView):
         messages.success(self.request, '¡Curso eliminado con exito!')
         return super().form_valid(form)
 
+# ----------------------------------- # ESTUDIANTES
+
+class ListEstudiantes(UserPassesTestMixin, ListView):
+    model = Estudiante
+    template_name = 'tickets/estudiantes/estudianteslist.html'
+    context_object_name = 'estudiantes'
+
+    def test_func(self):
+            rol = self.request.user.rol.name
+            return rol in ['root', 'Administrador', 'Director', 'Docente']
+
+class CreateEstudiante(UserPassesTestMixin, CreateView):
+    model = Estudiante
+    form_class = EstudiantesCreateForm
+    template_name = 'tickets/estudiantes/estudiantescreate.html'
+    success_url = reverse_lazy('estudiantes')
+
+    def test_func(self):
+        rol = self.request.user.rol.name
+        return rol in ['root', 'Administrador', 'Director']
+
+    def form_valid(self, form):
+        rut = form.cleaned_data.get('rut')
+        try:
+            validar_rut(rut)
+        except ValidationError as e:
+            form.add_error('rut', str(e).removeprefix("['").removesuffix("']"))
+            return self.form_invalid(form)
+
+        nombre = form.cleaned_data.get('nombre')
+        if not re.match(r'^[A-Za-záéíóúÁÉÍÓÚ\s]+$', nombre):
+            form.add_error('nombre', 'El nombre solo puede contener letras y espacios.')
+            return self.form_invalid(form)
+
+        apellido_p = form.cleaned_data.get('apellido_p')
+        if not re.match(r'^[A-Za-záéíóúÁÉÍÓÚ\s]+$', apellido_p):
+            form.add_error('apellido_p', 'El apellido solo puede contener letras y espacios.')
+            return self.form_invalid(form)
+        apellido_m = form.cleaned_data.get('apellido_m')
+        if not re.match(r'^[A-Za-záéíóúÁÉÍÓÚ\s]+$', apellido_m):
+            form.add_error('apellido_m', 'El apellido solo puede contener letras y espacios.')
+            return self.form_invalid(form)
+
+        form.instance.nombre = form.cleaned_data['nombre'].title()
+        form.instance.apellido_p = form.cleaned_data['apellido_p'].capitalize()
+        form.instance.apellido_m = form.cleaned_data['apellido_m'].capitalize()
+        messages.success(self.request, '¡Estudiante registrado con exito!')
+        return super().form_valid(form)
+
+class UpdateEstudiante(UserPassesTestMixin, UpdateView):
+    model = Estudiante
+    form_class = EstudiantesUpdateForm
+    template_name = 'tickets/estudiantes/estudiantesupdate.html'
+    success_url = reverse_lazy('estudiantes')
+    context_object_name = 'estudiantes'
+
+    def get_object(self, queryset=None):
+        e = get_object_or_404(
+            Estudiante,
+            rut=self.kwargs['rut'],
+            curso_id_id=self.kwargs['curso_id']
+        )
+        if not e.is_active:
+            raise Http404('Estudiante no encontrado')
+        
+        return e
+    
+    def test_func(self):
+        rol = self.request.user.rol.name
+        return rol in ['root', 'Administrador', 'Director']
+
+    def form_valid(self, form):
+        nombre = form.cleaned_data.get('nombre')
+        if not re.match(r'^[A-Za-záéíóúÁÉÍÓÚ\s]+$', nombre):
+            form.add_error('nombre', 'El nombre solo puede contener letras y espacios.')
+            return self.form_invalid(form)
+
+        apellido_p = form.cleaned_data.get('apellido_p')
+        if not re.match(r'^[A-Za-záéíóúÁÉÍÓÚ\s]+$', apellido_p):
+            form.add_error('apellido_p', 'El apellido solo puede contener letras y espacios.')
+            return self.form_invalid(form)
+        apellido_m = form.cleaned_data.get('apellido_m')
+        if not re.match(r'^[A-Za-záéíóúÁÉÍÓÚ\s]+$', apellido_m):
+            form.add_error('apellido_m', 'El apellido solo puede contener letras y espacios.')
+            return self.form_invalid(form)
+        
+        form.instance.nombre = form.cleaned_data['nombre'].title()
+        form.instance.apellido_p = form.cleaned_data['apellido_p'].capitalize()
+        form.instance.apellido_m = form.cleaned_data['apellido_m'].capitalize()
+        messages.success(self.request, '¡Estudiante actualizado con exito!')
+        return super().form_valid(form)
+
+class DeleteEstudiante(UserPassesTestMixin, DeleteView):
+    model = Estudiante
+    template_name = 'tickets/estudiantes/estudiantesdelete.html'
+    success_url = reverse_lazy('estudiantes')
+    context_object_name = 'estudiante'
+
+    def get_object(self, queryset=None):
+        e = get_object_or_404(
+            Estudiante,
+            rut=self.kwargs['rut'],
+            curso_id_id=self.kwargs['curso_id']
+        )
+        if not e.is_active:
+            raise Http404('Estudiante no encontrado')
+        
+        return e
+    
+    def test_func(self):
+        rol = self.request.user.rol.name
+        return rol in ['root', 'Administrador', 'Director']
+
+    def form_valid(self, form):
+        messages.success(self.request, '¡Estudiante eliminado con exito!')
+        return super().form_valid(form)
+
 # ----------------------------------- # PLAN DIFERENCIAL
 
 class ListPlanDiferencial(UserPassesTestMixin, ListView):
@@ -443,6 +561,9 @@ class CreateAsignatura(UserPassesTestMixin, CreateView):
         return rol in ['root', 'Administrador']
 
     def form_valid(self, form):
+        form.instance.ident = form.cleaned_data['ident'].strip().upper()
+        form.instance.nombre = form.cleaned_data['nombre'].title()
+        form.instance.descripcion = form.cleaned_data['descripcion'].capitalize()
         messages.success(self.request, '¡Asignatura creada con exito!')
         return super().form_valid(form)
 
@@ -485,43 +606,34 @@ def ListPlanDeEstudio(request):
     planes = {}
     for p in plandeestudio.values_list('curso_id', flat=True).distinct():
         if p == cursosModel.filter(id=p).first().id:
-            c = cursosModel.filter(id=p).first()
+            c = int(cursosModel.filter(id=p).first().id)
             cursos.append(c)
 
-    horas = [sum(plandeestudio.filter(curso_id=c.id).values_list('hrs_asignatura', flat=True)) for c in cursos]
-    # agregar curso, asignaturas y sumar horas semanales al diccionario para iterar en lista
-    # por hacer
-    planes.update({"curso": list(plandeestudio.filter(curso_id=c.id).values_list('curso_id', flat=True)) for c in cursos})
-    planes.update({"asignaturas": list(plandeestudio.filter(curso_id=c.id).values_list('asignatura_id', flat=True)) for c in cursos})
-    planes.update({"horas": horas})
+    for c in cursos:
+        curso_update = str(cursosModel.filter(id=c).first())
+        asignaturas_update = list(
+            plandeestudio.filter(curso_id=c).values_list('asignatura_id__ident','hrs_asignatura')
+        )
+        horas = sum(plandeestudio.filter(curso_id=c).values_list('hrs_asignatura', flat=True))
+        planes.update({f"{c}": [curso_update, asignaturas_update, horas]})
 
-    cursos.sort(key=lambda c: (c.nivel, c.letra))  # Ordenar por nivel y letra
-
-    print(f"cursos: {cursos}\nplandeestudio: {planes}")
-
-    context = {'plandeestudio': plandeestudio, 'cursos': cursos}
+    cursos.sort()  # Ordenar por curso_id
+    context = {'plandeestudio': list(planes.values())}
 
     return render(request, 'tickets/plandeestudio/plandeestudiolist.html', context)
 
-def HorasPlanCurso(): # horas totales semanales, para validación en create
-    basica_1_4 = 30
-    basica_5_6 = 30
-    basica_7_8 = 33
-    media_1_2 = 33
-    media_3_4 = 36
-
 def CreatePlanDeEstudio(request):
     asignaturas = Asignatura.objects.all()
-    context = {'form': PlanDeEstudioCreateForm(), 'asignaturas': asignaturas}
+    cursos = Curso.objects.all()
+    context = {'form': PlanDeEstudioCreateForm(), 'asignaturas': asignaturas, 'cursos': cursos}
 
     return render(request, 'tickets/plandeestudio/plandeestudiocreate.html', context)
 
-def CreatePlanDeEstudioForm(request):
+def CreatePlanDeEstudioForm(request): # hacer validacion hrs plan curso >= total horas ingresadas (solo está en pde.js)
     max_forms = 7
     curso_id = request.POST.get('curso_id')
     horas = request.POST.getlist('hrs_asignatura')
     asignaturas = request.POST.getlist('asignatura_id')
-
     if request.method == 'POST':
         planes = []
         form = PlanDeEstudioCreateForm(request.POST)
@@ -535,10 +647,20 @@ def CreatePlanDeEstudioForm(request):
             except (TypeError, ValueError):
                 curso_ids.append(raw_curso_id)
                 form.add_error(None, 'Uno de los cursos ingresados no es válido')
+                return render(
+                    request,
+                    'tickets/plandeestudio/plandeestudioformerror.html',
+                    {'form': form},
+                )
         print(f"curso_ids: {curso_ids}\ncurso_ids[:-1]: {curso_ids[:-1]}\nplanes: {planes}")
 
         if not horas or len(horas) != len(asignaturas):
             form.add_error(None, 'Por favor, complete todos los campos')
+            return render(
+                request,
+                'tickets/plandeestudio/plandeestudioformerror.html',
+                {'form': form},
+            )
         else:
             print("campos completos")
             curso_repetido = int(curso_id) in curso_ids[:-1] # probar con mas de 1 form
