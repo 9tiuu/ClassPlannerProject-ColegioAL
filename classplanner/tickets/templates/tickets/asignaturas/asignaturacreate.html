@@ -1,8 +1,10 @@
 {% extends 'tickets/base.html' %}
-
+{% block title %}
+<title>Crear Asignatura | ClassPlanner</title>
+{% endblock %}
 {% block content %}
 <div class="p-4 border-slate-300 dark:border-slate-700 min-h-screen border-default border mt-10 rounded-lg">
-    <p class="mb-3 text-slate-500 dark:text-[#a8b2d2]">Gestión / Asignaturas / Crear</p>
+    <p class="mb-3 text-slate-500"><button class="hover:underline" id="home-link" data-url="{% url 'home' %}" onclick="window.exitConfirm(this)">Gestión</button> / <button class="hover:underline" id="asignaturas-link" data-url="{% url 'asignaturas' %}" onclick="window.exitConfirm(this)">Asignaturas</button> / Crear</p>
     <h2 class="text-3xl font-bold text-[#234FA8] dark:text-blue-500 mb-1">Nueva asignatura</h2>
     <p class="text-slate-500 dark:text-[#a8b2d2] mb-5 text-sm">Registre una nueva asignatura completando los siguientes campos:</p>
 
@@ -71,9 +73,9 @@
             </div>
 
             <div class="flex justify-end flex-row gap-2 my-8 w-full">              
-                <a href="{% url 'asignaturas' %}" class="flex items-center text-sm gap-2 border-2 font-semibold border-slate-300 dark:border-slate-700 dark:bg-[#141826] dark:hover:bg-[#1d2236] dark:text-[#a8b2d2] dark:hover:text-white text-slate-500 hover:bg-gray-100 hover:text-slate-700 text-center hover:transition transition hover:duration-300 duration-300 rounded-lg px-4 py-3">
+                <button type="button" id="asignaturas-back" data-url="{% url 'asignaturas' %}" onclick="window.exitConfirm(this)" class="flex items-center text-sm gap-2 border-2 font-semibold border-slate-300 dark:border-slate-700 dark:bg-[#141826] dark:hover:bg-[#1d2236] dark:text-[#a8b2d2] dark:hover:text-white text-slate-500 hover:bg-gray-100 hover:text-slate-700 text-center hover:transition transition hover:duration-300 duration-300 rounded-lg px-4 py-3">
                     Volver atrás
-                </a>
+                </button>
                 <button type="submit" class="flex items-center gap-2 text-white text-sm font-semibold bg-blue-600 hover:bg-blue-800 text-center hover:transition transition hover:duration-300 duration-300 rounded-lg px-4 py-3 ">
                     Crear asignatura
                 </button>
@@ -81,4 +83,26 @@
         </form>
     </div>
 </div>
+<script>
+    function exitConfirm(button) {
+        Swal.fire({
+            "title": "¿Está seguro que desea salir?",
+            "text": "No se guardarán los cambios.",
+            "icon": "warning",
+            "showCancelButton": true,
+            "confirmButtonColor": "#0d6efd",
+            "cancelButtonColor": '#d33',
+            "confirmButtonText": 'Si, salir',
+            "cancelButtonText": 'Cancelar',
+        }).then((r) => {
+            if (!r.isConfirmed) return;
+
+            if (button.id != '') {
+                window.location.assign(button.dataset.url);
+            } else {
+                window.location.assign('/home');
+            }
+        });
+    };
+</script>
 {% endblock %}

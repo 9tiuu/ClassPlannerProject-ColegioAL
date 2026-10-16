@@ -30,6 +30,7 @@ from django.utils.decorators import method_decorator
 from django.contrib.auth.mixins import UserPassesTestMixin
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
+from functools import wraps
 
 # Create your views here.
 
@@ -41,6 +42,27 @@ def validar_rut(rut):
         raise ValidationError("El RUT tiene un formato incorrecto")
     return True
 
+def roles_required(*roles_permitidos):
+    def decorator(view_func):
+        @wraps(view_func)
+        def wrapper(request, *args, **kwargs):
+            try:
+                rol = request.user.rol.name
+            except AttributeError:
+                raise PermissionDenied(
+                    'Ha intentado visitar una página a la que no tiene acceso'
+                )
+
+            if rol not in roles_permitidos:
+                raise PermissionDenied(
+                    'Ha intentado visitar una página a la que no tiene acceso'
+                )
+
+            return view_func(request, *args, **kwargs)
+
+        return wrapper
+    return decorator
+
 # ----------------------------------- # HOME / DASHBOARD
 
 @login_required
@@ -50,29 +72,23 @@ def Home(request):
 # ----------------------------------- # ROLES
 
 @method_decorator(login_required, name='dispatch')
-class CreateRol(UserPassesTestMixin, CreateView):
+@method_decorator(roles_required('root'), name='dispatch')
+class CreateRol(CreateView):
     model = Rol
     form_class = RolForm
     template_name = 'tickets/roles/roluser_create.html'
     success_url = reverse_lazy('listrol')
 
-    def test_func(self):
-        rol = self.request.user.rol.name
-        return rol in ['root', 'Administrador']
-
     def form_valid(self, form):
         messages.success(self.request, '¡Rol Agregado con exito!')
         return super().form_valid(form)
     
-    
-class ListRol(UserPassesTestMixin, ListView):
+@method_decorator(login_required, name='dispatch')
+@method_decorator(roles_required('root'), name='dispatch') 
+class ListRol(ListView):
     model = Rol
     template_name = 'tickets/roles/roluser_list.html'
     context_object_name = 'rol'
-
-    def test_func(self):
-        rol = self.request.user.rol.name
-        return rol in ['root', 'Administrador']
 
 def FindRol(request):
     response = request.GET.get('find-rol')
@@ -82,29 +98,25 @@ def FindRol(request):
         roluser = Rol.objects.all()   
     return render(request, 'tickets/roles/rolser_find.html', {'rol':roluser, 'response':response})
 
-class UpdateRol(UserPassesTestMixin, UpdateView):
+@method_decorator(login_required, name='dispatch')
+@method_decorator(roles_required('root'), name='dispatch')
+class UpdateRol(UpdateView):
     model = Rol
     form_class = RolForm
     template_name = 'tickets/roles/roluser_update.html'
     success_url = reverse_lazy('listrol')
 
-    def test_func(self):
-        rol = self.request.user.rol.name
-        return rol in ['root', 'Administrador']
-
     def form_valid(self, form):
         messages.success(self.request, '¡Rol Actualizado con exito!')
         return super().form_valid(form)
 
-class DeleteRol(UserPassesTestMixin, DeleteView):
+@method_decorator(login_required, name='dispatch')
+@method_decorator(roles_required('root'), name='dispatch')
+class DeleteRol(DeleteView):
     model = Rol
     template_name = 'tickets/roles/roluser_delete.html'
     context_object_name = 'rol'
     success_url = reverse_lazy('listrol')
-
-    def test_func(self):
-        rol = self.request.user.rol.name
-        return rol in ['root', 'Administrador']
 
     def form_valid(self, form):
         messages.success(self.request, '¡Rol Eliminado con exito!')
@@ -113,15 +125,12 @@ class DeleteRol(UserPassesTestMixin, DeleteView):
 # ----------------------------------- # USUARIOS
 
 @method_decorator(login_required, name='dispatch')
-class CreateUsuario(UserPassesTestMixin, CreateView):
+@method_decorator(roles_required('root'), name='dispatch')
+class CreateUsuario(CreateView):
     model = Usuario
     form_class = UsuarioForm
     template_name = 'tickets/usuarios/usercreate.html'
     success_url = reverse_lazy('userlist')
-
-    def test_func(self):
-        rol = self.request.user.rol.name
-        return rol in ['root', 'Administrador']
 
     def form_valid(self, form):
         username = form.cleaned_data.get('username')
@@ -149,27 +158,21 @@ class CreateUsuario(UserPassesTestMixin, CreateView):
         messages.success(self.request, '¡Usuario Registrado con exito!')
         return super().form_valid(form)
     
-@method_decorator(login_required, name='dispatch')    
-class ListUsuario(UserPassesTestMixin, ListView):
+@method_decorator(login_required, name='dispatch')
+@method_decorator(roles_required('root'), name='dispatch')
+class ListUsuario(ListView):
     model = Usuario
     template_name = 'tickets/usuarios/userlist.html'
     context_object_name = 'usersys'
 
-    def test_func(self):
-        rol = self.request.user.rol.name
-        return rol in ['root', 'Administrador']
-
 @method_decorator(login_required, name='dispatch')
-class UpdateUsuario(UserPassesTestMixin, UpdateView):
+@method_decorator(roles_required('root'), name='dispatch')
+class UpdateUsuario(UpdateView):
     model = Usuario
     form_class = UserUpdateForm
     template_name = 'tickets/usuarios/userupdate.html'
     success_url = reverse_lazy('userlist')
     context_object_name = 'usuario'
-
-    def test_func(self):
-        rol = self.request.user.rol.name
-        return rol in ['root', 'Administrador']
 
     def form_valid(self, form):
         username = form.cleaned_data.get('username')
@@ -198,15 +201,12 @@ class UpdateUsuario(UserPassesTestMixin, UpdateView):
         return super().form_valid(form)
 
 @method_decorator(login_required, name='dispatch')    
-class DeleteUsuario(UserPassesTestMixin, DeleteView):
+@method_decorator(roles_required('root'), name='dispatch')
+class DeleteUsuario(DeleteView):
     model = Usuario
     template_name = 'tickets/usuarios/userdelete.html'
     success_url = reverse_lazy('userlist')
     context_object_name = 'usuario'
-
-    def test_func(self):
-        rol = self.request.user.rol.name
-        return rol in ['root', 'Administrador']
 
     def form_valid(self, form):
         messages.success(self.request, '¡Usuario Eliminado con exito!')
@@ -214,7 +214,9 @@ class DeleteUsuario(UserPassesTestMixin, DeleteView):
 
 # ----------------------------------- # REGISTROS
 
-class ListRegistros(UserPassesTestMixin, ListView):
+@method_decorator(login_required, name='dispatch')
+@method_decorator(roles_required('root', 'Administrador'), name='dispatch')
+class ListRegistros(ListView):
     model = CRUDEvent
     template_name = 'tickets/registros/registroslist.html'
     context_object_name = 'registros'
@@ -273,23 +275,14 @@ class ListRegistros(UserPassesTestMixin, ListView):
 
         return context
 
-    def test_func(self):
-        try:
-            rol = self.request.user.rol.name
-            return rol in ['root', 'Administrador']
-        except AttributeError:
-            raise PermissionDenied('Ha intentado visitar una página a la que no tiene acceso')
-
 # ----------------------------------- # CURSOS
 
-class ListCursos(UserPassesTestMixin, ListView):
+@method_decorator(login_required, name='dispatch')
+@method_decorator(roles_required('root', 'Administrador', 'Director'), name='dispatch')
+class ListCursos(ListView):
     model = Curso
     template_name = 'tickets/cursos/cursolist.html'
     context_object_name = 'curso'
-
-    def test_func(self):
-            rol = self.request.user.rol.name
-            return rol in ['root', 'Administrador']
 
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -301,15 +294,13 @@ class ListCursos(UserPassesTestMixin, ListView):
                 curso.horas_plan_total = floor(curso.horas_plan_total)
         return queryset
 
-class CreateCurso(UserPassesTestMixin, CreateView):
+@method_decorator(login_required, name='dispatch')
+@method_decorator(roles_required('root', 'Administrador', 'Director'), name='dispatch')
+class CreateCurso(CreateView):
     model = Curso
     form_class = CursoForm
     template_name = 'tickets/cursos/cursocreate.html'
     success_url = reverse_lazy('cursos')
-
-    def test_func(self):
-        rol = self.request.user.rol.name
-        return rol in ['root', 'Administrador']
 
     def form_valid(self, form):
         # Validar que no exista otro curso con el mismo nivel y letra
@@ -328,16 +319,14 @@ class CreateCurso(UserPassesTestMixin, CreateView):
         messages.success(self.request, '¡Curso agregado con exito!')
         return super().form_valid(form)
 
-class UpdateCurso(UserPassesTestMixin, UpdateView):
+@method_decorator(login_required, name='dispatch')
+@method_decorator(roles_required('root', 'Administrador', 'Director'), name='dispatch')
+class UpdateCurso(UpdateView):
     model = Curso
     form_class = CursoForm
     template_name = 'tickets/cursos/cursoupdate.html'
     success_url = reverse_lazy('cursolist')
     context_object_name = 'curso'
-
-    def test_func(self):
-        rol = self.request.user.rol.name
-        return rol in ['root', 'Administrador']
 
     def form_valid(self, form):
         # Validar que no exista otro curso con el mismo nivel y letra
@@ -354,15 +343,13 @@ class UpdateCurso(UserPassesTestMixin, UpdateView):
         messages.success(self.request, '¡Curso actualizado con exito!')
         return super().form_valid(form)
 
-class DeleteCurso(UserPassesTestMixin, DeleteView):
+@method_decorator(login_required, name='dispatch')
+@method_decorator(roles_required('root', 'Administrador', 'Director'), name='dispatch')
+class DeleteCurso(DeleteView):
     model = Curso
     template_name = 'tickets/cursos/cursodelete.html'
     context_object_name = 'curso'
     success_url = reverse_lazy('cursolist')
-
-    def test_func(self):
-        rol = self.request.user.rol.name
-        return rol in ['root', 'Administrador']
 
     def form_valid(self, form):
         messages.success(self.request, '¡Curso eliminado con exito!')
@@ -370,24 +357,20 @@ class DeleteCurso(UserPassesTestMixin, DeleteView):
 
 # ----------------------------------- # ESTUDIANTES
 
-class ListEstudiantes(UserPassesTestMixin, ListView):
+@method_decorator(login_required, name='dispatch')
+@method_decorator(roles_required('root', 'Administrador', 'Director', 'Docente'), name='dispatch')
+class ListEstudiantes(ListView):
     model = Estudiante
     template_name = 'tickets/estudiantes/estudianteslist.html'
     context_object_name = 'estudiantes'
 
-    def test_func(self):
-            rol = self.request.user.rol.name
-            return rol in ['root', 'Administrador', 'Director', 'Docente']
-
-class CreateEstudiante(UserPassesTestMixin, CreateView):
+@method_decorator(login_required, name='dispatch')
+@method_decorator(roles_required('root', 'Administrador', 'Director'), name='dispatch')
+class CreateEstudiante(CreateView):
     model = Estudiante
     form_class = EstudiantesCreateForm
     template_name = 'tickets/estudiantes/estudiantescreate.html'
     success_url = reverse_lazy('estudiantes')
-
-    def test_func(self):
-        rol = self.request.user.rol.name
-        return rol in ['root', 'Administrador', 'Director']
 
     def form_valid(self, form):
         rut = form.cleaned_data.get('rut')
@@ -417,7 +400,9 @@ class CreateEstudiante(UserPassesTestMixin, CreateView):
         messages.success(self.request, '¡Estudiante registrado con exito!')
         return super().form_valid(form)
 
-class UpdateEstudiante(UserPassesTestMixin, UpdateView):
+@method_decorator(login_required, name='dispatch')
+@method_decorator(roles_required('root', 'Administrador', 'Director'), name='dispatch')
+class UpdateEstudiante(UpdateView):
     model = Estudiante
     form_class = EstudiantesUpdateForm
     template_name = 'tickets/estudiantes/estudiantesupdate.html'
@@ -434,10 +419,6 @@ class UpdateEstudiante(UserPassesTestMixin, UpdateView):
             raise Http404('Estudiante no encontrado')
         
         return e
-    
-    def test_func(self):
-        rol = self.request.user.rol.name
-        return rol in ['root', 'Administrador', 'Director']
 
     def form_valid(self, form):
         nombre = form.cleaned_data.get('nombre')
@@ -460,7 +441,9 @@ class UpdateEstudiante(UserPassesTestMixin, UpdateView):
         messages.success(self.request, '¡Estudiante actualizado con exito!')
         return super().form_valid(form)
 
-class DeleteEstudiante(UserPassesTestMixin, DeleteView):
+@method_decorator(login_required, name='dispatch')
+@method_decorator(roles_required('root', 'Administrador', 'Director'), name='dispatch')
+class DeleteEstudiante(DeleteView):
     model = Estudiante
     template_name = 'tickets/estudiantes/estudiantesdelete.html'
     success_url = reverse_lazy('estudiantes')
@@ -476,10 +459,6 @@ class DeleteEstudiante(UserPassesTestMixin, DeleteView):
             raise Http404('Estudiante no encontrado')
         
         return e
-    
-    def test_func(self):
-        rol = self.request.user.rol.name
-        return rol in ['root', 'Administrador', 'Director']
 
     def form_valid(self, form):
         messages.success(self.request, '¡Estudiante eliminado con exito!')
@@ -487,53 +466,45 @@ class DeleteEstudiante(UserPassesTestMixin, DeleteView):
 
 # ----------------------------------- # PLAN DIFERENCIAL
 
-class ListPlanDiferencial(UserPassesTestMixin, ListView):
+@method_decorator(login_required, name='dispatch')
+@method_decorator(roles_required('root', 'Administrador', 'Director'), name='dispatch')
+class ListPlanDiferencial(ListView):
     model = PlanDiferencial
     template_name = 'tickets/plandiferencial/plandiferenciallist.html'
     context_object_name = 'plandiferencial'
 
-    def test_func(self):
-        rol = self.request.user.rol.name
-        return rol in ['root', 'Administrador']
-
-class CreatePlanDiferencial(UserPassesTestMixin, CreateView):
+@method_decorator(login_required, name='dispatch')
+@method_decorator(roles_required('root'), name='dispatch')
+class CreatePlanDiferencial(CreateView):
     model = PlanDiferencial
     form_class = PlanDiferencialCreateForm
     template_name = 'tickets/plandiferencial/plandiferencialcreate.html'
     success_url = reverse_lazy('plandiferencial')
 
-    def test_func(self):
-        rol = self.request.user.rol.name
-        return rol in ['root', 'Administrador']
-
     def form_valid(self, form):
         messages.success(self.request, '¡Plan diferencial creado con exito!')
         return super().form_valid(form)
 
-class UpdatePlanDiferencial(UserPassesTestMixin, UpdateView):
+@method_decorator(login_required, name='dispatch')
+@method_decorator(roles_required('root'), name='dispatch')
+class UpdatePlanDiferencial(UpdateView):
     model = PlanDiferencial
     form_class = PlanDiferencialUpdateForm
     template_name = 'tickets/plandiferencial/plandiferencialupdate.html'
     success_url = reverse_lazy('plandiferencial')
     context_object_name = 'plandiferencial'
 
-    def test_func(self):
-        rol = self.request.user.rol.name
-        return rol in ['root', 'Administrador']
-
     def form_valid(self, form):
         messages.success(self.request, '¡Plan diferencial actualizado con éxito!')
         return super().form_valid(form)
 
-class DeletePlanDiferencial(UserPassesTestMixin, DeleteView):
+@method_decorator(login_required, name='dispatch')
+@method_decorator(roles_required('root'), name='dispatch')
+class DeletePlanDiferencial(DeleteView):
     model = PlanDiferencial
     template_name = 'tickets/plandiferencial/plandiferencialdelete.html'
     success_url = reverse_lazy('plandiferencial')
     context_object_name = 'plandiferencial'
-
-    def test_func(self):
-        rol = self.request.user.rol.name
-        return rol in ['root', 'Administrador']
 
     def form_valid(self, form):
         messages.success(self.request, '¡Plan diferencial eliminado con éxito!')
@@ -541,15 +512,15 @@ class DeletePlanDiferencial(UserPassesTestMixin, DeleteView):
 
 # ----------------------------------- # ASIGNATURAS
 
-class ListAsignatura(UserPassesTestMixin, ListView):
+@method_decorator(login_required, name='dispatch')
+@method_decorator(roles_required('root', 'Administrador', 'Director'), name='dispatch')
+class ListAsignatura(ListView):
     model = Asignatura
     template_name = 'tickets/asignaturas/asignaturalist.html'
     context_object_name = 'asignatura'
 
-    def test_func(self):
-        rol = self.request.user.rol.name
-        return rol in ['root', 'Administrador']
-
+@method_decorator(login_required, name='dispatch')
+@method_decorator(roles_required('root', 'Administrador'), name='dispatch')
 class CreateAsignatura(UserPassesTestMixin, CreateView):
     model = Asignatura
     form_class = AsignaturasCreateForm
@@ -567,30 +538,27 @@ class CreateAsignatura(UserPassesTestMixin, CreateView):
         messages.success(self.request, '¡Asignatura creada con exito!')
         return super().form_valid(form)
 
-class UpdateAsignatura(UserPassesTestMixin, UpdateView):
+@method_decorator(login_required, name='dispatch')
+@method_decorator(roles_required('root', 'Administrador', 'Director'), name='dispatch')
+class UpdateAsignatura(UpdateView):
     model = Asignatura
     form_class = AsignaturaUpdateForm
     template_name = 'tickets/asignaturas/asignaturaupdate.html'
     success_url = reverse_lazy('asignaturas')
     context_object_name = 'asignatura'
 
-    def test_func(self):
-        rol = self.request.user.rol.name
-        return rol in ['root', 'Administrador']
-
     def form_valid(self, form):
         messages.success(self.request, '¡Asignatura actualizada con éxito!')
         return super().form_valid(form)
 
-class DeleteAsignatura(UserPassesTestMixin, DeleteView):
+# ("Cannot delete some instances of model 'Asignatura' because they are referenced through restricted foreign keys: 'PlanDeEstudio.asignatura_id'
+@method_decorator(login_required, name='dispatch')
+@method_decorator(roles_required('root', 'Administrador'), name='dispatch')
+class DeleteAsignatura(DeleteView):
     model = Asignatura
     template_name = 'tickets/asignaturas/asignaturadelete.html'
     success_url = reverse_lazy('asignaturas')
     context_object_name = 'asignatura'
-
-    def test_func(self):
-        rol = self.request.user.rol.name
-        return rol in ['root', 'Administrador']
 
     def form_valid(self, form):
         messages.success(self.request, '¡Asignatura eliminada con éxito!')
@@ -598,6 +566,8 @@ class DeleteAsignatura(UserPassesTestMixin, DeleteView):
     
 # ----------------------------------- # PLAN DE ESTUDIO
 
+@login_required
+@roles_required('root', 'Administrador')
 def ListPlanDeEstudio(request):
     cursosModel = Curso.objects.all()
     plandeestudio = PlanDeEstudio.objects.all()
@@ -622,6 +592,8 @@ def ListPlanDeEstudio(request):
 
     return render(request, 'tickets/plandeestudio/plandeestudiolist.html', context)
 
+@login_required
+@roles_required('root', 'Administrador', 'Director')
 def CreatePlanDeEstudio(request):
     asignaturas = Asignatura.objects.all()
     cursos = Curso.objects.all()
@@ -629,6 +601,8 @@ def CreatePlanDeEstudio(request):
 
     return render(request, 'tickets/plandeestudio/plandeestudiocreate.html', context)
 
+@login_required
+@roles_required('root', 'Administrador', 'Director')
 def CreatePlanDeEstudioForm(request): # hacer validacion hrs plan curso >= total horas ingresadas (solo está en pde.js)
     max_forms = 7
     curso_id = request.POST.get('curso_id')
@@ -746,6 +720,7 @@ def CreatePlanDeEstudioForm(request): # hacer validacion hrs plan curso >= total
     return render(request, 'tickets/plandeestudio/plandeestudioform.html', {'form': form})
 
 @method_decorator(login_required, name='dispatch')
+@method_decorator(roles_required('root', 'Administrador', 'Director'), name='dispatch')
 class UpdatePlanDeEstudio(UserPassesTestMixin, UpdateView):
     model = PlanDeEstudio
     form_class = PlanDeEstudioUpdateForm
@@ -770,5 +745,5 @@ class UpdatePlanDeEstudio(UserPassesTestMixin, UpdateView):
 # ----------------------------------- #
 
 def custom_logout(request):
-    logout(request)  
+    logout(request)
     return redirect('login') 

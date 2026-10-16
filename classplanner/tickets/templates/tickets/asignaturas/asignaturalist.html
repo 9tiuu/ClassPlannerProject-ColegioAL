@@ -1,11 +1,13 @@
 {% extends "tickets/base.html" %}
-
+{% block title %}
+<title>Asignaturas | ClassPlanner</title>
+{% endblock %}
 {% block content %}
 
 <div class="p-4 border-slate-300 dark:border-slate-700 min-h-screen border-default border mt-10 rounded-lg">
     <div class="user-list-content w-full">
 
-        <p class="mb-3 text-slate-500 dark:text-[#a8b2d2]">Gestión / Asignaturas</p>
+        <p class="mb-3 text-slate-500"><a class="hover:underline" href="{% url 'home' %}">Gestión</a> / <a class="hover:underline" href="#">Asignaturas</a></p>
 
         <h2 class="text-3xl font-bold text-[#234FA8] dark:text-blue-500 mb-4">Listado de Asignaturas</h2>
 
