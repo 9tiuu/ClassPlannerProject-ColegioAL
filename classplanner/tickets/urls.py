@@ -4,6 +4,7 @@ from .views import (
     CreateUsuario, ListUsuario, UpdateUsuario, DeleteUsuario,
     ListRegistros,
     ListRol, UpdateRol, DeleteRol, CreateRol,
+    ListAula, CreateAula, UpdateAula, DeleteAula,
     ListCursos, CreateCurso, UpdateCurso, DeleteCurso,
     ListEstudiantes, CreateEstudiante, UpdateEstudiante, DeleteEstudiante,
     ListPlanDiferencial, CreatePlanDiferencial, UpdatePlanDiferencial, DeletePlanDiferencial,
@@ -31,6 +32,12 @@ urlpatterns = [
 
     # REGISTROS
     path('registros/', ListRegistros.as_view(), name='registros'),
+
+    # AULAS
+    path('aulas/', ListAula.as_view(), name='aulas'),
+    path('aulacreate/', CreateAula.as_view(), name='aulacreate'),
+    path('aulaupdate/<int:pk>/', UpdateAula.as_view(), name='aulaupdate'),
+    path('auladelete/<int:pk>/', DeleteAula.as_view(), name='auladelete'),
 
     # CURSOS
     path('cursos/', ListCursos.as_view(), name='cursos'),

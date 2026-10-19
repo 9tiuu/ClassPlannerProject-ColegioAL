@@ -13,11 +13,12 @@ import re
 from math import floor
 
 from easyaudit.models import CRUDEvent
-from .models import Rol, Usuario, Asignatura, PlanDeEstudio, Curso, PlanDiferencial, Estudiante
+from .models import Rol, Usuario, Asignatura, PlanDeEstudio, Curso, PlanDiferencial, Estudiante, Aula
 from .forms import (
     RolForm, UsuarioForm, UserUpdateForm,
     PlanDeEstudioCreateForm, PlanDeEstudioUpdateForm,
     CursoForm, AsignaturasCreateForm, AsignaturaUpdateForm,
+    AulaCreateForm, AulaUpdateForm,
     PlanDiferencialCreateForm, PlanDiferencialUpdateForm,
     EstudiantesCreateForm, EstudiantesUpdateForm
 )
@@ -305,18 +306,18 @@ class CreateCurso(CreateView):
     def form_valid(self, form):
         # Validar que no exista otro curso con el mismo nivel y letra
         nivel = form.cleaned_data.get('nivel')
-        letra = form.cleaned_data.get('letra')
+        letra = str(form.cleaned_data.get('letra')).upper()
         if Curso.objects.filter(nivel=nivel, letra=letra).exists():
-            raise ValueError("Ya existe este curso.")
-
+            form.add_error('letra', 'Ya existe un curso con este nivel y letra.')
+            return self.form_invalid(form)
+        
         # Validar que no exista otro curso con la misma jefatura
         usuario_id = form.cleaned_data.get('usuario_id')
         if usuario_id and Curso.objects.filter(usuario_id=usuario_id).exists():
-            raise ValueError("El docente seleccionado ya tiene jefatura.")
-
-        form.instance.letra = str(form.instance.letra).capitalize()
-        curso = form.save()
-        messages.success(self.request, '¡Curso agregado con exito!')
+            form.add_error('usuario_id', 'El docente seleccionado ya tiene jefatura.')
+            return self.form_invalid(form)
+        form.instance.letra = letra
+        messages.success(self.request, '¡Curso agregado con éxito!')
         return super().form_valid(form)
 
 @method_decorator(login_required, name='dispatch')
@@ -325,20 +326,22 @@ class UpdateCurso(UpdateView):
     model = Curso
     form_class = CursoForm
     template_name = 'tickets/cursos/cursoupdate.html'
-    success_url = reverse_lazy('cursolist')
+    success_url = reverse_lazy('cursos')
     context_object_name = 'curso'
 
     def form_valid(self, form):
         # Validar que no exista otro curso con el mismo nivel y letra
         nivel = form.cleaned_data.get('nivel')
-        letra = form.cleaned_data.get('letra')
-        if Curso.objects.filter(nivel=nivel, letra=letra).exclude(pk=self.pk).exists():
-            raise ValueError("Ya existe este curso.")
+        letra = str(form.cleaned_data.get('letra')).upper()
+        if Curso.objects.filter(nivel=nivel, letra=letra).exclude(pk=self.object.pk).exists():
+            form.add_error('letra', 'Ya existe un curso con este nivel y letra.')
+            return self.form_invalid(form)
 
         # Validar que no exista otro curso con la misma jefatura
         usuario_id = form.cleaned_data.get('usuario_id')
-        if usuario_id and Curso.objects.filter(usuario_id=usuario_id).exclude(pk=self.pk).exists():
-            raise ValueError("El docente seleccionado ya tiene jefatura.")
+        if usuario_id and Curso.objects.filter(usuario_id=usuario_id).exclude(pk=self.object.pk).exists():
+            form.add_error('usuario_id', 'El docente seleccionado ya tiene jefatura.')
+            return self.form_invalid(form)
         curso = form.save()
         messages.success(self.request, '¡Curso actualizado con exito!')
         return super().form_valid(form)
@@ -349,10 +352,59 @@ class DeleteCurso(DeleteView):
     model = Curso
     template_name = 'tickets/cursos/cursodelete.html'
     context_object_name = 'curso'
-    success_url = reverse_lazy('cursolist')
+    success_url = reverse_lazy('cursos')
 
     def form_valid(self, form):
         messages.success(self.request, '¡Curso eliminado con exito!')
+        return super().form_valid(form)
+
+# ----------------------------------- # AULAS
+
+@method_decorator(login_required, name='dispatch')
+@method_decorator(roles_required('root', 'Administrador', 'Director'), name='dispatch')
+class ListAula(ListView):
+    model = Aula
+    template_name = 'tickets/aulas/aulalist.html'
+    context_object_name = 'aulas'
+
+    def get_queryset(self):
+        return Aula.objects.prefetch_related('curso_id')
+
+@method_decorator(login_required, name='dispatch')
+@method_decorator(roles_required('root'), name='dispatch')
+class CreateAula(CreateView):
+    model = Aula
+    form_class = AulaCreateForm
+    template_name = 'tickets/aulas/aulacreate.html'
+    success_url = reverse_lazy('aulas')
+
+    def form_valid(self, form):
+        messages.success(self.request, '¡Aula creada con éxito!')
+        return super().form_valid(form)
+
+@method_decorator(login_required, name='dispatch')
+@method_decorator(roles_required('root'), name='dispatch')
+class UpdateAula(UpdateView):
+    model = Aula
+    form_class = AulaUpdateForm
+    template_name = 'tickets/aulas/aulaupdate.html'
+    success_url = reverse_lazy('aulas')
+    context_object_name = 'aula'
+
+    def form_valid(self, form):
+        messages.success(self.request, '¡Aula actualizada con éxito!')
+        return super().form_valid(form)
+
+@method_decorator(login_required, name='dispatch')
+@method_decorator(roles_required('root'), name='dispatch')
+class DeleteAula(DeleteView):
+    model = Aula
+    template_name = 'tickets/aulas/auladelete.html'
+    success_url = reverse_lazy('aulas')
+    context_object_name = 'aula'
+
+    def form_valid(self, form):
+        messages.success(self.request, '¡Aula eliminada con éxito!')
         return super().form_valid(form)
 
 # ----------------------------------- # ESTUDIANTES

@@ -100,7 +100,7 @@ class Nota(models.Model):
 class Aula(models.Model):
     nombre = models.CharField(max_length=50)
     cupos = models.IntegerField()
-    curso_id = models.ForeignKey(Curso, on_delete=models.RESTRICT, blank=True, null=True)
+    curso_id = models.ManyToManyField(Curso,blank=True)
 
     def __str__(self) -> str:
         return f'{self.nombre}'

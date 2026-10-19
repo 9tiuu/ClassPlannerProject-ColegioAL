@@ -1,5 +1,5 @@
 from django import forms
-from .models import Curso, PlanDeEstudio, Usuario, Rol, Asignatura, PlanDiferencial, Estudiante
+from .models import Curso, PlanDeEstudio, Usuario, Rol, Asignatura, PlanDiferencial, Estudiante, Aula
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 # from django.contrib.auth.forms import AuthenticationForm
 
@@ -19,6 +19,17 @@ class UserUpdateForm(UserChangeForm):
         fields = ['username', 'name', 'last_name', 'rut', 'email', 'telefono', 'rol', 'avatar']
 
 class CursoForm(forms.ModelForm):
+    letra = forms.ChoiceField(
+        choices=[
+            ('A', 'A'),
+            ('B', 'B'),
+        ],
+        label='Letra del Curso',
+        widget=forms.Select(attrs={
+            'class': 'form-control form-crud',
+            'required': ''
+        })
+    )
     class Meta:
         model = Curso
         fields = ['nivel', 'letra', 'horas_plan_total', 'usuario_id']
@@ -34,6 +45,114 @@ class CursoForm(forms.ModelForm):
             'horas_plan_total': forms.NumberInput(attrs={'class': 'form-control form-crud', 'min': 0, 'step': 0.5, 'required': ''}),
             'usuario_id': forms.Select(attrs={'class': 'form-control form-crud', 'required': ''}),
         }
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        docentes = Usuario.objects.filter(
+            rol__name__iexact='docente'
+        )
+        cursos_otros = Curso.objects.all()
+        
+        if self.instance.pk:
+            cursos_otros = cursos_otros.exclude(pk=self.instance.pk)
+
+        docentes_asignados = cursos_otros.values_list(
+            'usuario_id', flat=True
+        )
+        self.fields['usuario_id'].queryset = docentes.exclude(
+            pk__in=docentes_asignados
+        )
+
+class AulaCreateForm(forms.ModelForm):
+    class Meta:
+        model = Aula
+        fields = ['nombre', 'cupos', 'curso_id']
+        labels = {
+            'nombre': 'Nombre del Aula',
+            'cupos': 'Capacidad de Alumnos',
+            'curso_id': 'Cursos Asignados',
+        }
+        widgets = {
+            'nombre': forms.TextInput(attrs={'class': 'form-control form-crud', 'required': ''}),
+            'cupos': forms.NumberInput(attrs={'class': 'form-control form-crud', 'min': 1, 'step': 1, 'required': ''}),
+            'curso_id': forms.SelectMultiple(attrs={'class': 'form-control form-crud'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        otras_aulas = Aula.objects.exclude(pk=self.instance.pk)
+        ocupados = Curso.objects.filter(aula__in=otras_aulas).values('pk')
+        self.fields['curso_id'].queryset = Curso.objects.exclude(pk__in=ocupados)
+
+    def clean_nombre(self):
+        nombre = self.cleaned_data.get('nombre', '').strip()
+
+        if Aula.objects.exclude(pk=self.instance.pk).filter(nombre__iexact=nombre).exists():
+            raise forms.ValidationError('Ya existe un aula con ese nombre.')
+
+        return nombre
+
+    def clean_cupos(self):
+        cupos = self.cleaned_data.get('cupos')
+
+        if cupos is not None and cupos < 1:
+            raise forms.ValidationError('La capacidad debe ser al menos 1 alumno.')
+
+        return cupos
+
+    def clean_curso_id(self):
+        cursos = self.cleaned_data.get('curso_id')
+
+        if cursos is not None and cursos.count() > 2:
+            raise forms.ValidationError('Un aula puede tener como máximo 2 cursos.')
+
+        return cursos
+
+
+class AulaUpdateForm(forms.ModelForm):
+    class Meta:
+        model = Aula
+        fields = ['nombre', 'cupos', 'curso_id']
+        labels = {
+            'nombre': 'Nombre del Aula',
+            'cupos': 'Capacidad de Alumnos',
+            'curso_id': 'Cursos Asignados'
+        }
+        widgets = {
+            'nombre': forms.TextInput(attrs={'class': 'form-control form-crud', 'required': ''}),
+            'cupos': forms.NumberInput(attrs={'class': 'form-control form-crud', 'min': 1, 'step': 1, 'required': ''}),
+            'curso_id': forms.SelectMultiple(attrs={'class': 'form-control form-crud'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        otras_aulas = Aula.objects.exclude(pk=self.instance.pk)
+        ocupados = Curso.objects.filter(aula__in=otras_aulas).values('pk')
+        self.fields['curso_id'].queryset = Curso.objects.exclude(pk__in=ocupados)
+
+    def clean_nombre(self):
+        nombre = self.cleaned_data.get('nombre', '').strip()
+
+        if Aula.objects.exclude(pk=self.instance.pk).filter(nombre__iexact=nombre).exists():
+            raise forms.ValidationError('Ya existe un aula con ese nombre.')
+
+        return nombre
+
+    def clean_cupos(self):
+        cupos = self.cleaned_data.get('cupos')
+
+        if cupos is not None and cupos < 1:
+            raise forms.ValidationError('La capacidad debe ser al menos 1 alumno.')
+
+        return cupos
+
+    def clean_curso_id(self):
+        cursos = self.cleaned_data.get('curso_id')
+
+        if cursos is not None and cursos.count() > 2:
+            raise forms.ValidationError('Un aula puede tener como máximo 2 cursos.')
+
+        return cursos
 
 class EstudiantesCreateForm(forms.ModelForm):
     class Meta:
