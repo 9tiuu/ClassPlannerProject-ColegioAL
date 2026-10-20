@@ -1,0 +1,107 @@
+{% extends "classplanner/base.html" %}
+
+{% block title %}
+<title>Eliminar Aula | ClassPlanner</title>
+{% endblock %}
+
+{% block content %}
+
+<div class="p-4 border border-slate-300 dark:border-slate-700 min-h-screen mt-10 rounded-lg">
+    <p class="mb-3 text-slate-500 dark:text-[#a8b2d2]">
+        <button class="hover:underline" id="home-link" data-url="{% url 'home' %}" onclick="window.exitConfirm(this)">Gestión</button> /
+        <button class="hover:underline" id="aulas-link" data-url="{% url 'aulas' %}" onclick="window.exitConfirm(this)">Aulas</button> / Eliminar
+    </p>
+
+    <h2 class="text-3xl font-bold text-[#234FA8] dark:text-blue-500 mb-1">Eliminar aula</h2>
+    <p class="text-slate-500 dark:text-[#a8b2d2] mb-8 text-sm">Revise los datos antes de confirmar la eliminación.</p>
+
+    <div class="grid grid-cols-1 lg:grid-cols-5 border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden bg-white dark:bg-[#141826] shadow-sm">
+
+        <div class="lg:col-span-2 flex flex-col items-center justify-center p-8 bg-red-50/50 dark:bg-red-950/10 border-b lg:border-b-0 lg:border-r border-slate-200 dark:border-slate-700 min-h-72">
+            <div class="relative flex items-center justify-center w-56 h-56 rounded-full bg-red-100 dark:bg-red-900/20">
+                <div class="flex items-center justify-center w-36 h-28 rounded-xl bg-blue-600 shadow-lg shadow-blue-600/20">
+                    <i class="bi bi-door-open-fill text-white text-6xl"></i>
+                </div>
+                <div class="absolute bottom-8 right-5 flex items-center justify-center w-16 h-16 rounded-full bg-red-600 text-white border-4 border-white dark:border-[#141826] shadow-lg">
+                    <i class="bi bi-x-lg text-2xl"></i>
+                </div>
+            </div>
+
+            <p class="text-center text-slate-500 dark:text-[#a8b2d2] mt-8 max-w-xs">
+                El aula será eliminada permanentemente del sistema.
+            </p>
+        </div>
+
+        <div class="lg:col-span-3 p-5 sm:p-8 flex flex-col justify-center">
+            <div class="flex items-start gap-4 p-4 mb-6 rounded-xl border border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-950/20">
+                <div class="shrink-0 flex items-center justify-center w-11 h-11 rounded-full bg-red-600 text-white">
+                    <i class="bi bi-exclamation-lg text-2xl"></i>
+                </div>
+                <div>
+                    <h3 class="font-bold text-red-700 dark:text-red-400 text-lg">¿Eliminar aula?</h3>
+                    <p class="text-sm text-red-600 dark:text-red-300 mt-1">
+                        Esta acción es permanente y no se puede deshacer. Asegúrese de que realmente desea eliminar esta aula.
+                    </p>
+                </div>
+            </div>
+
+            <div class="border border-slate-200 dark:border-slate-700 rounded-xl p-4 mb-8">
+                <div class="flex flex-col sm:flex-row sm:items-center gap-2 py-3 border-b border-slate-200 dark:border-slate-700">
+                    <div class="flex items-center gap-3 sm:w-1/2">
+                        <i class="bi bi-door-open-fill text-blue-500 text-lg"></i>
+                        <span class="text-slate-500 dark:text-[#a8b2d2]">Nombre del aula</span>
+                    </div>
+                    <span class="font-semibold text-slate-800 dark:text-white sm:w-1/2">{{ aula.nombre }}</span>
+                </div>
+
+                <div class="flex flex-col sm:flex-row sm:items-center gap-2 py-3 border-b border-slate-200 dark:border-slate-700">
+                    <div class="flex items-center gap-3 sm:w-1/2">
+                        <i class="bi bi-people-fill text-blue-500 text-lg"></i>
+                        <span class="text-slate-500 dark:text-[#a8b2d2]">Capacidad de alumnos</span>
+                    </div>
+                    <span class="font-semibold text-slate-800 dark:text-white sm:w-1/2">{{ aula.cupos }}</span>
+                </div>
+
+                <div class="flex flex-col sm:flex-row sm:items-start gap-2 py-3">
+                    <div class="flex items-center gap-3 sm:w-1/2">
+                        <i class="bi bi-book-fill text-blue-500 text-lg"></i>
+                        <span class="text-slate-500 dark:text-[#a8b2d2]">Cursos asignados</span>
+                    </div>
+                    <span class="font-semibold text-slate-800 dark:text-white sm:w-1/2">
+                        {% for curso in aula.curso_id.all %}{{ curso }}{% if not forloop.last %}<br>{% endif %}{% empty %}Sin cursos asignados{% endfor %}
+                    </span>
+                </div>
+            </div>
+
+            <form method="post" class="flex flex-col-reverse sm:flex-row justify-end gap-3">
+                {% csrf_token %}
+                <button type="button" id="aulas-back" data-url="{% url 'aulas' %}" onclick="window.exitConfirm(this)" class="flex items-center justify-center text-sm gap-2 border-2 font-semibold border-slate-300 dark:border-slate-700 dark:bg-[#141826] dark:hover:bg-[#1d2236] dark:text-[#a8b2d2] dark:hover:text-white text-slate-500 hover:bg-gray-100 hover:text-slate-700 text-center transition duration-300 rounded-lg px-4 py-3">
+                    Volver atrás
+                </button>
+                <button type="submit" class="flex items-center justify-center gap-2 text-white text-sm font-semibold bg-red-600 hover:bg-red-700 active:bg-red-800 transition duration-300 rounded-lg px-5 py-3 shadow-sm shadow-red-600/20">
+                    Eliminar aula
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    window.exitConfirm = function(button) {
+        Swal.fire({
+            title: "¿Está seguro que desea salir?",
+            text: "No se guardarán los cambios.",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#0d6efd",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Sí, salir",
+            cancelButtonText: "Cancelar"
+        }).then((r) => {
+            if (!r.isConfirmed) return;
+            window.location.assign(button.dataset.url || "/home/");
+        });
+    };
+</script>
+
+{% endblock %}

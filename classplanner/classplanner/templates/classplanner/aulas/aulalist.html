@@ -1,0 +1,225 @@
+{% extends 'classplanner/base.html' %}
+
+{% block title %}Aulas | ClassPlanner{% endblock %}
+
+{% block content %}
+<div class="px-3 pb-3 pt-4 sm:px-4">
+
+    <div class="mb-4">
+        <p class="mb-2 flex flex-wrap items-center gap-2 text-sm text-slate-500 dark:text-slate-400"><a class="hover:underline" href="{% url 'home' %}">Gestión</a><span>/</span><span class="font-medium text-slate-700 dark:text-slate-200">Aulas</span></p>
+        <h1 class="mb-2 text-2xl font-semibold text-[#234FA8] dark:text-blue-400 sm:text-3xl">Distribución de aulas</h1>
+        <p class="text-sm text-slate-500 dark:text-slate-400 sm:text-base">Selecciona un sector del plano para consultar y administrar sus aulas.</p>
+    </div>
+
+    <div class="flex h-[calc(100dvh-14rem)] min-w-0 gap-3 overflow-hidden rounded-lg border border-slate-300 bg-white p-2 dark:border-slate-800 dark:bg-[#11182d] sm:p-3">
+
+        <section id="section-list-panel" aria-label="Lista de aulas del sector seleccionado" class="hidden w-full shrink-0 overflow-hidden rounded-lg border border-slate-300 bg-white dark:border-slate-800 dark:bg-[#11182d] md:w-64 lg:w-72">
+            <div class="flex shrink-0 items-start justify-between gap-2 border-b border-slate-300 bg-white p-3 dark:border-slate-800 dark:bg-[#11182d] sm:p-4">
+                <div class="min-w-0">
+                    <p class="mb-1 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-[#a8b2d2]">Administración</p>
+                    <h2 id="selected-section-title" class="text-lg font-bold text-[#234FA8]">Sector 1</h2>
+                    <p id="selected-section-subtitle" class="mt-1 text-xs text-slate-500 dark:text-[#a8b2d2]">Aulas registradas en este sector</p>
+                </div>
+                <button type="button" id="close-section-list" aria-label="Cerrar lista" title="Cerrar lista" class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 dark:text-[#a8b2d2] dark:hover:bg-slate-800 dark:hover:text-white"><i class="bi bi-x-lg text-lg"></i></button>
+            </div>
+
+            <div id="section-list-scroll" class="min-h-0 flex-1 overflow-y-auto overscroll-contain p-3">
+                <div id="section-list" class="grid grid-cols-1 content-start gap-3"></div>
+                <p id="section-list-empty" class="hidden px-2 py-10 text-center text-sm text-slate-500 dark:text-[#a8b2d2]"><i class="bi bi-door-closed mb-3 block text-3xl"></i>No hay aulas registradas en este sector.</p>
+            </div>
+
+            {% if request.user.rol.name == 'root' %}
+            <div class="shrink-0 border-t border-slate-300 bg-white p-3 dark:border-slate-800 dark:bg-[#11182d] sm:p-4">
+                <a href="{% url 'aulacreate' %}" id="create-aula-link" class="flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-3 py-3 text-sm font-semibold text-white transition duration-300 hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-600">+ Nueva Aula</a>
+            </div>
+            {% endif %}
+        </section>
+
+        <main id="plano-colegio" class="grid h-full min-h-0 min-w-0 flex-1 grid-cols-4 grid-rows-4 gap-2 overflow-hidden rounded-lg border border-slate-300 bg-white p-2 dark:border-slate-800 dark:bg-[#11182d] sm:gap-3 sm:p-3 md:grid-cols-12 md:grid-rows-6">
+            <section data-section="1" class="relative col-span-4 row-start-1 min-h-0 min-w-0 overflow-hidden rounded-lg border border-slate-300 bg-slate-100 dark:border-slate-800 dark:bg-[#1c2239] md:col-span-12 md:row-span-2 md:row-start-1">
+                <div class="absolute left-2 right-2 top-2 flex items-start justify-between gap-1 sm:left-3 sm:right-3 sm:top-3">
+                    <h2 class="text-xs font-bold text-[#234FA8] sm:text-sm md:text-base">Sector 1</h2>
+                    <span data-count class="shrink-0 rounded-full bg-blue-100 px-2 py-0.5 text-xs font-semibold text-blue-800 dark:bg-blue-900 dark:text-blue-200">0</span>
+                </div>
+                <button type="button" data-open-section="1" aria-label="Ver aulas del sector 1" aria-pressed="false" title="Ver aulas del sector 1" class="absolute left-1/2 top-1/2 flex h-9 w-9 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 border-slate-300 bg-blue-100 text-blue-800 shadow-sm transition hover:scale-110 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-600 dark:border-slate-700 dark:bg-blue-900 dark:text-blue-200 dark:hover:bg-blue-800 sm:h-12 sm:w-12 md:h-14 md:w-14"><i class="bi bi-door-open text-lg sm:text-xl md:text-2xl"></i></button>
+            </section>
+
+            <section data-section="2" class="relative col-span-2 row-span-2 row-start-2 min-h-0 min-w-0 overflow-hidden rounded-lg border border-slate-300 bg-slate-100 dark:border-slate-800 dark:bg-[#1c2239] md:col-span-3 md:col-start-1 md:row-span-4 md:row-start-3">
+                <div class="absolute left-2 right-2 top-2 flex items-start justify-between gap-1 sm:left-3 sm:right-3 sm:top-3">
+                    <h2 class="text-xs font-bold text-[#234FA8] sm:text-sm md:text-base">Sector 2</h2>
+                    <span data-count class="shrink-0 rounded-full bg-blue-100 px-2 py-0.5 text-xs font-semibold text-blue-800 dark:bg-blue-900 dark:text-blue-200">0</span>
+                </div>
+                <button type="button" data-open-section="2" aria-label="Ver aulas del sector 2" aria-pressed="false" title="Ver aulas del sector 2" class="absolute left-1/2 top-1/2 flex h-9 w-9 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 border-slate-300 bg-blue-100 text-blue-800 shadow-sm transition hover:scale-110 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-600 dark:border-slate-700 dark:bg-blue-900 dark:text-blue-200 dark:hover:bg-blue-800 sm:h-12 sm:w-12 md:h-14 md:w-14"><i class="bi bi-door-open text-lg sm:text-xl md:text-2xl"></i></button>
+            </section>
+
+            <div class="relative cursor-not-allowed col-span-2 col-start-3 row-start-2 flex min-h-0 min-w-0 items-center justify-center rounded-lg bg-yellow-400 bg-opacity-20 px-1 py-2 text-center dark:bg-bg-yellow-400 dark:bg-opacity-20 md:col-span-5 md:col-start-4 md:row-span-2 md:row-start-3">
+                <div class="flex flex-col items-center gap-1"><span class="flex h-8 w-8 items-center justify-center rounded-full bg-yellow-400 text-black sm:h-10 sm:w-10"><i class="bi bi-shield-check text-lg sm:text-2xl"></i></span><span class="text-[10px] font-bold text-slate-900 dark:text-white sm:text-xs md:text-sm">Zona segura</span></div>
+            </div>
+
+            <div class="cursor-not-allowed col-span-2 col-start-3 row-start-3 flex min-h-0 min-w-0 items-center justify-center rounded-lg border border-slate-300 bg-slate-100 px-1 py-2 text-center dark:border-slate-800 dark:bg-[#1c2239] md:col-span-4 md:col-start-9 md:row-span-2 md:row-start-3">
+                <div class="flex flex-col items-center gap-1"><i class="bi bi-box-arrow-right text-lg text-slate-500 dark:text-[#a8b2d2] sm:text-2xl"></i><span class="text-xs font-bold text-slate-700 dark:text-white sm:text-sm">Salida</span></div>
+            </div>
+
+            <section data-section="3" class="relative col-span-4 row-start-4 min-h-0 min-w-0 overflow-hidden rounded-lg border border-slate-300 bg-slate-100 dark:border-slate-800 dark:bg-[#1c2239] md:col-span-9 md:col-start-4 md:row-span-2 md:row-start-5">
+                <div class="absolute left-2 right-2 top-2 flex items-start justify-between gap-1 sm:left-3 sm:right-3 sm:top-3">
+                    <h2 class="text-xs font-bold text-[#234FA8] sm:text-sm md:text-base">Sector 3</h2>
+                    <span data-count class="shrink-0 rounded-full bg-blue-100 px-2 py-0.5 text-xs font-semibold text-blue-800 dark:bg-blue-900 dark:text-blue-200">0</span>
+                </div>
+                <button type="button" data-open-section="3" aria-label="Ver aulas del sector 3" aria-pressed="false" title="Ver aulas del sector 3" class="absolute left-1/2 top-1/2 flex h-9 w-9 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 border-slate-300 bg-blue-100 text-blue-800 shadow-sm transition hover:scale-110 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-600 dark:border-slate-700 dark:bg-blue-900 dark:text-blue-200 dark:hover:bg-blue-800 sm:h-12 sm:w-12 md:h-14 md:w-14"><i class="bi bi-door-open text-lg sm:text-xl md:text-2xl"></i></button>
+            </section>
+        </main>
+    </div>
+
+    <div id="aulas-source" class="hidden">
+        {% for aula in aulas %}
+        <article data-aula-id="{{ aula.id }}" class="aula-card group min-w-0 rounded-lg border border-slate-200 bg-white p-3 shadow-sm transition hover:border-blue-300 hover:shadow-md dark:border-slate-700 dark:bg-slate-800 dark:hover:border-blue-700 sm:p-4">
+            <div class="flex items-start gap-3">
+                <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-200"><i class="bi bi-door-closed text-xl"></i></div>
+                <div class="min-w-0 flex-1">
+                    <h3 class="font-bold text-slate-800 dark:text-white">{{ aula.nombre }}</h3>
+                    <p class="mt-2 flex items-start gap-2 text-sm text-slate-500 dark:text-slate-400"><i class="bi bi-people mt-0.5 shrink-0"></i><span>Capacidad: <span class="font-semibold text-slate-700 dark:text-slate-200">{{ aula.cupos }}</span></span></p>
+                    <div class="mt-1 flex items-start gap-2 text-sm text-slate-500 dark:text-slate-400">
+                        <i class="bi bi-mortarboard mt-0.5 shrink-0"></i>
+                        <span class="shrink-0">Cursos:</span>
+                        <ul class="min-w-0 space-y-0.5 font-medium text-slate-700 dark:text-slate-200">
+                            {% for curso in aula.curso_id.all %}
+                                <li>{{ curso }}</li>
+                            {% empty %}
+                                <li>Sin cursos asignados</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            {% if request.user.rol.name == 'root' %}
+            <div class="mt-3 flex justify-end gap-2 border-t border-slate-100 pt-3 dark:border-slate-700 sm:opacity-0 sm:transition-opacity sm:group-hover:opacity-100 sm:group-focus-within:opacity-100">
+                <a href="{% url 'aulaupdate' aula.id %}" aria-label="Actualizar {{ aula.nombre }}" title="Actualizar aula" class="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-100 text-blue-700 transition hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-400 dark:bg-blue-900/50 dark:text-blue-300 dark:hover:bg-blue-900"><i class="bi bi-pencil-square"></i></a>
+                <a href="{% url 'auladelete' aula.id %}" aria-label="Eliminar {{ aula.nombre }}" title="Eliminar aula" class="flex h-9 w-9 items-center justify-center rounded-lg bg-red-100 text-red-700 transition hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-400 dark:bg-red-900/50 dark:text-red-300 dark:hover:bg-red-900"><i class="bi bi-trash"></i></a>
+            </div>
+            {% endif %}
+        </article>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const KEYS = {
+            assign: 'classplanner_aulas_secciones',
+            pending: 'classplanner_seccion_pendiente',
+            ids: 'classplanner_aulas_anteriores',
+            active: 'classplanner_seccion_activa',
+        };
+
+        const $ = id => document.getElementById(id);
+        const cards = [...document.querySelectorAll('#aulas-source [data-aula-id]')];
+        const sections = [...document.querySelectorAll('#plano-colegio [data-section]')];
+        const buttons = [...document.querySelectorAll('[data-open-section]')];
+        const map = $('plano-colegio');
+        const panel = $('section-list-panel');
+        const list = $('section-list');
+        const createButton = $('create-aula-link');
+
+        const read = (key, fallback) => {
+            try {
+                const value = localStorage.getItem(key);
+                return value !== null ? JSON.parse(value) : fallback;
+            } catch { return fallback; }
+        };
+        const write = (key, value) => { try { localStorage.setItem(key, JSON.stringify(value)); } catch {} };
+        const remove = key => { try { localStorage.removeItem(key); } catch {} };
+
+        const valid = value => ['1', '2', '3'].includes(String(value));
+        const idOf = card => String(card.dataset.aulaId);
+
+        const assignments = read(KEYS.assign, {});
+        const previousIds = read(KEYS.ids, []);
+        const currentIds = cards.map(idOf);
+        const pending = read(KEYS.pending, null);
+
+        if (valid(pending)) {
+            currentIds.filter(id => !previousIds.includes(id)).forEach(id => assignments[id] = String(pending));
+        }
+
+        cards.forEach((card, i) => {
+            if (!valid(assignments[idOf(card)])) assignments[idOf(card)] = String((i % 3) + 1);
+        });
+
+        Object.keys(assignments).forEach(id => {
+            if (!currentIds.includes(id)) delete assignments[id];
+        });
+
+        write(KEYS.assign, assignments);
+        write(KEYS.ids, currentIds);
+        remove(KEYS.pending);
+
+        const cardsOf = sectionId => cards.filter(card => assignments[idOf(card)] === sectionId);
+
+        let active = null;
+
+        const syncUI = () => {
+            buttons.forEach(button => {
+                const selected = button.dataset.openSection === active;
+                button.setAttribute('aria-pressed', String(selected));
+                button.classList.toggle('ring-4', selected);
+                button.classList.toggle('ring-slate-300', selected);
+                button.classList.toggle('dark:ring-slate-500', selected);
+            });
+
+            panel.classList.toggle('hidden', !active);
+            panel.classList.toggle('flex', !!active);
+            panel.classList.toggle('flex-col', !!active);
+            map.classList.toggle('hidden', !!active && matchMedia('(max-width: 767px)').matches);
+        };
+
+        const openSection = sectionId => {
+            sectionId = String(sectionId);
+            if (!valid(sectionId)) return;
+
+            active = sectionId;
+            const selected = cardsOf(sectionId);
+
+            $('selected-section-title').textContent = 'Sector ' + sectionId;
+            $('selected-section-subtitle').textContent = 'Aulas registradas en este sector';
+            list.replaceChildren(...selected);
+            $('section-list-empty').classList.toggle('hidden', selected.length > 0);
+            $('section-list-scroll').scrollTop = 0;
+
+            write(KEYS.active, sectionId);
+            syncUI();
+        };
+
+        const closeSection = () => {
+            active = null;
+            remove(KEYS.active);
+            syncUI();
+        };
+
+        sections.forEach(section => {
+            const counter = section.querySelector('[data-count]');
+            if (counter) counter.textContent = cardsOf(section.dataset.section).length;
+        });
+
+        buttons.forEach(button => button.addEventListener('click', () => openSection(button.dataset.openSection)));
+        $('close-section-list').addEventListener('click', closeSection);
+        window.addEventListener('resize', syncUI);
+
+        if (createButton) {
+            createButton.addEventListener('click', event => {
+                event.preventDefault();
+                if (!valid(active)) return;
+
+                write(KEYS.pending, active);
+                write(KEYS.active, active);
+
+                const url = new URL(createButton.href, location.origin);
+                url.searchParams.set('seccion', active);
+                location.href = url.toString();
+            });
+        }
+
+        const toRestore = valid(pending) ? String(pending) : read(KEYS.active, null);
+        if (valid(toRestore)) openSection(toRestore);
+    });
+</script>
+{% endblock %}

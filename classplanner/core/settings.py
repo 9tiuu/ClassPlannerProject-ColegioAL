@@ -40,10 +40,10 @@ PASSWORD_RESET_TIMEOUT = 900
 LOGOUT_REDIRECT_URL = 'login'
 LOGIN_REDIRECT_URL = 'home'
 
-AUTH_USER_MODEL = 'tickets.Usuario'
+AUTH_USER_MODEL = 'classplanner.Usuario'
 
 AUTHENTICATION_BACKENDS = [
-    'tickets.backend.EmailOrRutValidation',
+    'classplanner.backend.EmailOrRutValidation',
 ] 
 
 MESSAGE_STORAGE = "django.contrib.messages.storage.cookie.CookieStorage"
@@ -57,7 +57,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'tickets',
+    'classplanner',
     'registration',
     'easyaudit',
 ]
@@ -146,7 +146,7 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'tickets/static')
+    os.path.join(BASE_DIR, 'classplanner/static')
 ]
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
@@ -158,4 +158,4 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 DJANGO_EASY_AUDIT_WATCH_MODEL_EVENTS = True
 DJANGO_EASY_AUDIT_WATCH_AUTH_EVENTS = True
 DJANGO_EASY_AUDIT_WATCH_REQUEST_EVENTS = False
-DJANGO_EASY_AUDIT_REGISTERED_CLASSES = ['tickets.Estudiante', 'tickets.Horario', 'tickets.Usuario']
+DJANGO_EASY_AUDIT_REGISTERED_CLASSES = ['classplanner.Estudiante', 'classplanner.Horario', 'classplanner.Usuario']

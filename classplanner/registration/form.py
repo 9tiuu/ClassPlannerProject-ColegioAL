@@ -1,5 +1,5 @@
 from django import forms
-from tickets.models import Usuario
+from classplanner.models import Usuario
 from django.contrib.auth import authenticate
 
 class ProfileForm(forms.ModelForm):

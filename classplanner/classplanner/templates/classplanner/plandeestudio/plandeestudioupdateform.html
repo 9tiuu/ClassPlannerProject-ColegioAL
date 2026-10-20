@@ -1,0 +1,54 @@
+{% if form %}
+<form
+    hx-post="{% url 'plandeestudioupdateform' curso.pk %}"
+    hx-target="#error-msg"
+    hx-swap="innerHTML"
+    hx-on::after-request="if (event.detail.successful && event.detail.xhr.getResponseHeader('X-Planes-Guardados') === 'true') Swal.fire({'title': 'Listo!','text': event.detail.xhr.getResponseHeader('X-Planes-Guardados-Msg'),'icon': 'success','confirmButtonColor': '#0d6efd'}).then((result) => { if (result.isConfirmed) window.location.href = '{% url 'plandeestudio' %}'; })"
+    hx-trigger="click from:#submit-all"
+    class="w-full px-2 py-2 gap-2 lg:w-sm relative max-h-[60vh] min-w-[20vh] bg-white p-3 shadow-sm dark:border-slate-800 dark:bg-[#141826] b-white overflow-x-auto bg-neutral-primary-soft shadow-xs rounded-base border border-default border-slate-300 dark:border-slate-800 rounded-lg">
+    {% csrf_token %}
+<div name="pde-form-curso" class="flex p-3 gap-1 items-center">
+    <div class="flex gap-1 w-full text-sm font-medium text-slate-700 dark:text-[#a8b2d2] mt-5">
+        <div class="mr-2 w-[5.5rem] flex items-center align-right text-sm font-medium text-slate-700 dark:text-[#a8b2d2]">
+            Curso:
+        </div>
+        <select disabled name="curso_id" class="w-full rounded border my-2 px-2 py-2 invalid:border-red-400 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-300 dark:bg-slate-800 dark:text-white dark:border-slate-600 dark:focus:ring-blue-300 dark:focus:border-blue-300" required="" id="id_curso_id">
+            <option value="{{ horasCurso }}" id="{{ curso.id }}" selected>{{ curso }}</option>
+        </select>
+    </div>
+</div>
+<div name="hrs-asignaturas-parent" class="flex flex-col gap-2 p-3 mt-2">
+    <div class="hrs-asignaturas">
+    {% for a in asignaturas %}
+    {% for ident, hrs in asignaturasSelected %}
+    {% for pdepk, pdeident in planesdeestudio %}
+    {% if ident == a.ident and pdeident == a.ident %} 
+    <div name="hrs-asignatura-div-update" class="flex gap-1 items-center">
+        <span class="mr-2 py-2 w-[5.5rem] text-sm font-medium text-slate-700 dark:text-[#a8b2d2]">
+                {{ a.ident }}:
+        </span>
+        <input type="hidden" name="pde_id" value="{{ pdepk }}" class="{{ a.id }}">
+        <input type="hidden" name="asignatura_id" value="{{ a.id }}" class="hrs-asignatura-update">
+        <input id="hrs-0-{{ a.ident }}" type="number" name="hrs_asignatura" value="{{ hrs|floatformat:0 }}" min="0" max="8" step="0.5" required="" class="w-full rounded border mt-2 out-of-range:border-red-500 px-3 py-2 invalid:border-red-400 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-300 dark:bg-slate-800 dark:text-white dark:border-slate-600 dark:focus:ring-blue-300 dark:focus:border-blue-300">
+    </div>
+    {% endif %}
+    {% endfor %}
+    {% endfor %}
+    {% endfor %}
+    </div>
+</div>
+<div id="hrs-crear-plan" style="display: flex; flex-direction: column;"></div>
+</form>
+{% endif %}
+{% if messages %}
+    {% for message in messages %}
+        <script>
+            Swal.fire({
+                "title": "{% if 'error' in message.tags %}¡Error!{% elif 'success' in message.tags %}Listo!{% else %}Información{% endif %}",
+                "text": "{{ message }}",
+                "icon": "{% if 'error' in message.tags %}error{% elif 'success' in message.tags %}success{% elif 'warning' in message.tags %}warning{% else %}info{% endif %}",
+                "confirmButtonColor": "{% if 'error' in message.tags %}#d33{% elif 'success' in message.tags %}#0d6efd{% elif 'warning' in message.tags %}#f39c12{% else %}#3085d6{% endif %}"
+            });
+        </script>
+    {% endfor %}
+{% endif %}
