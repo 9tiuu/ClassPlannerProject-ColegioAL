@@ -9,7 +9,6 @@ from .views import (
     ListEstudiantes, CreateEstudiante, UpdateEstudiante, DeleteEstudiante,
     ListPlanDiferencial, CreatePlanDiferencial, UpdatePlanDiferencial, DeletePlanDiferencial,
     ListAsignatura, CreateAsignatura, UpdateAsignatura, DeleteAsignatura,
-    UpdatePlanDeEstudio
 )
 from .views import custom_logout
 # from django.contrib.auth.views import LoginView
@@ -69,6 +68,7 @@ urlpatterns = [
     path('plandeestudiocreateform/', views.CreatePlanDeEstudioForm, name='plandeestudiocreateform'),
     path('plandeestudioupdate/<int:pk>/', views.UpdatePlanDeEstudio, name='plandeestudioupdate'),
     path('plandeestudioupdateform/<int:pk>/', views.UpdatePlanDeEstudioForm, name='plandeestudioupdateform'),
+    path('plandeestudiosexport/<str:export>', views.ExportarPlanes, name='planesexport'),
 
     # AUTENTICACION
     path('logout/', custom_logout, name='logout'),

@@ -3,6 +3,8 @@
 <title>Eliminar Usuario | ClassPlanner</title>
 {% endblock %}
 {% block content  %}
+
+{% if request.user.id != usuario.id %}
 <div class="p-4 min-h-[6vh] mt-2 rounded-lg">
     <p class="mb-3 text-slate-500"><a class="hover:underline" href="{% url 'home' %}">Gestión</a> / <a class="hover:underline" href="{% url 'userlist' %}">Usuarios</a> / Eliminar</p>
     <h2 class="text-4xl font-semibold text-[#234FA8] dark:text-blue-500 mb-1">Eliminar usuario</h2>
@@ -75,4 +77,5 @@
 </div>
 
 </div>
-{% endblock  %}
+{% endif %}
+{% endblock %}

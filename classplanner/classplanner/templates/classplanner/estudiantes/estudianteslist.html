@@ -40,7 +40,6 @@
                 </thead>
                 <tbody class="dark:text-[#a8b2d2] text-slate-500">
                     {% for e in estudiantes %}
-                    {% if e.is_active %}
                     <tr class="border-b border-default bg-white dark:bg-[#171c2b] dark:border-b-slate-800">
                         <td class="px-6 py-4 whitespace-nowrap md:whitespace-normal">{{ e.rut }}</td>
                         <td class="px-6 py-4 whitespace-nowrap md:whitespace-normal">{{ e.nombre }} {{ e.apellido_p }} {{ e.apellido_m }}</td>
@@ -75,7 +74,6 @@
                             </a>
                         </td>
                     </tr>
-                    {% endif %}
                     {% endfor %}
                 </tbody>
             </table>

@@ -1,11 +1,36 @@
 (() => {
 const planForm = document.getElementById("plan-form")
-const pdeidArray = Boolean(document.querySelector("[name='hrs-asignatura-div-update']"))
+const isUpdateForm = Boolean(document.querySelector("#plan-div[data-plan-mode='update']"))
+const pdeidArray = isUpdateForm
     ? Array.from(document.querySelectorAll("[name='pde_id']"))
     : []
 console.log("pdeidArray: ",pdeidArray.values())
 
-function ipt_asignatura() {
+function ipt_asignatura(chkbox) {
+    if (isUpdateForm && chkbox && !chkbox.checked) {
+        Swal.fire({
+            "title": "¿Eliminar asignatura?",
+            "text": "Puede volver a agregarla, pero perderá las horas asignadas. Asegúrese de que realmente desea eliminar esta asignatura",
+            "icon": "warning",
+            "showCancelButton": true,
+            "confirmButtonColor": "#f39c12",
+            "confirmButtonText": "Eliminar",
+            "cancelButtonText": "Cancelar"
+        }).then(result => {
+            if (result.isConfirmed) {
+                updateAsignaturas()
+            } else {
+                chkbox.checked = true
+            }
+            if (typeof window.inputTrigger === "function") window.inputTrigger()
+        });
+        return
+    }
+
+    updateAsignaturas()
+}
+
+function updateAsignaturas() {
     const asignaturasSelect = document.getElementById("asignaturas-select")
     if (!planForm || !asignaturasSelect) return
 
@@ -57,7 +82,7 @@ function ipt_asignatura() {
             input.name = "hrs_asignatura"
             input.min = "0"
             input.max = "8"
-            input.step = "0.5"
+            input.step = "1"
             input.required = true
             input.value = valoresGuardados.get(checkbox.value) ?? ""
             input.className = "w-full rounded border mt-2 out-of-range:border-red-500 px-3 py-2 invalid:border-red-400 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-300 dark:bg-slate-800 dark:text-white dark:border-slate-600 dark:focus:ring-blue-300 dark:focus:border-blue-300"

@@ -15,7 +15,6 @@ const setAsignaturas = () => {
             input.value = 0;
         }});
 }
-// 1. elegir asignaturas/elegir curso/agregar cursos, 2. agregar input horas, 3. enviar
 const setBtnDeleteState = (enabled) => {
     getPlanForms().forEach(form => { // Borrar curso
         const button = form.querySelector("[name='btn-delete-form']");
@@ -58,7 +57,6 @@ const inputTrigger = () => {
                 const num = isNaN(ipt.valueAsNumber) ? 0 : ipt.valueAsNumber
                 total = total + num
             })
-            //console.log("ipt total: ", total);
             
             const cursoSelect = form.querySelector("[name='curso_id']");
             const selectedOption = cursoSelect?.selectedOptions[0];
@@ -142,15 +140,34 @@ const inputTrigger = () => {
     } else if (planForms.some(form => {
         const horasInputs = Array.from(form.querySelectorAll("[name='hrs_asignatura']"));
         return horasInputs.length !== checkedAsignaturas.length
-            || horasInputs.some(input => input.value === "");
-    })) {
+        || horasInputs.some(input => input.value === "");
+    })) {    
         setErrors("Existen asignaturas sin horas asignadas");
         btnCrearIsDisabled = true;
     } else {
         planForms.some(form => {
             const horasInputs = Array.from(form.querySelectorAll("[name='hrs_asignatura']"));
+            let total = 0
+            horasInputs.some(ipt => {
+                const num = isNaN(ipt.valueAsNumber) ? 0 : ipt.valueAsNumber
+                total = total + num
+            })
+            const cursoSelect = form.querySelector("[name='curso_id']");
+            const selectedOption = cursoSelect?.selectedOptions[0];
+            const horasCurso = Number(selectedOption?.dataset.horasPlanTotal ?? 0);
+            const horasForm = total;
+            if (horasForm === 0) {
+                setErrors("El total de horas semanales no puede ser 0");
+                return btnCrearIsDisabled = true;
+            } else if (horasForm > horasCurso) {
+                console.log("horasForm:",horasForm,horasCurso)
+                setErrors("El total excede el límite de horas del plan");
+                return btnCrearIsDisabled = true;
+            } else {
+                setErrors();
+                btnCrearIsDisabled = false;
+            }
             if (horasInputs.some(ipt => {
-                //console.log("ipt value limite?", ipt.valueAsNumber > 8)
                 return ipt.valueAsNumber > 8
             })) {
                 setErrors("Una asignatura excede el límite de horas");

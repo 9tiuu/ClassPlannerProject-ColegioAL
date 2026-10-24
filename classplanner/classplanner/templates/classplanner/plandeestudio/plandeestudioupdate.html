@@ -10,10 +10,10 @@
     <h2 class="text-4xl font-semibold text-[#234FA8] dark:text-blue-500 mb-1">Actualizar Plan de Estudio</h2>
     <p class="text-slate-500 dark:text-[#a8b2d2] mb-3 text-sm">Modifique el plan de estudio del curso seleccionado:</p>
 </div>
-<div class="justify-center flex flex-col grid grid-cols-1 bg-white p-4 border-slate-300 dark:border-slate-700 border-default border mt-7 rounded-lg">
+<div class="justify-center flex flex-col grid grid-cols-1 bg-white p-4 border-slate-300 dark:border-slate-800 dark:bg-[#141826] border-default border mt-7 rounded-lg">
     <div id="user-list-content">
 
-        <div id="plan-div" class="flex flex-col gap-6 lg:flex-row lg:gap-12">
+        <div id="plan-div" data-plan-mode="update" class="flex flex-col gap-6 lg:flex-row lg:gap-12">
             <div class="w-full lg:max-w-sm">
                 <h2 class="text-2xl font-semibold text-[#234FA8] dark:text-blue-500 mb-2">Asignaturas</h2>
                 <p class="mb-4 text-sm text-slate-500 dark:text-[#a8b2d2]">Seleccione asignaturas para agregarlas al plan.</p>
@@ -26,7 +26,7 @@
                             id="asignatura-{{ a.id }}"
                             value="{{ a.id }}"
                             data-nombre="{{ a }}"
-                            onchange="window.ipt_asignatura()"
+                            onchange="window.ipt_asignatura(this)"
                             class="h-5 w-5 shrink-0 cursor-pointer accent-blue-600 focus-visible:ring-2 focus-visible:ring-blue-600">
                         <span class="min-w-0">
                             <span class="block font-semibold text-slate-800 dark:text-white">{{ a.nombre }}</span>

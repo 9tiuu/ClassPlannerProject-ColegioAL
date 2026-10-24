@@ -1,6 +1,6 @@
 from django.forms import ValidationError
 from django.http import request, Http404, HttpResponse
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import PermissionDenied, BadRequest
 from django.shortcuts import render, get_object_or_404
 from django.urls import reverse_lazy
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
@@ -31,9 +31,14 @@ from django.utils.decorators import method_decorator
 from django.contrib.auth.mixins import UserPassesTestMixin
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
+from django.db.models.query import QuerySet
 from functools import wraps
+from .static.classplanner.py.exportar_planes import exportar_planes
 
 # Create your views here.
+
+def fecha_actual():
+    return datetime.now("America/Santiago")
 
 def validar_rut(rut):
     rut = rut.replace(".", "").upper()
@@ -159,21 +164,36 @@ class CreateUsuario(CreateView):
         messages.success(self.request, '¡Usuario Registrado con exito!')
         return super().form_valid(form)
     
-@method_decorator(login_required, name='dispatch')
-@method_decorator(roles_required('root'), name='dispatch')
+@method_decorator(login_required, name='dispatch') 
+@method_decorator(roles_required('root', 'Director'), name='dispatch')
 class ListUsuario(ListView):
     model = Usuario
     template_name = 'classplanner/usuarios/userlist.html'
     context_object_name = 'usersys'
+    def get_queryset(self):
+        self.queryset = Usuario.objects.all()
+
+        # Director solo lista profesores
+        if self.request.user.rol.name == 'Director':
+            return Usuario.objects.filter(rol__name='Docente')
+        return self.queryset
 
 @method_decorator(login_required, name='dispatch')
-@method_decorator(roles_required('root'), name='dispatch')
+@method_decorator(roles_required('root', 'Director'), name='dispatch')
 class UpdateUsuario(UpdateView):
     model = Usuario
     form_class = UserUpdateForm
     template_name = 'classplanner/usuarios/userupdate.html'
     success_url = reverse_lazy('userlist')
     context_object_name = 'usuario'
+    # falta editar forms para el director
+
+    def get_object(self, queryset=None):
+        obj = super().get_object(queryset)
+        if (self.request.user.rol.name == 'Director' and obj.rol.name == 'Docente') or self.request.user.rol.name == 'root':
+            return obj
+        elif self.request.user.rol.name == 'Director':
+            raise PermissionDenied('No tiene permisos suficientes para editar este usuario')
 
     def form_valid(self, form):
         username = form.cleaned_data.get('username')
@@ -209,6 +229,12 @@ class DeleteUsuario(DeleteView):
     success_url = reverse_lazy('userlist')
     context_object_name = 'usuario'
 
+    def get_object(self, queryset=None):
+        obj = super().get_object(queryset)
+        if self.request.user.pk == obj.pk:
+            raise PermissionDenied("No puede eliminar su propio usuario")
+        return obj
+    
     def form_valid(self, form):
         messages.success(self.request, '¡Usuario Eliminado con exito!')
         return super().form_valid(form)
@@ -416,6 +442,8 @@ class ListEstudiantes(ListView):
     model = Estudiante
     template_name = 'classplanner/estudiantes/estudianteslist.html'
     context_object_name = 'estudiantes'
+    def get_queryset(self):
+        return Estudiante.objects.filter(is_active=True)
 
 @method_decorator(login_required, name='dispatch')
 @method_decorator(roles_required('root', 'Administrador', 'Director'), name='dispatch')
@@ -625,7 +653,31 @@ class DeleteAsignatura(DeleteView):
 # ----------------------------------- # PLAN DE ESTUDIO
 
 @login_required
-@roles_required('root', 'Administrador')
+@roles_required('root', 'Administrador', 'Director')
+def ExportarPlanes(request, export):
+    if export == 'excel':
+        print("exportar a excel")
+    elif export == 'pdf':
+        print("exportar a pdf")
+    if request.method != 'POST':
+        raise BadRequest('Solicitud de exportación inválida')
+
+    planes_seleccionados = request.POST.getlist('plan_checkbox')
+    if 'exportar_todo' in planes_seleccionados:
+        return exportar_planes(PlanDeEstudio.objects.all())
+
+    cursos_seleccionados = [
+        curso_id for curso_id in planes_seleccionados
+        if curso_id != 'exportar_todo'
+    ]
+    if not cursos_seleccionados:
+        raise BadRequest('Seleccione planes válidos para exportar')
+
+    planes = PlanDeEstudio.objects.filter(curso_id__in=cursos_seleccionados)
+    return exportar_planes(planes)
+
+@login_required
+@roles_required('root', 'Administrador', 'Director')
 def ListPlanDeEstudio(request):
     cursosModel = Curso.objects.all()
     plandeestudio = PlanDeEstudio.objects.all()
@@ -641,7 +693,7 @@ def ListPlanDeEstudio(request):
         curso_update = str(cursosModel.filter(id=c).first())
         curso_update_id = cursosModel.filter(id=c).first().id
         asignaturas_update = list(
-            plandeestudio.filter(curso_id=c).values_list('asignatura_id__ident','hrs_asignatura')
+            plandeestudio.filter(curso_id=c).values_list('asignatura_id__nombre','hrs_asignatura')
         )
         horas = sum(plandeestudio.filter(curso_id=c).values_list('hrs_asignatura', flat=True))
         planes.update({f"{c}": [curso_update, asignaturas_update, horas, curso_update_id]})
@@ -709,7 +761,8 @@ def CreatePlanDeEstudioForm(request): # hacer validacion hrs plan curso >= total
                     'curso_id': curso_id,
                     'hrs_asignatura': hrs,
                     'asignatura_id': asignatura_id,
-                })
+                }) 
+                
 
                 if not curso_ids_validos or curso_repetido or cursos_invalidos:
                     if curso_repetido:
@@ -723,7 +776,9 @@ def CreatePlanDeEstudioForm(request): # hacer validacion hrs plan curso >= total
                     )
 
                 if item_form.is_valid():
-                    planes.append(item_form.cleaned_data)
+                    print(hrs)
+                    if int(hrs) > 0:
+                        planes.append(item_form.cleaned_data)
                 else:
                     form = PlanDeEstudioCreateForm(request.POST)
                     form.add_error(None, 'Datos inválidos')
@@ -787,7 +842,7 @@ def UpdatePlanDeEstudio(request, pk=None):
     asignaturasModel = Asignatura.objects.all()
     asignaturasSelected = list(pdeModel.filter(curso_id=curso.id).values_list('asignatura_id__ident','hrs_asignatura'))
     pdes = list(pdeModel.filter(curso_id=curso.id).values_list('pk', 'asignatura_id__ident'))
-    print("pdes: ",pdes,"\nlast: ",pdeModel.last().pk)
+    print("pdes: ",pdes)
     context = {
         'form': PlanDeEstudioUpdateForm(),
         'asignaturas': asignaturasModel,
@@ -795,7 +850,6 @@ def UpdatePlanDeEstudio(request, pk=None):
         'curso': curso,
         'horasCurso': horasCurso,
         'planesdeestudio': pdes,
-        #'pdeCount': pdeModel.last().pk
     }
 
     return render(request, 'classplanner/plandeestudio/plandeestudioupdate.html', context)
@@ -828,14 +882,17 @@ def UpdatePlanDeEstudioForm(request, pk=None): # hacer validacion hrs plan curso
 
             planesUpdate = []
             planesCreate = []
+            planesDelete = []
             print("planes: ", planes,"\nhoras: ", horas,"\nasigns: ",asignaturas)
             for plan_id, hrs, asignatura_id in zip(
                 planes, horas, asignaturas
             ):
                 plan = planes_existentes.get(plan_id)
-                print("planes existentes: ",planes_existentes,"\nplan loop: ",plan)
+
+                #print("planes existentes: ",planes_existentes,"\nplan loop: ",plan)
+                print("plan loop: ",plan)
                 if plan is None and not plan_id == "":
-                    form.add_error(None, 'El plan seleccionado no es válido.')
+                    form.add_error(None, 'Ocurrió un error, no se pudo validar el plan seleccionado.')
                     return render(
                         request,
                         'classplanner/plandeestudio/plandeestudioformerror.html',
@@ -857,29 +914,39 @@ def UpdatePlanDeEstudioForm(request, pk=None): # hacer validacion hrs plan curso
                     )
 
                 # Modificar obj
-
                 if plan is None:
                     nuevoPlan = PlanDeEstudio(
                         curso_id=curso,
                         hrs_asignatura=item_form.cleaned_data['hrs_asignatura'],
                         asignatura_id=item_form.cleaned_data['asignatura_id'],
                     )
-                    planesCreate.append(nuevoPlan)
+                    if not float(nuevoPlan.hrs_asignatura) < 1:
+                        planesCreate.append(nuevoPlan)
+                elif float(hrs) < 1:
+                    planesDelete.append(plan)
                 else:
                     plan.hrs_asignatura = item_form.cleaned_data['hrs_asignatura']
                     plan.asignatura_id = item_form.cleaned_data['asignatura_id']
-                    
-                    planesUpdate.append(plan)
-                #continue
+
+                    if not float(hrs) < 1:
+                        planesUpdate.append(plan)
 
             with transaction.atomic():
-                print("planesUpdate: ", planesUpdate,"\nplanesCreate: ",planesCreate)
+                print("\n-----\nplanesUpdate: ", planesUpdate,"\nplanesDelete: ",planesDelete,"\nplanesCreate: ",planesCreate,"\n-----\n")
+                for plan in planes_existentes.values():
+                    if plan not in planesDelete and plan not in planesUpdate and plan not in planesDelete:
+                        planesDelete.append(plan)
+                        
                 PlanDeEstudio.objects.bulk_update(
                     planesUpdate,
                     ['hrs_asignatura', 'asignatura_id']
                 )
                 if planesCreate != []:
                     PlanDeEstudio.objects.bulk_create(planesCreate)
+                if planesDelete != []:
+                    PlanDeEstudio.objects.filter(
+                        pk__in=[plan.pk for plan in planesDelete]
+                    ).delete()
 
             response = render(
                 request,
