@@ -7,10 +7,12 @@ from .views import (
     ListAula, CreateAula, UpdateAula, DeleteAula,
     ListCursos, CreateCurso, UpdateCurso, DeleteCurso,
     ListEstudiantes, CreateEstudiante, UpdateEstudiante, DeleteEstudiante,
+    ListNotasEstudiante, CreateNota, UpdateNota, DeleteNota,
     ListPlanDiferencial, CreatePlanDiferencial, UpdatePlanDiferencial, DeletePlanDiferencial,
     ListAsignatura, CreateAsignatura, UpdateAsignatura, DeleteAsignatura,
     UpdatePlanDeEstudio
 )
+from django.views.generic import RedirectView
 from .views import custom_logout
 # from django.contrib.auth.views import LoginView
 
@@ -50,6 +52,13 @@ urlpatterns = [
     path('estudiantecreate/', CreateEstudiante.as_view(), name='estudiantecreate'),
     path('estudianteupdate/<str:rut>/<int:curso_id>/', UpdateEstudiante.as_view(), name='estudianteupdate'),
     path('estudiantedelete/<str:rut>/<int:curso_id>/', DeleteEstudiante.as_view(), name='estudiantedelete'),
+
+    # NOTAS
+    path('notas/', RedirectView.as_view(pattern_name='estudiantes'), name='notas'),
+    path('notas/estudiante/<str:rut>/<int:curso_id>/', ListNotasEstudiante.as_view(), name='notasestudiante'),
+    path('notas/estudiante/<str:rut>/<int:curso_id>/crear/', CreateNota.as_view(), name='notacreate'),
+    path('notaupdate/<int:pk>/', UpdateNota.as_view(), name='notaupdate'),
+    path('notadelete/<int:pk>/', DeleteNota.as_view(), name='notadelete'),
 
     # PLAN DIFERENCIAL
     path('plandiferencial/', ListPlanDiferencial.as_view(), name='plandiferencial'),

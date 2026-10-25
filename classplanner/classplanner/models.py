@@ -88,6 +88,8 @@ class Estudiante(models.Model):
 
 class Nota(models.Model):
     nota = models.CharField(max_length=50)
+    estudiante_rut = models.CharField(max_length=10)
+    estudiante_curso = models.ForeignKey(Curso, on_delete=models.RESTRICT)
     estudiante = models.ForeignObject(
         Estudiante,
         on_delete=models.CASCADE,
@@ -97,10 +99,7 @@ class Nota(models.Model):
     asignatura_id = models.ForeignKey(Asignatura, on_delete=models.CASCADE)
 
     def __str__(self):
-        return (
-            f'Promedio de {self.estudiante.rut} '
-            f'en {self.asignatura_id.ident}: {self.nota}'
-        )
+        return f'Nota de {self.estudiante_rut} en {self.asignatura_id.ident}: {self.nota}'
     
 class Aula(models.Model):
     nombre = models.CharField(max_length=50)

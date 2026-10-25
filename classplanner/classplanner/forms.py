@@ -1,5 +1,5 @@
 from django import forms
-from .models import Curso, PlanDeEstudio, Usuario, Rol, Asignatura, PlanDiferencial, Estudiante, Aula
+from .models import Curso, PlanDeEstudio, Usuario, Rol, Asignatura, PlanDiferencial, Estudiante, Aula, Nota
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 # from django.contrib.auth.forms import AuthenticationForm
 
@@ -189,6 +189,102 @@ class EstudiantesUpdateForm(forms.ModelForm):
             'apellido_p': forms.TextInput(attrs={'required': 'true'}),
             'curso_id': forms.Select(attrs={'required': 'true'}),
         }
+
+class NotasCreateForm(forms.ModelForm):
+    class Meta:
+        model = Nota
+        fields = ['nota', 'asignatura_id']
+        labels = {
+            'nota': 'Nota',
+            'asignatura_id': 'Asignatura',
+        }
+        widgets = {
+            'nota': forms.TextInput(),
+            'asignatura_id': forms.Select(),
+        }
+
+    def __init__(self, *args, estudiante=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.estudiante = estudiante
+        self.instance.estudiante_rut = estudiante.rut
+        self.instance.estudiante_curso = estudiante.curso_id
+
+    def clean_nota(self):
+        valor = self.cleaned_data.get('nota', '').strip().replace(',', '.')
+
+        try:
+            numero = float(valor)
+        except ValueError:
+            raise forms.ValidationError('Ingrese una nota numérica, por ejemplo 5.5.')
+
+        if not 1.0 <= numero <= 7.0:
+            raise forms.ValidationError('La nota debe estar entre 1.0 y 7.0.')
+
+        return f'{numero:.1f}'
+
+    def clean(self):
+        cleaned = super().clean()
+        asignatura = cleaned.get('asignatura_id')
+
+        if asignatura:
+            cantidad = Nota.objects.filter(
+                estudiante_rut=self.estudiante.rut,
+                estudiante_curso_id=self.estudiante.curso_id_id,
+                asignatura_id=asignatura,
+            ).exclude(pk=self.instance.pk).count()
+
+            if cantidad >= 12:
+                raise forms.ValidationError('Un estudiante puede tener como máximo 12 notas por asignatura.')
+
+        return cleaned
+
+class NotasUpdateForm(forms.ModelForm):
+    class Meta:
+        model = Nota
+        fields = ['nota', 'asignatura_id']
+        labels = {
+            'nota': 'Nota',
+            'asignatura_id': 'Asignatura',
+        }
+        widgets = {
+            'nota': forms.TextInput(),
+            'asignatura_id': forms.Select(),
+        }
+
+    def __init__(self, *args, estudiante=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.estudiante = estudiante
+        self.instance.estudiante_rut = estudiante.rut
+        self.instance.estudiante_curso = estudiante.curso_id
+
+    def clean_nota(self):
+        valor = self.cleaned_data.get('nota', '').strip().replace(',', '.')
+
+        try:
+            numero = float(valor)
+        except ValueError:
+            raise forms.ValidationError('Ingrese una nota numérica, por ejemplo 5.5.')
+
+        if not 1.0 <= numero <= 7.0:
+            raise forms.ValidationError('La nota debe estar entre 1.0 y 7.0.')
+
+        return f'{numero:.1f}'
+
+    def clean(self):
+        cleaned = super().clean()
+        asignatura = cleaned.get('asignatura_id')
+
+        if asignatura:
+            cantidad = Nota.objects.filter(
+                estudiante_rut=self.estudiante.rut,
+                estudiante_curso_id=self.estudiante.curso_id_id,
+                asignatura_id=asignatura,
+            ).exclude(pk=self.instance.pk).count()
+
+            if cantidad >= 12:
+                raise forms.ValidationError('Un estudiante puede tener como máximo 12 notas por asignatura.')
+
+        return cleaned
 
 # Para creación PDE
 class CursoSelect(forms.Select):

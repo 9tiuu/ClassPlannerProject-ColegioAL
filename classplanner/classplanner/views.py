@@ -2,7 +2,7 @@ from django.forms import ValidationError
 from django.http import request, Http404, HttpResponse
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import render, get_object_or_404
-from django.urls import reverse_lazy
+from django.urls import reverse, reverse_lazy
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django.views.generic.list import ListView
 from django.views.generic.detail import DetailView
@@ -11,16 +11,18 @@ from django.contrib import messages
 from datetime import datetime
 import re
 from math import floor
+from collections import defaultdict
 
 from easyaudit.models import CRUDEvent
-from .models import Rol, Usuario, Asignatura, PlanDeEstudio, Curso, PlanDiferencial, Estudiante, Aula
+from .models import Rol, Usuario, Asignatura, PlanDeEstudio, Curso, PlanDiferencial, Estudiante, Aula, Nota
 from .forms import (
     RolForm, UsuarioForm, UserUpdateForm,
     PlanDeEstudioCreateForm, PlanDeEstudioUpdateForm,
     CursoForm, AsignaturasCreateForm, AsignaturaUpdateForm,
     AulaCreateForm, AulaUpdateForm,
     PlanDiferencialCreateForm, PlanDiferencialUpdateForm,
-    EstudiantesCreateForm, EstudiantesUpdateForm
+    EstudiantesCreateForm, EstudiantesUpdateForm,
+    NotasCreateForm, NotasUpdateForm
 )
 
 from django.contrib.auth import logout, get_user_model
@@ -516,6 +518,137 @@ class DeleteEstudiante(DeleteView):
     def form_valid(self, form):
         messages.success(self.request, '¡Estudiante eliminado con exito!')
         return super().form_valid(form)
+
+# ----------------------------------- # NOTAS
+
+def calcular_promedios(notas):
+    por_asignatura = defaultdict(list)
+    asignaturas = {}
+
+    for nota in notas:
+        por_asignatura[nota.asignatura_id_id].append(float(nota.nota))
+        asignaturas[nota.asignatura_id_id] = nota.asignatura_id
+
+    resultados = []
+
+    for asignatura_id, valores in por_asignatura.items():
+        media = sum(valores) / len(valores)
+        resultados.append({
+            'asignatura': asignaturas[asignatura_id],
+            'cantidad': len(valores),
+            'media': media,
+            'promedio': round(media, 1),
+            'provisorio': len(valores) < 4,
+        })
+
+    return resultados
+
+def promedio_final(promedios):
+    if not promedios:
+        return 0
+
+    return round(sum(p['media'] for p in promedios) / len(promedios), 1)
+
+def actualizar_promedio_estudiante(rut, curso_id):
+    notas = Nota.objects.filter(
+        estudiante_rut=rut,
+        estudiante_curso_id=curso_id,
+    ).select_related('asignatura_id')
+
+    final = promedio_final(calcular_promedios(notas))
+    Estudiante.objects.filter(rut=rut, curso_id=curso_id).update(promedio=final)
+
+class NotaEstudianteMixin:
+    def get_estudiante(self):
+        if not hasattr(self, '_estudiante'):
+            if 'rut' in self.kwargs:
+                rut, curso_id = self.kwargs['rut'], self.kwargs['curso_id']
+            else:
+                rut, curso_id = self.object.estudiante_rut, self.object.estudiante_curso_id
+
+            self._estudiante = get_object_or_404(Estudiante, rut=rut, curso_id=curso_id)
+
+        return self._estudiante
+
+    def get_success_url(self):
+        estudiante = self.get_estudiante()
+        return reverse('notasestudiante', kwargs={'rut': estudiante.rut, 'curso_id': estudiante.curso_id_id})
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['estudiante'] = self.get_estudiante()
+        return context
+
+@method_decorator(login_required, name='dispatch')
+@method_decorator(roles_required('root', 'Administrador', 'Director', 'Docente'), name='dispatch')
+class ListNotasEstudiante(NotaEstudianteMixin, ListView):
+    template_name = 'classplanner/notas/notaslist.html'
+    context_object_name = 'notas'
+
+    def get_queryset(self):
+        estudiante = self.get_estudiante()
+        return Nota.objects.filter(
+            estudiante_rut=estudiante.rut,
+            estudiante_curso_id=estudiante.curso_id_id,
+        ).select_related('asignatura_id').order_by('asignatura_id__ident', 'id')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        promedios = calcular_promedios(context['notas'])
+        context['promedios'] = promedios
+        context['promedio_final'] = promedio_final(promedios)
+        return context
+
+@method_decorator(login_required, name='dispatch')
+@method_decorator(roles_required('root', 'Administrador', 'Director', 'Docente'), name='dispatch')
+class CreateNota(NotaEstudianteMixin, CreateView):
+    model = Nota
+    form_class = NotasCreateForm
+    template_name = 'classplanner/notas/notascreate.html'
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['estudiante'] = self.get_estudiante()
+        return kwargs
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        actualizar_promedio_estudiante(self.object.estudiante_rut, self.object.estudiante_curso_id)
+        messages.success(self.request, '¡Nota registrada con éxito!')
+        return response
+
+@method_decorator(login_required, name='dispatch')
+@method_decorator(roles_required('root', 'Administrador', 'Director', 'Docente'), name='dispatch')
+class UpdateNota(NotaEstudianteMixin, UpdateView):
+    model = Nota
+    form_class = NotasUpdateForm
+    template_name = 'classplanner/notas/notasupdate.html'
+    context_object_name = 'nota'
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['estudiante'] = self.get_estudiante()
+        return kwargs
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        actualizar_promedio_estudiante(self.object.estudiante_rut, self.object.estudiante_curso_id)
+        messages.success(self.request, '¡Nota actualizada con éxito!')
+        return response
+
+@method_decorator(login_required, name='dispatch')
+@method_decorator(roles_required('root', 'Administrador', 'Director', 'Docente'), name='dispatch')
+class DeleteNota(NotaEstudianteMixin, DeleteView):
+    model = Nota
+    template_name = 'classplanner/notas/notasdelete.html'
+    context_object_name = 'nota'
+
+    def form_valid(self, form):
+        rut, curso_id = self.object.estudiante_rut, self.object.estudiante_curso_id
+        response = super().form_valid(form)
+        actualizar_promedio_estudiante(rut, curso_id)
+        messages.success(self.request, '¡Nota eliminada con éxito!')
+        return response
 
 # ----------------------------------- # PLAN DIFERENCIAL
 

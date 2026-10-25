@@ -1,0 +1,74 @@
+{% extends "classplanner/base.html" %}
+
+{% block title %}
+<title>Actualizar Nota | ClassPlanner</title>
+{% endblock %}
+
+{% block content %}
+<div class="p-4 border-slate-300 dark:border-slate-700 min-h-screen border-default border mt-10 rounded-lg">
+    <p class="mb-3 text-slate-500 dark:text-[#a8b2d2]">Gestión / Estudiantes / Notas / Actualizar</p>
+    <h2 class="text-3xl font-bold text-[#234FA8] dark:text-blue-500 mb-1">Actualizar nota</h2>
+    <p class="text-slate-500 dark:text-[#a8b2d2] mb-5 text-sm">Modifique los datos de la nota seleccionada:</p>
+
+    <div class="mb-5 flex flex-wrap items-center gap-x-6 gap-y-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-[#1c2239] px-4 py-3 text-sm text-slate-600 dark:text-[#a8b2d2]">
+        <span><b class="text-slate-800 dark:text-white">Estudiante:</b> {{ estudiante }}</span>
+        <span><b class="text-slate-800 dark:text-white">RUN:</b> {{ estudiante.rut }}</span>
+        <span><b class="text-slate-800 dark:text-white">Curso:</b> {{ estudiante.curso_id }}</span>
+    </div>
+
+    <div class="p-4 bg-white dark:bg-[#141826] rounded-lg">
+        <form method="POST">
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+            <div class="mb-5">
+                {% for error in form.non_field_errors %}
+                <p class="text-sm text-red-600 dark:text-red-400">{{ error }}</p>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <div class="flex md:flex-row flex-col w-full gap-5 mb-5">
+                <div class="flex flex-col w-full">
+                    <label for="id_asignatura_id" class="mb-1 text-base font-semibold text-slate-600 dark:text-white">Asignatura <b class="text-red-600">*</b></label>
+                    <select name="asignatura_id" id="id_asignatura_id" required class="w-full bg-white dark:bg-[#141826] text-sm focus:outline-none focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 rounded-lg h-12 border-2 p-3 border-slate-300 dark:border-slate-700 dark:text-white">
+                        {% for option in form.asignatura_id %}
+                        <option value="{{ option.data.value }}" {% if option.data.selected %}selected{% endif %}>{{ option.data.label }}</option>
+                        {% endfor %}
+                    </select>
+
+                    {% if form.asignatura_id.errors %}
+                    <div class="mb-2">
+                        {% for error in form.asignatura_id.errors %}
+                        <p class="text-sm text-red-600 dark:text-red-400">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="flex flex-col w-full">
+                    <label for="id_nota" class="mb-1 text-base font-semibold text-slate-600 dark:text-white">Nota <b class="text-red-600">*</b></label>
+                    <input type="text" name="nota" id="id_nota" value="{{ form.nota.value|default:'' }}" inputmode="decimal" maxlength="50" placeholder="Ej: 5.5" required class="w-full bg-white dark:bg-[#141826] text-sm focus:outline-none focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 rounded-lg h-12 border-2 p-3 border-slate-300 dark:border-slate-700 dark:placeholder:text-[#a8b2d2] dark:text-white">
+
+                    {% if form.nota.errors %}
+                    <div class="mb-2">
+                        {% for error in form.nota.errors %}
+                        <p class="text-sm text-red-600 dark:text-red-400">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="flex justify-end flex-col-reverse sm:flex-row gap-2 my-8 w-full">
+                <a href="{% url 'notasestudiante' estudiante.rut estudiante.curso_id_id %}" class="flex items-center justify-center text-sm gap-2 border-2 font-semibold border-slate-300 dark:border-slate-700 dark:bg-[#141826] dark:hover:bg-[#1d2236] dark:text-[#a8b2d2] dark:hover:text-white text-slate-500 hover:bg-gray-100 hover:text-slate-700 text-center transition duration-300 rounded-lg px-4 py-3">
+                    Volver atrás
+                </a>
+                <button type="submit" class="flex items-center justify-center gap-2 text-white text-sm font-semibold bg-blue-600 hover:bg-blue-800 text-center transition duration-300 rounded-lg px-4 py-3">
+                    Guardar cambios
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
