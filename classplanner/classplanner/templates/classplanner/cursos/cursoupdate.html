@@ -73,10 +73,11 @@
 
             <div class="flex flex-col w-full mb-5">
                 <label for="id_usuario_id" class="mb-1 text-base font-semibold text-slate-600 dark:text-white">Docente jefe <b class="text-red-600">*</b></label>
+                <p class="mb-2 text-sm text-slate-500 dark:text-[#a8b2d2]">Docente actualmente asignado: {{ curso.usuario_id }}.</p>
                 <select name="usuario_id" id="id_usuario_id" class="w-full bg-white dark:bg-[#141826] text-sm focus:outline-none focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 rounded-lg h-12 border-2 p-3 border-slate-300 dark:border-slate-700 dark:text-white" required>
                     <option value="">Por seleccionar...</option>
                     {% for option in form.usuario_id.field.queryset %}
-                    <option value="{{ option.pk }}" {% if form.usuario_id.value|stringformat:"s" == option.pk|stringformat:"s" %}selected{% endif %}>{{ option }}</option>
+                    <option value="{{ option.pk }}" {% if form.usuario_id.value|stringformat:"s" == option.pk|stringformat:"s" %}selected{% endif %}>{{ option }}{% if option.pk == curso.usuario_id_id %}{% endif %}</option>
                     {% endfor %}
                 </select>
 

@@ -7,7 +7,6 @@ from .views import (
     ListAula, CreateAula, UpdateAula, DeleteAula,
     ListCursos, CreateCurso, UpdateCurso, DeleteCurso,
     ListEstudiantes, CreateEstudiante, UpdateEstudiante, DeleteEstudiante,
-    ListPlanDiferencial, CreatePlanDiferencial, UpdatePlanDiferencial, DeletePlanDiferencial,
     ListAsignatura, CreateAsignatura, UpdateAsignatura, DeleteAsignatura,
 )
 from .views import custom_logout
@@ -49,13 +48,6 @@ urlpatterns = [
     path('estudiantecreate/', CreateEstudiante.as_view(), name='estudiantecreate'),
     path('estudianteupdate/<str:rut>/<int:curso_id>/', UpdateEstudiante.as_view(), name='estudianteupdate'),
     path('estudiantedelete/<str:rut>/<int:curso_id>/', DeleteEstudiante.as_view(), name='estudiantedelete'),
-
-    # PLAN DIFERENCIAL
-    path('plandiferencial/', ListPlanDiferencial.as_view(), name='plandiferencial'),
-    path('plandiferencialcreate/', CreatePlanDiferencial.as_view(), name='plandiferencialcreate'),
-    path('plandiferencialupdate/<int:pk>/', UpdatePlanDiferencial.as_view(), name='plandiferencialupdate'),
-    path('plandiferencialdelete/<int:pk>/', DeletePlanDiferencial.as_view(), name='plandiferencialdelete'),
-
     # ASIGNATURAS
     path('asignaturas/', ListAsignatura.as_view(), name='asignaturas'),
     path('asignaturacreate/', CreateAsignatura.as_view(), name='asignaturacreate'),

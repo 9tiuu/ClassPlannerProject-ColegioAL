@@ -1,5 +1,6 @@
 from django.db import models
-from django.contrib.auth.models import AbstractUser 
+from django.contrib.auth.models import AbstractUser
+from core.middleware.constants import ASIGNATURAS_CHOICES, AREAS_PLAN_DIFERENCIADO
 # from datetime import datetime, date, timedelta
 # from django.utils.timezone import now
 
@@ -27,12 +28,6 @@ class Usuario(AbstractUser):
     def __str__(self) -> str:
         return f'{self.name} {self.last_name}'
 
-class PlanDiferencial(models.Model):
-    nombre = models.CharField(max_length=50)
-
-    def __str__(self) -> str:
-        return f'{self.nombre}'
-
 class Asignatura(models.Model):
     ident = models.CharField(
         max_length=5, unique=True,
@@ -40,9 +35,9 @@ class Asignatura(models.Model):
             'unique': 'Ya existe una asignatura con este identificador'
         }
         )
-    nombre = models.CharField(max_length=50)
+    nombre = models.CharField(max_length=150, choices=ASIGNATURAS_CHOICES)
     descripcion = models.TextField()
-    plan_diferencial_id = models.ForeignKey(PlanDiferencial, on_delete=models.SET_NULL, blank=True, null=True)
+    plan_diferencial = models.CharField(max_length=150, choices=AREAS_PLAN_DIFERENCIADO, blank=True, null=True)
 
     def __str__(self) -> str:
         return f'{self.ident} - {self.nombre}'

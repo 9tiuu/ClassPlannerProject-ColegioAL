@@ -1,5 +1,5 @@
 from django import forms
-from .models import Curso, PlanDeEstudio, Usuario, Rol, Asignatura, PlanDiferencial, Estudiante, Aula
+from .models import Curso, PlanDeEstudio, Usuario, Rol, Asignatura, Estudiante, Aula
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 # from django.contrib.auth.forms import AuthenticationForm
 
@@ -54,14 +54,18 @@ class CursoForm(forms.ModelForm):
         cursos_otros = Curso.objects.all()
         
         if self.instance.pk:
+            print('self.instance.id: ', self.instance.pk)
             cursos_otros = cursos_otros.exclude(pk=self.instance.pk)
 
         docentes_asignados = cursos_otros.values_list(
             'usuario_id', flat=True
         )
-        self.fields['usuario_id'].queryset = docentes.exclude(
-            pk__in=docentes_asignados
-        )
+        docentes_disponibles = docentes.exclude(pk__in=docentes_asignados)
+        if self.instance.pk:
+            docentes_disponibles |= Usuario.objects.filter(
+                pk=self.instance.usuario_id_id
+            )
+        self.fields['usuario_id'].queryset = docentes_disponibles
 
 class AulaCreateForm(forms.ModelForm):
     class Meta:
@@ -232,19 +236,17 @@ class PlanDeEstudioUpdateForm(forms.ModelForm):
 class AsignaturasCreateForm(forms.ModelForm):
     class Meta:
         model = Asignatura
-        fields = ['ident', 'nombre', 'descripcion', 'plan_diferencial_id']
+        fields = ['ident', 'nombre', 'descripcion', 'plan_diferencial']
+        widgets = { 
+            'nombre': forms.Select(attrs={'class': 'w-full rounded border my-2 px-2 py-2 bg-white dark:bg-[#141826] text-sm focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 focus:transition focus:duration-300 rounded-lg invalid:border-red-400 focus:outline-none dark:bg-slate-800 dark:text-white'}),
+            'plan_diferencial': forms.Select(attrs={'class': 'w-full rounded border my-2 px-2 py-2 bg-white dark:bg-[#141826] text-sm focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 focus:transition focus:duration-300 rounded-lg invalid:border-red-400 focus:outline-none dark:bg-slate-800 dark:text-white'}),
+        }
 
 class AsignaturaUpdateForm(forms.ModelForm):
     class Meta:
         model = Asignatura
-        fields = ['ident', 'nombre', 'descripcion', 'plan_diferencial_id']
-
-class PlanDiferencialCreateForm(forms.ModelForm):
-    class Meta:
-        model = PlanDiferencial
-        fields = ['nombre']
-
-class PlanDiferencialUpdateForm(forms.ModelForm):
-    class Meta:
-        model = PlanDiferencial
-        fields = ['nombre']
+        fields = ['ident', 'nombre', 'descripcion', 'plan_diferencial']
+        widgets = { 
+            'nombre': forms.Select(attrs={'class': 'w-full rounded border my-2 px-2 py-2 bg-white dark:bg-[#141826] text-sm focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 focus:transition focus:duration-300 rounded-lg invalid:border-red-400 focus:outline-none dark:bg-slate-800 dark:text-white'}),
+            'plan_diferencial': forms.Select(attrs={'class': 'w-full rounded border my-2 px-2 py-2 bg-white dark:bg-[#141826] text-sm focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 focus:transition focus:duration-300 rounded-lg invalid:border-red-400 focus:outline-none dark:bg-slate-800 dark:text-white'}),
+        }

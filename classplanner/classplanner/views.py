@@ -13,13 +13,12 @@ import re
 from math import floor
 
 from easyaudit.models import CRUDEvent
-from .models import Rol, Usuario, Asignatura, PlanDeEstudio, Curso, PlanDiferencial, Estudiante, Aula
+from .models import Rol, Usuario, Asignatura, PlanDeEstudio, Curso, Estudiante, Aula
 from .forms import (
     RolForm, UsuarioForm, UserUpdateForm,
     PlanDeEstudioCreateForm, PlanDeEstudioUpdateForm,
     CursoForm, AsignaturasCreateForm, AsignaturaUpdateForm,
     AulaCreateForm, AulaUpdateForm,
-    PlanDiferencialCreateForm, PlanDiferencialUpdateForm,
     EstudiantesCreateForm, EstudiantesUpdateForm
 )
 
@@ -545,52 +544,6 @@ class DeleteEstudiante(DeleteView):
         messages.success(self.request, '¡Estudiante eliminado con exito!')
         return super().form_valid(form)
 
-# ----------------------------------- # PLAN DIFERENCIAL
-
-@method_decorator(login_required, name='dispatch')
-@method_decorator(roles_required('root', 'Administrador', 'Director'), name='dispatch')
-class ListPlanDiferencial(ListView):
-    model = PlanDiferencial
-    template_name = 'classplanner/plandiferencial/plandiferenciallist.html'
-    context_object_name = 'plandiferencial'
-
-@method_decorator(login_required, name='dispatch')
-@method_decorator(roles_required('root'), name='dispatch')
-class CreatePlanDiferencial(CreateView):
-    model = PlanDiferencial
-    form_class = PlanDiferencialCreateForm
-    template_name = 'classplanner/plandiferencial/plandiferencialcreate.html'
-    success_url = reverse_lazy('plandiferencial')
-
-    def form_valid(self, form):
-        messages.success(self.request, '¡Plan diferencial creado con exito!')
-        return super().form_valid(form)
-
-@method_decorator(login_required, name='dispatch')
-@method_decorator(roles_required('root'), name='dispatch')
-class UpdatePlanDiferencial(UpdateView):
-    model = PlanDiferencial
-    form_class = PlanDiferencialUpdateForm
-    template_name = 'classplanner/plandiferencial/plandiferencialupdate.html'
-    success_url = reverse_lazy('plandiferencial')
-    context_object_name = 'plandiferencial'
-
-    def form_valid(self, form):
-        messages.success(self.request, '¡Plan diferencial actualizado con éxito!')
-        return super().form_valid(form)
-
-@method_decorator(login_required, name='dispatch')
-@method_decorator(roles_required('root'), name='dispatch')
-class DeletePlanDiferencial(DeleteView):
-    model = PlanDiferencial
-    template_name = 'classplanner/plandiferencial/plandiferencialdelete.html'
-    success_url = reverse_lazy('plandiferencial')
-    context_object_name = 'plandiferencial'
-
-    def form_valid(self, form):
-        messages.success(self.request, '¡Plan diferencial eliminado con éxito!')
-        return super().form_valid(form)
-
 # ----------------------------------- # ASIGNATURAS
 
 @method_decorator(login_required, name='dispatch')
@@ -615,7 +568,6 @@ class CreateAsignatura(UserPassesTestMixin, CreateView):
     def form_valid(self, form):
         form.instance.ident = form.cleaned_data['ident'].strip().upper()
         form.instance.ident = form.cleaned_data['ident'].replace(" ","")
-        form.instance.nombre = form.cleaned_data['nombre'].title()
         form.instance.descripcion = form.cleaned_data['descripcion'].capitalize()
         messages.success(self.request, '¡Asignatura creada con exito!')
         return super().form_valid(form)
@@ -632,12 +584,10 @@ class UpdateAsignatura(UpdateView):
     def form_valid(self, form):
         form.instance.ident = form.cleaned_data['ident'].strip().upper()
         form.instance.ident = form.cleaned_data['ident'].replace(" ","")
-        form.instance.nombre = form.cleaned_data['nombre'].title()
         form.instance.descripcion = form.cleaned_data['descripcion'].capitalize()
         messages.success(self.request, '¡Asignatura actualizada con éxito!')
         return super().form_valid(form)
 
-# ("Cannot delete some instances of model 'Asignatura' because they are referenced through restricted foreign keys: 'PlanDeEstudio.asignatura_id'
 @method_decorator(login_required, name='dispatch')
 @method_decorator(roles_required('root', 'Administrador'), name='dispatch')
 class DeleteAsignatura(DeleteView):
@@ -657,24 +607,41 @@ class DeleteAsignatura(DeleteView):
 def ExportarPlanes(request, export):
     if export == 'excel':
         print("exportar a excel")
+        if request.method != 'POST':
+            raise BadRequest('Solicitud de exportación inválida')
+
+        planes_seleccionados = request.POST.getlist('plan_checkbox')
+        if 'exportar_todo' in planes_seleccionados:
+            return exportar_planes(PlanDeEstudio.objects.all(), export)
+
+        cursos_seleccionados = [
+            curso_id for curso_id in planes_seleccionados
+            if curso_id != 'exportar_todo'
+        ]
+        if not cursos_seleccionados:
+            raise BadRequest('Seleccione planes válidos para exportar')
+
+        planes = PlanDeEstudio.objects.filter(curso_id__in=cursos_seleccionados)
+        return exportar_planes(planes, export)
+    
     elif export == 'pdf':
         print("exportar a pdf")
-    if request.method != 'POST':
-        raise BadRequest('Solicitud de exportación inválida')
+        if request.method != 'POST':
+                raise BadRequest('Solicitud de exportación inválida')
+    
+        planes_seleccionados = request.POST.getlist('plan_checkbox')
+        if 'exportar_todo' in planes_seleccionados:
+            return exportar_planes(PlanDeEstudio.objects.all(), export)
 
-    planes_seleccionados = request.POST.getlist('plan_checkbox')
-    if 'exportar_todo' in planes_seleccionados:
-        return exportar_planes(PlanDeEstudio.objects.all())
+        cursos_seleccionados = [
+            curso_id for curso_id in planes_seleccionados
+            if curso_id != 'exportar_todo'
+        ]
+        if not cursos_seleccionados:
+            raise BadRequest('Seleccione planes válidos para exportar')
 
-    cursos_seleccionados = [
-        curso_id for curso_id in planes_seleccionados
-        if curso_id != 'exportar_todo'
-    ]
-    if not cursos_seleccionados:
-        raise BadRequest('Seleccione planes válidos para exportar')
-
-    planes = PlanDeEstudio.objects.filter(curso_id__in=cursos_seleccionados)
-    return exportar_planes(planes)
+        planes = PlanDeEstudio.objects.filter(curso_id__in=cursos_seleccionados)
+        return exportar_planes(planes, export)
 
 @login_required
 @roles_required('root', 'Administrador', 'Director')
@@ -689,7 +656,18 @@ def ListPlanDeEstudio(request):
             c = int(cursosModel.filter(id=p).first().id)
             cursos.append(c)
 
-    for c in cursos:
+    cursos_ordenados = list(
+        cursosModel.filter(id__in=cursos).order_by('nivel').values_list('id', 'nivel')
+    )
+    cursos_ordenados.sort(
+        key=lambda curso: (
+            0 if str(curso[1]).endswith('°B')
+            else 1 if str(curso[1]).endswith('°M')
+            else 2
+        )
+    )
+
+    for c, _nivel in cursos_ordenados:
         curso_update = str(cursosModel.filter(id=c).first())
         curso_update_id = cursosModel.filter(id=c).first().id
         asignaturas_update = list(
@@ -698,8 +676,7 @@ def ListPlanDeEstudio(request):
         horas = sum(plandeestudio.filter(curso_id=c).values_list('hrs_asignatura', flat=True))
         planes.update({f"{c}": [curso_update, asignaturas_update, horas, curso_update_id]})
 
-    cursos.sort()  # Ordenar por curso_id
-    context = {'plandeestudio': list(planes.values())}
+    context = {'plandeestudio': [planes[str(c)] for c, _nivel in cursos_ordenados]}
 
     return render(request, 'classplanner/plandeestudio/plandeestudiolist.html', context)
 

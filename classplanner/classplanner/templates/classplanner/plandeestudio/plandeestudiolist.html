@@ -46,9 +46,10 @@
             <table class="w-full text-sm text-left rtl:text-right text-body">
                 <thead class="text-sm text-left text-slate-700 dark:text-white bg-slate-200 dark:bg-[#10141f] text-body bg-neutral-secondary-soft border-b rounded-base border-default dark:border-slate-800">
                     <tr>
-                        <th scope="col" class="pl-5 pr-3 w-max font-bold whitespace-nowrap md:whitespace-normal">
-                            <span class="sr-only">Seleccionar plan de estudio</span><input class="h-5 w-5 cursor-pointer accent-[#234FA8] border-b dark:border-b-slate-800 border-b-slate-300 focus-visible:ring-2 focus-visible:ring-[#234FA8]"
-                                type="checkbox" name="plan_checkbox" id="exportar_todo" value="exportar_todo" onchange="seleccionarPlanes(this)">
+                        <th scope="col" class="px-6 py-3 font-bold whitespace-nowrap md:whitespace-normal flex items-center">
+                            <span class="mr-2">Exportar todo:</span> 
+                            <input class="h-5 w-5 cursor-pointer accent-[#234FA8] border-b dark:border-b-slate-800 border-b-slate-300 focus-visible:ring-2 focus-visible:ring-[#234FA8]"
+                                title="Seleccionar todos los planes" type="checkbox" name="plan_checkbox" id="exportar_todo" value="exportar_todo" onchange="seleccionarPlanes(this)">
                         </th>
                         <th scope="col" class="px-6 py-3 font-bold whitespace-nowrap md:whitespace-normal">Curso</th>
                         <th scope="col" class="px-6 py-3 font-bold whitespace-nowrap md:whitespace-normal">Horas semanales</th>
@@ -61,7 +62,7 @@
                     <tr class="border-b border-default bg-white dark:bg-[#171c2b] dark:border-b-slate-800">
                         <td class="pl-5 pr-3 w-max">
                             <span class="sr-only">Seleccionar plan de estudio</span><input class="h-5 w-5 cursor-pointer accent-[#234FA8] shrink-0 border-b dark:border-b-slate-800 border-b-slate-300 focus-visible:ring-2 focus-visible:ring-[#234FA8]"
-                                type="checkbox" name="plan_checkbox" id="{{ c.0 }}" value="{{ c.3 }}">
+                                title="Seleccionar" type="checkbox" name="plan_checkbox" id="{{ c.0 }}" value="{{ c.3 }}">
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap md:whitespace-normal capitalize">
                             <span class="sr-only">Curso: </span><span>{{ c.0 }}</span>
