@@ -7,7 +7,10 @@ from .views import (
     ListAula, CreateAula, UpdateAula, DeleteAula,
     ListCursos, CreateCurso, UpdateCurso, DeleteCurso,
     ListEstudiantes, CreateEstudiante, UpdateEstudiante, DeleteEstudiante,
+    ListPromedioAsignatura, CreatePromedioAsignatura, UpdatePromedioAsignatura, DeletePromedioAsignatura,
+    ListPlanDiferencial, CreatePlanDiferencial, UpdatePlanDiferencial, DeletePlanDiferencial,
     ListAsignatura, CreateAsignatura, UpdateAsignatura, DeleteAsignatura,
+    UpdatePlanDeEstudio
 )
 from .views import custom_logout
 # from django.contrib.auth.views import LoginView
@@ -48,6 +51,19 @@ urlpatterns = [
     path('estudiantecreate/', CreateEstudiante.as_view(), name='estudiantecreate'),
     path('estudianteupdate/<str:rut>/<int:curso_id>/', UpdateEstudiante.as_view(), name='estudianteupdate'),
     path('estudiantedelete/<str:rut>/<int:curso_id>/', DeleteEstudiante.as_view(), name='estudiantedelete'),
+
+    # PROMEDIOS
+    path('promedioasignatura/estudiante/<str:rut>/<int:curso_id>/', ListPromedioAsignatura.as_view(), name='promedioasignatura'),
+    path('promedioasignatura/estudiante/<str:rut>/<int:curso_id>/crear/', CreatePromedioAsignatura.as_view(), name='promedioasignaturacreate'),
+    path('promedioasignaturaupdate/<int:pk>/', UpdatePromedioAsignatura.as_view(), name='promedioasignaturaupdate'),
+    path('promedioasignaturadelete/<int:pk>/', DeletePromedioAsignatura.as_view(), name='promedioasignaturadelete'),
+
+    # PLAN DIFERENCIAL
+    path('plandiferencial/', ListPlanDiferencial.as_view(), name='plandiferencial'),
+    path('plandiferencialcreate/', CreatePlanDiferencial.as_view(), name='plandiferencialcreate'),
+    path('plandiferencialupdate/<int:pk>/', UpdatePlanDiferencial.as_view(), name='plandiferencialupdate'),
+    path('plandiferencialdelete/<int:pk>/', DeletePlanDiferencial.as_view(), name='plandiferencialdelete'),
+
     # ASIGNATURAS
     path('asignaturas/', ListAsignatura.as_view(), name='asignaturas'),
     path('asignaturacreate/', CreateAsignatura.as_view(), name='asignaturacreate'),
@@ -60,7 +76,6 @@ urlpatterns = [
     path('plandeestudiocreateform/', views.CreatePlanDeEstudioForm, name='plandeestudiocreateform'),
     path('plandeestudioupdate/<int:pk>/', views.UpdatePlanDeEstudio, name='plandeestudioupdate'),
     path('plandeestudioupdateform/<int:pk>/', views.UpdatePlanDeEstudioForm, name='plandeestudioupdateform'),
-    path('plandeestudiosexport/<str:export>', views.ExportarPlanes, name='planesexport'),
 
     # AUTENTICACION
     path('logout/', custom_logout, name='logout'),

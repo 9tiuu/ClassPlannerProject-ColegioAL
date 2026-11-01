@@ -35,7 +35,6 @@ const setErrors = (error) => { // ver posibilidad de crear lista para mostrar +1
 };
 
 let btnCrearIsDisabled = true;
-
 const inputTrigger = () => {
     const checkedAsignaturas = getCheckedAsignaturas();
     
@@ -46,6 +45,7 @@ const inputTrigger = () => {
             const num = isNaN(ipt.valueAsNumber) ? 0 : ipt.valueAsNumber
             total = total + num
         })
+        console.log("ipt total: ", total);
         
         const cursoSelect = planForm.querySelector("[name='curso_id']");
         const selectedOption = cursoSelect?.selectedOptions[0];
@@ -115,7 +115,8 @@ const inputTrigger = () => {
                 span.classList.remove("text-red-700", "dark:text-red-300");
             });
         };
-    }
+    } else {}
+
 
     const getSinHoras = () => {
         const horasInputs = Array.from(planForm.querySelectorAll("[name='hrs_asignatura']"));
@@ -131,25 +132,8 @@ const inputTrigger = () => {
             setErrors("Una asignatura excede el límite de horas");
             return btnCrearIsDisabled = true;
         } else {
-            let total = 0
-            horasInputs.some(ipt => {
-                const num = isNaN(ipt.valueAsNumber) ? 0 : ipt.valueAsNumber
-                total = total + num
-            })
-            const cursoSelect = planForm.querySelector("[name='curso_id']");
-            const selectedOption = cursoSelect?.selectedOptions[0];
-            const horasCurso = Number(selectedOption?.value ?? 0);
-            const horasForm = total;
-            if (horasForm === 0) {
-                setErrors("El total de horas semanales no puede ser 0");
-                return btnCrearIsDisabled = true;
-            } else if (horasForm > horasCurso) {
-                setErrors("El total excede el límite de horas del plan");
-                return btnCrearIsDisabled = true;
-            } else {
-                setErrors();
-                btnCrearIsDisabled = false;
-            }
+            setErrors();
+            btnCrearIsDisabled = false;
         }
     }
 
@@ -166,7 +150,6 @@ const inputTrigger = () => {
         btnCrearIsDisabled = true;
     } else {
         getLimiteHoras()
-
     };
 
     setBtnCrearState(!btnCrearIsDisabled);

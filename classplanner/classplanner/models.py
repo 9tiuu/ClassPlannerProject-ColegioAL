@@ -1,6 +1,5 @@
 from django.db import models
-from django.contrib.auth.models import AbstractUser
-from core.middleware.constants import ASIGNATURAS_CHOICES, AREAS_PLAN_DIFERENCIADO
+from django.contrib.auth.models import AbstractUser 
 # from datetime import datetime, date, timedelta
 # from django.utils.timezone import now
 
@@ -28,6 +27,12 @@ class Usuario(AbstractUser):
     def __str__(self) -> str:
         return f'{self.name} {self.last_name}'
 
+class PlanDiferencial(models.Model):
+    nombre = models.CharField(max_length=50)
+
+    def __str__(self) -> str:
+        return f'{self.nombre}'
+
 class Asignatura(models.Model):
     ident = models.CharField(
         max_length=5, unique=True,
@@ -35,9 +40,9 @@ class Asignatura(models.Model):
             'unique': 'Ya existe una asignatura con este identificador'
         }
         )
-    nombre = models.CharField(max_length=150, choices=ASIGNATURAS_CHOICES)
+    nombre = models.CharField(max_length=50)
     descripcion = models.TextField()
-    plan_diferencial = models.CharField(max_length=150, choices=AREAS_PLAN_DIFERENCIADO, blank=True, null=True)
+    plan_diferencial_id = models.ForeignKey(PlanDiferencial, on_delete=models.SET_NULL, blank=True, null=True)
 
     def __str__(self) -> str:
         return f'{self.ident} - {self.nombre}'
@@ -81,21 +86,14 @@ class Estudiante(models.Model):
     def __str__(self) -> str:
         return f'{self.nombre} {self.apellido_p} {self.apellido_m}'
 
-class Nota(models.Model):
-    nota = models.CharField(max_length=50)
-    estudiante = models.ForeignObject(
-        Estudiante,
-        on_delete=models.CASCADE,
-        from_fields=('estudiante_rut', 'estudiante_curso'),
-        to_fields=('rut', 'curso_id'),
-    )
+class PromedioAsignatura(models.Model):
+    nota = models.FloatField(null=True, blank=True)
+    estudiante_id = models.ForeignKey(Estudiante, on_delete=models.CASCADE, to_field='rut')
     asignatura_id = models.ForeignKey(Asignatura, on_delete=models.CASCADE)
 
-    def __str__(self):
-        return (
-            f'Promedio de {self.estudiante.rut} '
-            f'en {self.asignatura_id.ident}: {self.nota}'
-        )
+    def __str__(self) -> str:
+        valor = '—' if self.nota is None else self.nota
+        return f'Nota de {self.estudiante_id_id} en {self.asignatura_id.ident}: {valor}'
     
 class Aula(models.Model):
     nombre = models.CharField(max_length=50)
