@@ -20,7 +20,7 @@
                 {% if form.username.errors %}
                 <div class="errors mb-2">
                     {% for error in form.username.errors %}
-                    <p class="text-danger">{{ error }}</p>
+                    <p class="bg-red-100 dark:bg-red-900 p-4 my-3 text-sm text-red-700 rounded-lg dark:text-red-300 transition duration-200">{{ error }}</p>
                     {% endfor %}
                 </div>
                 {% endif %}
@@ -33,7 +33,7 @@
                     {% if form.name.errors %}
                     <div class="errors mb-2">
                         {% for error in form.name.errors %}
-                        <p class="text-danger">{{ error }}</p>
+                        <p class="bg-red-100 dark:bg-red-900 p-4 my-3 text-sm text-red-700 rounded-lg dark:text-red-300 transition duration-200">{{ error }}</p>
                         {% endfor %}
                     </div>
                     {% endif %}
@@ -45,7 +45,7 @@
                     {% if form.last_name.errors %}
                     <div class="errors mb-2">
                         {% for error in form.last_name.errors %}
-                        <p class="text-danger">{{ error }}</p>
+                        <p class="bg-red-100 dark:bg-red-900 p-4 my-3 text-sm text-red-700 rounded-lg dark:text-red-300 transition duration-200">{{ error }}</p>
                         {% endfor %}
                     </div>
                     {% endif %}
@@ -58,7 +58,7 @@
                 {% if form.email.errors %}
                     <div class="errors mb-2">
                         {% for error in form.email.errors %}
-                        <p class="text-danger">{{ error }}</p>
+                        <p class="bg-red-100 dark:bg-red-900 p-4 my-3 text-sm text-red-700 rounded-lg dark:text-red-300 transition duration-200">{{ error }}</p>
                         {% endfor %}
                     </div>
                 {% endif %}
@@ -71,7 +71,7 @@
                     {% if form.rut.errors %}
                     <div class="errors mb-2">
                         {% for error in form.rut.errors %}
-                        <p class="text-danger">{{ error }}</p>
+                        <p class="bg-red-100 dark:bg-red-900 p-4 my-3 text-sm text-red-700 rounded-lg dark:text-red-300 transition duration-200">{{ error }}</p>
                         {% endfor %}
                     </div>
                     {% endif %}
@@ -90,7 +90,7 @@
                     {% if form.rol.errors %}
                     <div class="errors mb-2">
                         {% for error in form.rol.errors %}
-                        <p class="text-danger">{{ error }}</p>
+                        <p class="bg-red-100 dark:bg-red-900 p-4 my-3 text-sm text-red-700 rounded-lg dark:text-red-300 transition duration-200">{{ error }}</p>
                         {% endfor %}
                     </div>
                     {% endif %}
@@ -104,7 +104,7 @@
                     {% if form.password1.errors %}
                     <div class="errors">
                         {% for error in form.password1.errors %}
-                        <p class="text-danger">{{ error }}</p>
+                        <p class="bg-red-100 dark:bg-red-900 p-4 my-3 text-sm text-red-700 rounded-lg dark:text-red-300 transition duration-200">{{ error }}</p>
                         {% endfor %}
                     </div>
                     {% endif %}
@@ -119,7 +119,7 @@
             {% if form.password2.errors %}
                     <div class="errors mb-2">
                         {% for error in form.password2.errors %}
-                        <p class="text-danger">{{ error }}</p>
+                        <p class="bg-red-100 dark:bg-red-900 p-4 my-3 text-sm text-red-700 rounded-lg dark:text-red-300 transition duration-200">{{ error }}</p>
                         {% endfor %}
                     </div>
             {% endif %}

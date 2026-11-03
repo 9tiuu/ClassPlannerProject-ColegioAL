@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Rol, Usuario, Asignatura, Curso, Aula, Bloque, Horario, Nota, PlanDeEstudio, CargaHoraria
+from .models import Rol, Usuario, Asignatura, Curso, Aula, Bloque, Horario, PromedioAsignatura, PlanDeEstudio, CargaHoraria
 
 # Register your models here.
 
@@ -7,7 +7,7 @@ admin.site.register(Rol)
 admin.site.register(Usuario)
 admin.site.register(Asignatura)
 admin.site.register(Curso)
-admin.site.register(Nota)
+admin.site.register(PromedioAsignatura)
 admin.site.register(Aula)
 admin.site.register(Bloque)
 admin.site.register(PlanDeEstudio)

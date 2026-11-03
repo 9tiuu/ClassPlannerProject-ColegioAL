@@ -231,6 +231,7 @@
                                     <span class="flex-1 text-sm ms-2 whitespace-nowrap group-hover:text-slate-700 font-semibold dark:group-hover:text-white group-hover:transition transition">Aulas</span>
                                 </a>
                             </li>
+                            <!--Cargas horarias-->
                         {% endif %}
                         
                         {% if request.user.rol.name == 'Docente' or request.user.rol.name == 'root' or request.user.rol.name == 'Director' or request.user.rol.name == 'Administrador' %}
@@ -244,6 +245,7 @@
                                     <span class="flex-1 text-sm ms-2 whitespace-nowrap group-hover:text-slate-700 font-semibold dark:group-hover:text-white group-hover:transition transition">Estudiantes</span>
                                 </a>
                             </li>
+                            <!--Horarios-->
                         {% endif %}
                     {% endif %}
                 </div>

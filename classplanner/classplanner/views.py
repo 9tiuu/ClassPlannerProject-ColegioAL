@@ -2,24 +2,26 @@ from django.forms import ValidationError
 from django.http import request, Http404, HttpResponse
 from django.core.exceptions import PermissionDenied, BadRequest
 from django.shortcuts import render, get_object_or_404
-from django.urls import reverse_lazy
+from django.urls import reverse, reverse_lazy
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django.views.generic.list import ListView
 from django.views.generic.detail import DetailView
 from django.views import View
 from django.contrib import messages
+from django.db.models.deletion import RestrictedError
 from datetime import datetime
 import re
 from math import floor
 
 from easyaudit.models import CRUDEvent
-from .models import Rol, Usuario, Asignatura, PlanDeEstudio, Curso, Estudiante, Aula
+from .models import Rol, Usuario, Asignatura, PlanDeEstudio, Curso, Estudiante, Aula, PromedioAsignatura
 from .forms import (
     RolForm, UsuarioForm, UserUpdateForm,
     PlanDeEstudioCreateForm, PlanDeEstudioUpdateForm,
     CursoForm, AsignaturasCreateForm, AsignaturaUpdateForm,
     AulaCreateForm, AulaUpdateForm,
-    EstudiantesCreateForm, EstudiantesUpdateForm
+    EstudiantesCreateForm, EstudiantesUpdateForm,
+    PromedioAsignaturaCreateForm, PromedioAsignaturaUpdateForm
 )
 
 from django.contrib.auth import logout, get_user_model
@@ -33,6 +35,7 @@ from django.db.models import Q
 from django.db.models.query import QuerySet
 from functools import wraps
 from .static.classplanner.py.exportar_planes import exportar_planes
+from .static.classplanner.py.exportar_notas import _exportar_notas_pdf
 
 # Create your views here.
 
@@ -68,6 +71,28 @@ def roles_required(*roles_permitidos):
         return wrapper
     return decorator
 
+def periodo_planificacion_required():
+    def decorator(view_func):
+        @wraps(view_func)
+        def wrapper(request, *args, **kwargs):
+            año_actual = datetime.now().year
+            hoy = datetime.now().date()
+            if (
+                hoy < datetime(
+                    año_actual, month=8, day=1
+                ).date() or 
+                hoy > datetime(
+                    año_actual+1, month=1, day=31
+                ).date()
+            ):
+                raise PermissionDenied(
+                    'No se puede acceder a esta página fuera del periodo de planificación'
+                )
+            return view_func(request, *args, **kwargs)
+
+        return wrapper
+    return decorator
+
 # ----------------------------------- # HOME / DASHBOARD
 
 @login_required
@@ -85,7 +110,7 @@ class CreateRol(CreateView):
     success_url = reverse_lazy('listrol')
 
     def form_valid(self, form):
-        messages.success(self.request, '¡Rol Agregado con exito!')
+        messages.success(self.request, '¡Rol Agregado con éxito!')
         return super().form_valid(form)
     
 @method_decorator(login_required, name='dispatch')
@@ -112,7 +137,7 @@ class UpdateRol(UpdateView):
     success_url = reverse_lazy('listrol')
 
     def form_valid(self, form):
-        messages.success(self.request, '¡Rol Actualizado con exito!')
+        messages.success(self.request, '¡Rol Actualizado con éxito!')
         return super().form_valid(form)
 
 @method_decorator(login_required, name='dispatch')
@@ -124,7 +149,7 @@ class DeleteRol(DeleteView):
     success_url = reverse_lazy('listrol')
 
     def form_valid(self, form):
-        messages.success(self.request, '¡Rol Eliminado con exito!')
+        messages.success(self.request, '¡Rol Eliminado con éxito!')
         return super().form_valid(form)
 
 # ----------------------------------- # USUARIOS
@@ -160,36 +185,63 @@ class CreateUsuario(CreateView):
             form.add_error('last_name', 'El apellido solo puede contener letras y espacios.')
             return self.form_invalid(form)
         
-        messages.success(self.request, '¡Usuario Registrado con exito!')
+        messages.success(self.request, '¡Usuario Registrado con éxito!')
         return super().form_valid(form)
     
 @method_decorator(login_required, name='dispatch') 
-@method_decorator(roles_required('root', 'Director'), name='dispatch')
+@method_decorator(roles_required('root', 'Administrador', 'Director'), name='dispatch')
 class ListUsuario(ListView):
     model = Usuario
     template_name = 'classplanner/usuarios/userlist.html'
     context_object_name = 'usersys'
     def get_queryset(self):
         self.queryset = Usuario.objects.all()
-
-        # Director solo lista profesores
-        if self.request.user.rol.name == 'Director':
-            return Usuario.objects.filter(rol__name='Docente')
-        return self.queryset
+        is_root = self.request.user.rol.name == 'root'
+        if is_root:
+            mostrar_desactivados = self.request.GET.get('change_state') == '1'
+            return Usuario.objects.filter(is_active=not mostrar_desactivados)
+        else: 
+            # Director solo lista profesores
+            if self.request.user.rol.name == 'Director' or self.request.user.rol.name == 'Administrador':
+                return Usuario.objects.filter(rol__name='Docente', is_active=True)
+            else:
+                return Usuario.objects.filter(is_active=True)
+        
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['mostrar_desactivados'] = (
+            self.request.GET.get('change_state') == '1'
+        )
+        return context
 
 @method_decorator(login_required, name='dispatch')
-@method_decorator(roles_required('root', 'Director'), name='dispatch')
+@method_decorator(roles_required('root', 'Director', 'Administrador'), name='dispatch')
 class UpdateUsuario(UpdateView):
     model = Usuario
     form_class = UserUpdateForm
     template_name = 'classplanner/usuarios/userupdate.html'
     success_url = reverse_lazy('userlist')
     context_object_name = 'usuario'
-    # falta editar forms para el director
+
+    # Al ingresar como Director, solo muestra roles Docente y Administrador como opciones
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        if self.request.user.rol.name == 'Director':
+            form.fields['username'].disabled = True
+            form.fields['name'].disabled = True
+            form.fields['last_name'].disabled = True
+            form.fields['email'].disabled = True
+            form.fields['rut'].disabled = True
+            form.fields['rol'].queryset = Rol.objects.filter(
+                name__in=('Docente', 'Administrador')
+            ).order_by('name')
+        return form
 
     def get_object(self, queryset=None):
         obj = super().get_object(queryset)
         if (self.request.user.rol.name == 'Director' and obj.rol.name == 'Docente') or self.request.user.rol.name == 'root':
+            if not obj.is_active and self.request.user.rol.name != 'root':
+                raise Http404('Este usuario está desactivado')
             return obj
         elif self.request.user.rol.name == 'Director':
             raise PermissionDenied('No tiene permisos suficientes para editar este usuario')
@@ -217,7 +269,7 @@ class UpdateUsuario(UpdateView):
             form.add_error('last_name', 'El apellido solo puede contener letras y espacios.')
             return self.form_invalid(form)
         
-        messages.success(self.request, '¡Usuario Registrado con exito!')
+        messages.success(self.request, '¡Usuario actualizado con éxito!')
         return super().form_valid(form)
 
 @method_decorator(login_required, name='dispatch')    
@@ -232,10 +284,12 @@ class DeleteUsuario(DeleteView):
         obj = super().get_object(queryset)
         if self.request.user.pk == obj.pk:
             raise PermissionDenied("No puede eliminar su propio usuario")
+        if not obj.is_active:
+            raise Http404('Este usuario está desactivado')
         return obj
     
     def form_valid(self, form):
-        messages.success(self.request, '¡Usuario Eliminado con exito!')
+        messages.success(self.request, '¡Usuario eliminado con éxito!')
         return super().form_valid(form)
 
 # ----------------------------------- # REGISTROS
@@ -355,12 +409,18 @@ class UpdateCurso(UpdateView):
     success_url = reverse_lazy('cursos')
     context_object_name = 'curso'
 
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        if self.request.user.rol.name == 'Director':
+            form.fields['nivel'].disabled = True
+        return form
+
     def form_valid(self, form):
         # Validar que no exista otro curso con el mismo nivel y letra
         nivel = form.cleaned_data.get('nivel')
         letra = str(form.cleaned_data.get('letra')).upper()
         if Curso.objects.filter(nivel=nivel, letra=letra).exclude(pk=self.object.pk).exists():
-            form.add_error('letra', 'Ya existe un curso con este nivel y letra.')
+            form.add_error('letra', 'El curso que intenta agregar ya existe.')
             return self.form_invalid(form)
         
         # Validar que no exista otro curso con la misma jefatura
@@ -369,7 +429,7 @@ class UpdateCurso(UpdateView):
             form.add_error('usuario_id', 'El docente seleccionado ya tiene jefatura.')
             return self.form_invalid(form)
         curso = form.save()
-        messages.success(self.request, '¡Curso actualizado con exito!')
+        messages.success(self.request, '¡Curso actualizado con éxito!')
         return super().form_valid(form)
 
 @method_decorator(login_required, name='dispatch')
@@ -381,8 +441,11 @@ class DeleteCurso(DeleteView):
     success_url = reverse_lazy('cursos')
 
     def form_valid(self, form):
-        messages.success(self.request, '¡Curso eliminado con exito!')
-        return super().form_valid(form)
+        try: 
+            super().form_valid(form)
+            return messages.success(self.request, '¡Curso eliminado con éxito!')
+        except RestrictedError:
+            raise PermissionDenied('Este curso tiene un profesor jefe asignado, un curso no se puede eliminar si tiene un profesor jefe asignado')
 
 # ----------------------------------- # AULAS
 
@@ -441,8 +504,20 @@ class ListEstudiantes(ListView):
     model = Estudiante
     template_name = 'classplanner/estudiantes/estudianteslist.html'
     context_object_name = 'estudiantes'
+
     def get_queryset(self):
-        return Estudiante.objects.filter(is_active=True)
+        is_root = self.request.user.rol.name == 'root'
+        if is_root:
+            mostrar_desactivados = self.request.GET.get('change_state') == '1'
+            return Estudiante.objects.filter(is_active=not mostrar_desactivados)
+        else: return Estudiante.objects.filter(is_active=True)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['mostrar_desactivados'] = (
+            self.request.GET.get('change_state') == '1'
+        )
+        return context
 
 @method_decorator(login_required, name='dispatch')
 @method_decorator(roles_required('root', 'Administrador', 'Director'), name='dispatch')
@@ -477,7 +552,7 @@ class CreateEstudiante(CreateView):
         form.instance.nombre = form.cleaned_data['nombre'].title()
         form.instance.apellido_p = form.cleaned_data['apellido_p'].capitalize()
         form.instance.apellido_m = form.cleaned_data['apellido_m'].capitalize()
-        messages.success(self.request, '¡Estudiante registrado con exito!')
+        messages.success(self.request, '¡Estudiante registrado con éxito!')
         return super().form_valid(form)
 
 @method_decorator(login_required, name='dispatch')
@@ -495,7 +570,7 @@ class UpdateEstudiante(UpdateView):
             rut=self.kwargs['rut'],
             curso_id_id=self.kwargs['curso_id']
         )
-        if not e.is_active:
+        if not e.is_active and self.request.user.rol.name != 'root':
             raise Http404('Estudiante no encontrado')
         
         return e
@@ -515,10 +590,16 @@ class UpdateEstudiante(UpdateView):
             form.add_error('apellido_m', 'El apellido solo puede contener letras y espacios.')
             return self.form_invalid(form)
         
-        form.instance.nombre = form.cleaned_data['nombre'].title()
-        form.instance.apellido_p = form.cleaned_data['apellido_p'].capitalize()
-        form.instance.apellido_m = form.cleaned_data['apellido_m'].capitalize()
-        messages.success(self.request, '¡Estudiante actualizado con exito!')
+        Estudiante.objects.filter(
+            rut=self.kwargs['rut'],
+            curso_id_id=self.kwargs['curso_id']
+        ).update(
+            nombre=nombre.title(),
+            apellido_p=apellido_p.capitalize(),
+            apellido_m=apellido_m.capitalize(),
+            curso_id=form.cleaned_data['curso_id'],
+        )
+        messages.success(self.request, '¡Estudiante actualizado con éxito!')
         return super().form_valid(form)
 
 @method_decorator(login_required, name='dispatch')
@@ -536,13 +617,177 @@ class DeleteEstudiante(DeleteView):
             curso_id_id=self.kwargs['curso_id']
         )
         if not e.is_active:
-            raise Http404('Estudiante no encontrado')
+            raise Http404('El estudiante está desactivado')
         
         return e
 
     def form_valid(self, form):
-        messages.success(self.request, '¡Estudiante eliminado con exito!')
+        messages.success(self.request, '¡Estudiante eliminado con éxito!')
         return super().form_valid(form)
+
+# ----------------------------------- # PROMEDIOS
+
+MIN_NOTAS_PROMEDIO = 2
+
+def calcular_promedios(notas):
+    por_asignatura = {}
+
+    for nota in notas:
+        item = por_asignatura.setdefault(nota.asignatura_id_id, {
+            'asignatura': nota.asignatura_id,
+            'valores': [],
+        })
+
+        if nota.nota is not None:
+            item['valores'].append(nota.nota)
+
+    resultados = []
+
+    for item in por_asignatura.values():
+        valores = item['valores']
+        media = sum(valores) / len(valores) if len(valores) >= MIN_NOTAS_PROMEDIO else None
+        resultados.append({
+            'asignatura': item['asignatura'],
+            'cantidad': len(valores),
+            'media': media,
+            'promedio': None if media is None else round(media, 1),
+        })
+
+    return resultados
+
+def promedio_final(promedios):
+    medias = [p['media'] for p in promedios if p['media'] is not None]
+    return round(sum(medias) / len(medias), 1) if medias else 0
+
+def actualizar_promedio_estudiante(rut):
+    notas = PromedioAsignatura.objects.filter(estudiante_id=rut).select_related('asignatura_id')
+    final = promedio_final(calcular_promedios(notas))
+    Estudiante.objects.filter(rut=rut).update(promedio=final)
+
+@login_required
+@roles_required('root', 'Administrador', 'Director', 'Docente')
+def ExportarNotas(request, rut, export):
+    porcentaje_asis = request.GET.get('asistencia')
+    observacion = request.GET.get('observacion')
+    notas_estudiante_model = PromedioAsignatura.objects.all()
+
+    if Estudiante.objects.filter(rut=rut).exists():
+        if not export:
+            raise BadRequest('No se pudo completar la exportación')
+
+        notas_estudiante = notas_estudiante_model.filter(estudiante_id__rut=rut)
+        notas = [
+            nota for nota in notas_estudiante
+        ]
+        if not notas:
+            raise BadRequest('No existen notas para exportar')
+
+        return _exportar_notas_pdf(
+            notas_estudiante,
+            Estudiante.objects.filter(rut=rut),
+            export,
+            porcentaje_asis,
+            observacion,
+        )
+    else: raise Http404('El estudiante no existe')
+
+class PromedioAsignaturaMixin:
+    def get_estudiante(self):
+        if not hasattr(self, '_estudiante'):
+            if 'rut' in self.kwargs:
+                self._estudiante = get_object_or_404(
+                    Estudiante,
+                    rut=self.kwargs['rut'],
+                    curso_id=self.kwargs['curso_id'],
+                )
+            else:
+                self._estudiante = get_object_or_404(Estudiante, rut=self.object.estudiante_id_id)
+
+        return self._estudiante
+
+    def get_success_url(self):
+        estudiante = self.get_estudiante()
+        return reverse('promedioasignatura', kwargs={'rut': estudiante.rut, 'curso_id': estudiante.curso_id_id})
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['estudiante'] = self.get_estudiante()
+        return context
+
+@method_decorator(login_required, name='dispatch')
+@method_decorator(roles_required('root', 'Administrador', 'Director', 'Docente'), name='dispatch')
+class ListPromedioAsignatura(PromedioAsignaturaMixin, ListView):
+    template_name = 'classplanner/promedioasignatura/promedioasignaturalist.html'
+    context_object_name = 'notas'
+
+    def get_queryset(self):
+        estudiante = self.get_estudiante()
+        if estudiante.is_active == False:
+            raise Http404('No se pueden editar las notas de un estudiante desactivado')
+        return PromedioAsignatura.objects.filter(
+            estudiante_id=estudiante.rut,
+        ).select_related('asignatura_id').order_by('asignatura_id__ident', 'id')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        promedios = calcular_promedios(context['notas'])
+        context['promedios'] = promedios
+        context['promedio_final'] = promedio_final(promedios)
+        context['con_promedio'] = sum(1 for p in promedios if p['media'] is not None)
+        return context
+
+@method_decorator(login_required, name='dispatch')
+@method_decorator(roles_required('root', 'Administrador', 'Director', 'Docente'), name='dispatch')
+class CreatePromedioAsignatura(PromedioAsignaturaMixin, CreateView):
+    model = PromedioAsignatura
+    form_class = PromedioAsignaturaCreateForm
+    template_name = 'classplanner/promedioasignatura/promedioasignaturacreate.html'
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['estudiante'] = self.get_estudiante()
+        if self.get_estudiante().is_active == False:
+            raise Http404('No se pueden editar las notas de un estudiante desactivado')
+        return kwargs
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        actualizar_promedio_estudiante(self.object.estudiante_id_id)
+        messages.success(self.request, '¡Nota registrada con éxito!')
+        return response
+
+@method_decorator(login_required, name='dispatch')
+@method_decorator(roles_required('root', 'Administrador', 'Director', 'Docente'), name='dispatch')
+class UpdatePromedioAsignatura(PromedioAsignaturaMixin, UpdateView):
+    model = PromedioAsignatura
+    form_class = PromedioAsignaturaUpdateForm
+    template_name = 'classplanner/promedioasignatura/promedioasignaturaupdate.html'
+    context_object_name = 'nota'
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['estudiante'] = self.get_estudiante()
+        return kwargs
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        actualizar_promedio_estudiante(self.object.estudiante_id_id)
+        messages.success(self.request, '¡Nota actualizada con éxito!')
+        return response
+
+@method_decorator(login_required, name='dispatch')
+@method_decorator(roles_required('root', 'Administrador', 'Director', 'Docente'), name='dispatch')
+class DeletePromedioAsignatura(PromedioAsignaturaMixin, DeleteView):
+    model = PromedioAsignatura
+    template_name = 'classplanner/promedioasignatura/promedioasignaturadelete.html'
+    context_object_name = 'nota'
+
+    def form_valid(self, form):
+        rut = self.object.estudiante_id_id
+        response = super().form_valid(form)
+        actualizar_promedio_estudiante(rut)
+        messages.success(self.request, '¡Nota eliminada con éxito!')
+        return response
 
 # ----------------------------------- # ASIGNATURAS
 
@@ -569,7 +814,7 @@ class CreateAsignatura(UserPassesTestMixin, CreateView):
         form.instance.ident = form.cleaned_data['ident'].strip().upper()
         form.instance.ident = form.cleaned_data['ident'].replace(" ","")
         form.instance.descripcion = form.cleaned_data['descripcion'].capitalize()
-        messages.success(self.request, '¡Asignatura creada con exito!')
+        messages.success(self.request, '¡Asignatura creada con éxito!')
         return super().form_valid(form)
 
 @method_decorator(login_required, name='dispatch')
@@ -597,8 +842,13 @@ class DeleteAsignatura(DeleteView):
     context_object_name = 'asignatura'
 
     def form_valid(self, form):
-        messages.success(self.request, '¡Asignatura eliminada con éxito!')
-        return super().form_valid(form)
+        try: 
+            super().form_valid(form)
+            return messages.success(self.request, '¡Asignatura eliminada con éxito!')
+        except RestrictedError:
+            raise PermissionDenied(
+                'Esta asignatura está asignada en uno o más planes de estudio. ' \
+                'Procure reorganizar las horas de los planes de estudio antes de continuar con la eliminación')
     
 # ----------------------------------- # PLAN DE ESTUDIO
 
@@ -606,7 +856,6 @@ class DeleteAsignatura(DeleteView):
 @roles_required('root', 'Administrador', 'Director')
 def ExportarPlanes(request, export):
     if export == 'excel':
-        print("exportar a excel")
         if request.method != 'POST':
             raise BadRequest('Solicitud de exportación inválida')
 
@@ -625,7 +874,6 @@ def ExportarPlanes(request, export):
         return exportar_planes(planes, export)
     
     elif export == 'pdf':
-        print("exportar a pdf")
         if request.method != 'POST':
                 raise BadRequest('Solicitud de exportación inválida')
     
@@ -682,6 +930,7 @@ def ListPlanDeEstudio(request):
 
 @login_required
 @roles_required('root', 'Administrador', 'Director')
+@periodo_planificacion_required()
 def CreatePlanDeEstudio(request):
     asignaturas = Asignatura.objects.all()
     cursos = Curso.objects.all()
@@ -691,6 +940,7 @@ def CreatePlanDeEstudio(request):
 
 @login_required
 @roles_required('root', 'Administrador', 'Director')
+@periodo_planificacion_required()
 def CreatePlanDeEstudioForm(request): # hacer validacion hrs plan curso >= total horas ingresadas (solo está en pde.js)
     max_forms = 7
     curso_id = request.POST.get('curso_id')
@@ -812,6 +1062,7 @@ def CreatePlanDeEstudioForm(request): # hacer validacion hrs plan curso >= total
 
 @login_required
 @roles_required('root', 'Administrador', 'Director')
+@periodo_planificacion_required()
 def UpdatePlanDeEstudio(request, pk=None):
     curso = Curso.objects.get(pk=pk)
     horasCurso = int(curso.horas_plan_total)
@@ -833,6 +1084,7 @@ def UpdatePlanDeEstudio(request, pk=None):
 
 @login_required
 @roles_required('root', 'Administrador', 'Director')
+@periodo_planificacion_required()
 def UpdatePlanDeEstudioForm(request, pk=None): # hacer validacion hrs plan curso >= total horas ingresadas (solo está en pde.js)
     curso = Curso.objects.get(pk=pk)
     planes = request.POST.getlist('pde_id')

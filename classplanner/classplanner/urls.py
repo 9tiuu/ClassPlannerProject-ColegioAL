@@ -7,6 +7,7 @@ from .views import (
     ListAula, CreateAula, UpdateAula, DeleteAula,
     ListCursos, CreateCurso, UpdateCurso, DeleteCurso,
     ListEstudiantes, CreateEstudiante, UpdateEstudiante, DeleteEstudiante,
+    ListPromedioAsignatura, CreatePromedioAsignatura, UpdatePromedioAsignatura, DeletePromedioAsignatura,
     ListAsignatura, CreateAsignatura, UpdateAsignatura, DeleteAsignatura,
 )
 from .views import custom_logout
@@ -48,6 +49,14 @@ urlpatterns = [
     path('estudiantecreate/', CreateEstudiante.as_view(), name='estudiantecreate'),
     path('estudianteupdate/<str:rut>/<int:curso_id>/', UpdateEstudiante.as_view(), name='estudianteupdate'),
     path('estudiantedelete/<str:rut>/<int:curso_id>/', DeleteEstudiante.as_view(), name='estudiantedelete'),
+
+    # PROMEDIOS
+    path('promedioasignatura/estudiante/<str:rut>/<int:curso_id>/', ListPromedioAsignatura.as_view(), name='promedioasignatura'),
+    path('promedioasignatura/estudiante/<str:rut>/<int:curso_id>/crear/', CreatePromedioAsignatura.as_view(), name='promedioasignaturacreate'),
+    path('promedioasignaturaupdate/<int:pk>/', UpdatePromedioAsignatura.as_view(), name='promedioasignaturaupdate'),
+    path('promedioasignaturadelete/<int:pk>/', DeletePromedioAsignatura.as_view(), name='promedioasignaturadelete'),
+    path('plandeestudiosexport/<str:rut>/<int:export>', views.ExportarNotas, name='notasexport'),
+
     # ASIGNATURAS
     path('asignaturas/', ListAsignatura.as_view(), name='asignaturas'),
     path('asignaturacreate/', CreateAsignatura.as_view(), name='asignaturacreate'),

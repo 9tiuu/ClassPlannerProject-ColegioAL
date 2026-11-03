@@ -1,9 +1,30 @@
 from django import forms
-from .models import Curso, PlanDeEstudio, Usuario, Rol, Asignatura, Estudiante, Aula
+from phonenumber_field.formfields import PhoneNumberField
+from .models import Curso, PlanDeEstudio, Usuario, Rol, Asignatura, Estudiante, Aula, PromedioAsignatura
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 # from django.contrib.auth.forms import AuthenticationForm
 
-class UsuarioForm(UserCreationForm):
+class UniqueDirectorRoleFormMixin:
+    def clean_rol(self):
+        rol = self.cleaned_data.get('rol')
+        if rol is None or rol.name.strip().casefold() != 'director':
+            return rol
+
+        usuarios_directores = Usuario.objects.filter(
+            rol__name__iexact='director'
+        )
+        if self.instance.pk:
+            usuarios_directores = usuarios_directores.exclude(
+                pk=self.instance.pk
+            )
+        if usuarios_directores.exists():
+            raise forms.ValidationError(
+                'Ya existe un usuario con el rol Director.'
+            )
+        return rol
+
+
+class UsuarioForm(UniqueDirectorRoleFormMixin, UserCreationForm):
     class Meta:
         model = Usuario
         fields = ['username', 'name', 'last_name', 'rut', 'email', 'telefono', 'rol', 'avatar', 'password1', 'password2']
@@ -13,7 +34,9 @@ class RolForm(forms.ModelForm):
         model = Rol
         fields = ['name', 'description']
 
-class UserUpdateForm(UserChangeForm):
+class UserUpdateForm(UniqueDirectorRoleFormMixin, UserChangeForm):
+    telefono = PhoneNumberField()
+
     class Meta:
         model = Usuario
         fields = ['username', 'name', 'last_name', 'rut', 'email', 'telefono', 'rol', 'avatar']
@@ -49,7 +72,8 @@ class CursoForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
         docentes = Usuario.objects.filter(
-            rol__name__iexact='docente'
+            rol__name__iexact='docente',
+            is_active=True
         )
         cursos_otros = Curso.objects.all()
         
@@ -60,7 +84,7 @@ class CursoForm(forms.ModelForm):
         docentes_asignados = cursos_otros.values_list(
             'usuario_id', flat=True
         )
-        docentes_disponibles = docentes.exclude(pk__in=docentes_asignados)
+        docentes_disponibles = docentes.exclude(pk__in=docentes_asignados, is_active=False)
         if self.instance.pk:
             docentes_disponibles |= Usuario.objects.filter(
                 pk=self.instance.usuario_id_id
@@ -193,6 +217,104 @@ class EstudiantesUpdateForm(forms.ModelForm):
             'apellido_p': forms.TextInput(attrs={'required': 'true'}),
             'curso_id': forms.Select(attrs={'required': 'true'}),
         }
+
+class PromedioAsignaturaCreateForm(forms.ModelForm):
+    nota = forms.CharField(required=False, label='Nota', widget=forms.TextInput())
+
+    class Meta:
+        model = PromedioAsignatura
+        fields = ['asignatura_id', 'nota']
+        labels = {
+            'asignatura_id': 'Asignatura',
+        }
+        widgets = {
+            'asignatura_id': forms.Select(),
+        }
+
+    def __init__(self, *args, estudiante=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.estudiante = estudiante
+        self.instance.estudiante_id_id = estudiante.rut
+
+    def clean_nota(self):
+        valor = (self.cleaned_data.get('nota') or '').strip().replace(',', '.')
+
+        if not valor:
+            return None
+
+        try:
+            numero = float(valor)
+        except ValueError:
+            raise forms.ValidationError('Ingrese una nota numérica, por ejemplo 5.5.')
+
+        if not 1.0 <= numero <= 7.0:
+            raise forms.ValidationError('La nota debe estar entre 1.0 y 7.0.')
+
+        return round(numero, 1)
+
+    def clean(self):
+        cleaned = super().clean()
+        asignatura = cleaned.get('asignatura_id')
+
+        if asignatura:
+            cantidad = PromedioAsignatura.objects.filter(
+                estudiante_id=self.estudiante.rut,
+                asignatura_id=asignatura,
+            ).exclude(pk=self.instance.pk).count()
+
+            if cantidad >= 9:
+                raise forms.ValidationError('Un estudiante puede tener como máximo 8 notas por asignatura.')
+
+        return cleaned
+
+class PromedioAsignaturaUpdateForm(forms.ModelForm):
+    nota = forms.CharField(required=False, label='Nota', widget=forms.TextInput())
+
+    class Meta:
+        model = PromedioAsignatura
+        fields = ['asignatura_id', 'nota']
+        labels = {
+            'asignatura_id': 'Asignatura',
+        }
+        widgets = {
+            'asignatura_id': forms.Select(),
+        }
+
+    def __init__(self, *args, estudiante=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.estudiante = estudiante
+        self.instance.estudiante_id_id = estudiante.rut
+
+    def clean_nota(self):
+        valor = (self.cleaned_data.get('nota') or '').strip().replace(',', '.')
+
+        if not valor:
+            return None
+
+        try:
+            numero = float(valor)
+        except ValueError:
+            raise forms.ValidationError('Ingrese una nota numérica, por ejemplo 5.5.')
+
+        if not 1.0 <= numero <= 7.0:
+            raise forms.ValidationError('La nota debe estar entre 1.0 y 7.0.')
+
+        return round(numero, 1)
+
+    def clean(self):
+        cleaned = super().clean()
+        asignatura = cleaned.get('asignatura_id')
+
+        if asignatura:
+            cantidad = PromedioAsignatura.objects.filter(
+                estudiante_id=self.estudiante.rut,
+                asignatura_id=asignatura,
+            ).exclude(pk=self.instance.pk).count()
+
+            if cantidad >= 5:
+                raise forms.ValidationError('Un estudiante puede tener como máximo 5 notas por asignatura.')
+
+        return cleaned
 
 # Para creación PDE
 class CursoSelect(forms.Select):

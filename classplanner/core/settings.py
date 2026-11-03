@@ -60,6 +60,7 @@ INSTALLED_APPS = [
     'classplanner',
     'registration',
     'easyaudit',
+    "phonenumber_field",
 ]
 
 MIDDLEWARE = [
@@ -159,3 +160,4 @@ DJANGO_EASY_AUDIT_WATCH_MODEL_EVENTS = True
 DJANGO_EASY_AUDIT_WATCH_AUTH_EVENTS = True
 DJANGO_EASY_AUDIT_WATCH_REQUEST_EVENTS = False
 DJANGO_EASY_AUDIT_REGISTERED_CLASSES = ['classplanner.Estudiante', 'classplanner.Horario', 'classplanner.Usuario']
+PHONENUMBER_DEFAULT_REGION = 'CL'

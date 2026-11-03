@@ -45,8 +45,13 @@
                         <td class="px-6 py-4 whitespace-nowrap md:whitespace-normal">{{ c.horas_plan_total }}</td>
                         <td class="px-6 py-4 whitespace-nowrap md:whitespace-normal">{{ c.usuario_id.name }} {{ c.usuario_id.last_name }}</td>
                         <td class="px-6 py-4 whitespace-nowrap md:whitespace-normal flex gap-2 ">
-                            {% if request.user.rol.name != 'root' and request.user.rol.name != 'Administrador' %}
-                                <p class="text-danger">NO AUTORIZADO</p>
+                            {% if request.user.rol.name != 'root' and request.user.rol.name != 'Administrador' and request.user.rol.name != 'Director' %}
+                                <a title="No tiene permisos para realizar esta acción" class="opacity-60 bg-blue-600 hover:bg-blue-800 text-white w-9 h-9 flex items-center justify-center text-center hover:transition transition hover:duration-300 duration-300 rounded-lg">
+                                    <i class="bi bi-pencil-square"></i>
+                                </a>
+                                <a title="No tiene permisos para realizar esta acción" class="opacity-60 bg-red-600 hover:bg-red-800 text-white w-9 h-9 flex items-center justify-center text-center hover:transition transition hover:duration-300 duration-300 rounded-lg">
+                                    <i class="bi bi-trash-fill"></i>
+                                </a>
                             {% else %}
                                 <a href="{% url 'cursoupdate' c.id %}" class="bg-blue-600 hover:bg-blue-800 text-white w-9 h-9 flex items-center justify-center text-center hover:transition transition hover:duration-300 duration-300 rounded-lg">
                                     <i class="bi bi-pencil-square"></i>

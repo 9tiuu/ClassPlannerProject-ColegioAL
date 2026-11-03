@@ -23,8 +23,11 @@ class Usuario(AbstractUser):
     rol = models.ForeignKey(Rol, on_delete=models.RESTRICT, null=True)
     avatar = models.ImageField(upload_to='avatars', blank=True, null=True)
     passwd_changed = models.BooleanField(default=False, blank=True)
+    
     # abstractuser tiene campo is_active
-
+    def delete(self, *args, **kwargs):
+       self.is_active = False
+       self.save()
     def __str__(self) -> str:
         return f'{self.name} {self.last_name}'
 
@@ -81,21 +84,14 @@ class Estudiante(models.Model):
     def __str__(self) -> str:
         return f'{self.nombre} {self.apellido_p} {self.apellido_m}'
 
-class Nota(models.Model):
-    nota = models.CharField(max_length=50)
-    estudiante = models.ForeignObject(
-        Estudiante,
-        on_delete=models.CASCADE,
-        from_fields=('estudiante_rut', 'estudiante_curso'),
-        to_fields=('rut', 'curso_id'),
-    )
+class PromedioAsignatura(models.Model):
+    nota = models.FloatField(null=True, blank=True)
+    estudiante_id = models.ForeignKey(Estudiante, on_delete=models.CASCADE, to_field='rut')
     asignatura_id = models.ForeignKey(Asignatura, on_delete=models.CASCADE)
 
-    def __str__(self):
-        return (
-            f'Promedio de {self.estudiante.rut} '
-            f'en {self.asignatura_id.ident}: {self.nota}'
-        )
+    def __str__(self) -> str:
+        valor = '—' if self.nota is None else self.nota
+        return f'Nota de {self.estudiante_id_id} en {self.asignatura_id.ident}: {valor}'
     
 class Aula(models.Model):
     nombre = models.CharField(max_length=50)

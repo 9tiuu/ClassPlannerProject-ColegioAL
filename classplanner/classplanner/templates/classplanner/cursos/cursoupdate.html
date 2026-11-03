@@ -20,7 +20,7 @@
 
             <div class="flex flex-col w-full mb-5">
                 <label for="id_nivel" class="mb-1 text-base font-semibold text-slate-600 dark:text-white">Nivel del curso <b class="text-red-600">*</b></label>
-                <select name="nivel" id="id_nivel" class="w-full bg-white dark:bg-[#141826] text-sm focus:outline-none focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 rounded-lg h-12 border-2 p-3 border-slate-300 dark:border-slate-700 dark:text-white" required>
+                <select name="nivel" id="id_nivel" class="w-full bg-white dark:bg-[#141826] text-sm focus:outline-none focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 rounded-lg h-12 border-2 p-3 border-slate-300 dark:border-slate-700 dark:text-white {% if form.nivel.field.disabled %}cursor-not-allowed opacity-60{% endif %}" {% if form.nivel.field.disabled %}disabled{% endif %} required>
                     <option value="">Por seleccionar...</option>
                     {% for value, label in form.nivel.field.choices %}
                         {% if value %}

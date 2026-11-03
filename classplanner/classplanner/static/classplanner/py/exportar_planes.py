@@ -26,7 +26,6 @@ from django.http import HttpResponse
 from openpyxl.worksheet.table import Table
 from core.middleware.constants import asigns_1_4_b, asigns_5_6_b, asigns_7_8_b, asigns_1_2_m, asigns_3_m, asigns_4_m
 
-########## EXCEL 
 titulo_font = Font(
     name='Arial',
     size=16,
