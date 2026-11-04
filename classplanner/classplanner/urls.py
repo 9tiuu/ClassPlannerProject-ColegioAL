@@ -1,0 +1,77 @@
+from django.urls import path
+from . import views
+from .views import (
+    CreateUsuario, ListUsuario, UpdateUsuario, DeleteUsuario,
+    ListRegistros,
+    ListRol, UpdateRol, DeleteRol, CreateRol,
+    ListAula, CreateAula, UpdateAula, DeleteAula,
+    ListCursos, CreateCurso, UpdateCurso, DeleteCurso,
+    ListEstudiantes, CreateEstudiante, UpdateEstudiante, DeleteEstudiante,
+    ListPromedioAsignatura, CreatePromedioAsignatura, UpdatePromedioAsignatura, DeletePromedioAsignatura,
+    ListAsignatura, CreateAsignatura, UpdateAsignatura, DeleteAsignatura,
+)
+from .views import custom_logout
+# from django.contrib.auth.views import LoginView
+
+urlpatterns = [
+    path('home/', views.Home, name='home'),
+
+    # ROLES
+    path('createrol/', CreateRol.as_view(), name='createrol'),
+    path('listrol/', ListRol.as_view(), name='listrol'),
+    path('updaterol/<int:pk>/', UpdateRol.as_view(), name='updaterol'),
+    path('deleterol/<int:pk>/', DeleteRol.as_view(), name='deleterol'),
+    path('findrol/', views.FindRol, name='findrol'),
+
+    # USUARIOS
+    path('usercreate/', CreateUsuario.as_view(), name='usercreate'),
+    path('userlist/', ListUsuario.as_view(), name='userlist'),
+    path('userupdate/<int:pk>/', UpdateUsuario.as_view(), name='userupdate'),
+    path('userdelete/<int:pk>/', DeleteUsuario.as_view(), name='userdelete'),
+
+    # REGISTROS
+    path('registros/', ListRegistros.as_view(), name='registros'),
+
+    # AULAS
+    path('aulas/', ListAula.as_view(), name='aulas'),
+    path('aulacreate/', CreateAula.as_view(), name='aulacreate'),
+    path('aulaupdate/<int:pk>/', UpdateAula.as_view(), name='aulaupdate'),
+    path('auladelete/<int:pk>/', DeleteAula.as_view(), name='auladelete'),
+
+    # CURSOS
+    path('cursos/', ListCursos.as_view(), name='cursos'),
+    path('cursocreate/', CreateCurso.as_view(), name='cursocreate'),
+    path('cursoupdate/<int:pk>/', UpdateCurso.as_view(), name='cursoupdate'),
+    path('cursodelete/<int:pk>/', DeleteCurso.as_view(), name='cursodelete'),
+
+    # ESTUDIANTES
+    path('estudiantes/', ListEstudiantes.as_view(), name='estudiantes'),
+    path('estudiantecreate/', CreateEstudiante.as_view(), name='estudiantecreate'),
+    path('estudianteupdate/<str:rut>/<int:curso_id>/', UpdateEstudiante.as_view(), name='estudianteupdate'),
+    path('estudiantedelete/<str:rut>/<int:curso_id>/', DeleteEstudiante.as_view(), name='estudiantedelete'),
+
+    # PROMEDIOS
+    path('promedioasignatura/estudiante/<str:rut>/<int:curso_id>/', ListPromedioAsignatura.as_view(), name='promedioasignatura'),
+    path('promedioasignatura/estudiante/<str:rut>/<int:curso_id>/crear/', CreatePromedioAsignatura.as_view(), name='promedioasignaturacreate'),
+    path('promedioasignaturaupdate/<int:pk>/', UpdatePromedioAsignatura.as_view(), name='promedioasignaturaupdate'),
+    path('promedioasignaturadelete/<int:pk>/', DeletePromedioAsignatura.as_view(), name='promedioasignaturadelete'),
+    path('plandeestudiosexport/<str:rut>/<int:export>', views.ExportarNotas, name='notasexport'),
+
+    # ASIGNATURAS
+    path('asignaturas/', ListAsignatura.as_view(), name='asignaturas'),
+    path('asignaturacreate/', CreateAsignatura.as_view(), name='asignaturacreate'),
+    path('asignaturaupdate/<int:pk>/', UpdateAsignatura.as_view(), name='asignaturaupdate'),
+    path('asignaturadelete/<int:pk>/', DeleteAsignatura.as_view(), name='asignaturadelete'),
+
+    # PLAN DE ESTUDIOS
+    path('plandeestudios/', views.ListPlanDeEstudio, name='plandeestudio'),
+    path('plandeestudiocreate/', views.CreatePlanDeEstudio, name='plandeestudiocreate'),
+    path('plandeestudiocreateform/', views.CreatePlanDeEstudioForm, name='plandeestudiocreateform'),
+    path('plandeestudioupdate/<int:pk>/', views.UpdatePlanDeEstudio, name='plandeestudioupdate'),
+    path('plandeestudioupdateform/<int:pk>/', views.UpdatePlanDeEstudioForm, name='plandeestudioupdateform'),
+    path('plandeestudiosexport/<str:export>', views.ExportarPlanes, name='planesexport'),
+
+    # AUTENTICACION
+    path('logout/', custom_logout, name='logout'),
+    # path('', LoginView.as_view(), name='login'),
+]

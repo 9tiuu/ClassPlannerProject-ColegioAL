@@ -7,7 +7,7 @@
 
     <title>ClassPlanner | Login</title>
     {% load static %}
-    <link rel="website icon" href="{% static 'tickets/img/ClassPlannerIcon-transparent.png' %}" type="img/x-icon">
+    <link rel="website icon" href="{% static 'classplanner/img/ClassPlannerIcon-transparent.png' %}" type="img/x-icon">
     
     <!-- Scripts utilizados -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -19,7 +19,7 @@
     </script>
 
     {% load static %}
-    <link rel="stylesheet" href="{% static 'tickets/css/styles.css' %}">
+    <link rel="stylesheet" href="{% static 'classplanner/css/styles.css' %}">
 </head>
 <body>
     <div class="flex flex-row-reverse w-full h-screen">
@@ -33,7 +33,7 @@
                 <div class="flex items-center mb-10">
                     {% load static %}
                     <div class="flex items-center">
-                        <img src="{% static 'tickets/img/ClassPlannerIcon-transparent.png' %}" class="md:w-14 w-12" alt="icon">
+                        <img src="{% static 'classplanner/img/ClassPlannerIcon-transparent.png' %}" class="md:w-14 w-12" alt="icon">
                         <div class="ml-2 dark:text-gray-100">
                             <p class="uppercase font-extrabold text-xl">ClassPlanner</p>
                             <p class="uppercase text-xs font-semibold">Gestión de Horarios</p>
@@ -46,7 +46,7 @@
                 {% csrf_token %}
                 <p class="mb-4 flex flex-col">
                     <label for="username" class="mb-1 text-base font-semibold text-slate-600 dark:text-white">Ingresar con correo o RUT <b class="text-red-600">*</b></label>
-                    <input type="text" name="username" class="bg-white dark:bg-[#141826] text-sm focus:outline-none focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 focus:transition focus:duration-300 rounded-lg h-12 border p-3 border-slate-300 dark:border-slate-800 dark:placeholder:text-[#a8b2d2] dark:text-white" placeholder="ejemplo@outlook.com o 12345678-K" required>
+                    <input type="text" autocomplete="username" name="username" class="bg-white dark:bg-[#141826] text-sm focus:outline-none focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 focus:transition focus:duration-300 rounded-lg h-12 border p-3 border-slate-300 dark:border-slate-800 dark:placeholder:text-[#a8b2d2] dark:text-white" placeholder="ejemplo@outlook.com o 12345678-K" required>
                 </p>
                 <p class="mb-2 flex flex-col">
                     <label for="password" class="mb-1 text-base font-semibold text-slate-600 dark:text-white">Contraseña <b class="text-red-600">*</b></label>
@@ -63,12 +63,12 @@
             </form>
         </div>
         <div class="w-full h-screen bg-blue-400 hidden xl:flex items-center justify-center">
-            <img src="{% static 'tickets/img/loginbg.jpg' %}" class="object-cover w-full h-full" alt="icon">
+            <img src="{% static 'classplanner/img/loginbg.jpg' %}" class="object-cover w-full h-full" alt="icon">
         </div>
     </div>
 </body>
 
     {% load static %}
-    <script src="{% static 'tickets/js/script.js' %}"></script>
-    <script src="{% static 'tickets/js/darkmode.js' %}"></script>
+    <script src="{% static 'classplanner/js/script.js' %}"></script>
+    <script src="{% static 'classplanner/js/darkmode.js' %}"></script>
 </html>
