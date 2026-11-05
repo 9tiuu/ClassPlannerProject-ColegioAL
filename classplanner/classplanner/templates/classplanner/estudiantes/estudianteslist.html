@@ -3,10 +3,12 @@
 <title>Estudiantes | ClassPlanner</title>
 {% endblock %}
 {% block content %}
-<div class="p-4 min-h-[10vh] mt-2 rounded-lg">
-    <p class="mb-3 text-slate-500"><a class="hover:underline" href="{% url 'home' %}">Gestión</a> / <a class="hover:underline" href="#">Estudiantes</a></p>
-    <h2 class="text-4xl font-semibold text-[#234FA8] mb-4">Estudiantes</h2>
+<div class="p-4 min-h-[10vh] mt-4 rounded-lg">
+    <p class="mb-2 text-slate-500 text-sm dark:text-slate-400"><a class="hover:underline" href="{% url 'home' %}">Gestión</a> / <a class="hover:underline font-semibold text-slate-700 dark:text-slate-200" href="#">Estudiantes</a></p>
+    <h2 class="mb-2 text-4xl font-semibold text-[#234FA8] dark:text-blue-400 sm:text-3xl">Estudiantes</h2>
+    <p class="text-sm text-slate-500 dark:text-slate-400 sm:text-base">Listado de estudiantes registrados.</p>
 </div>
+
 <div class="p-4 border-slate-300 dark:border-slate-700 min-h-[71vh] border-default border mt-10 rounded-lg">
     <div class="user-list-content">
 

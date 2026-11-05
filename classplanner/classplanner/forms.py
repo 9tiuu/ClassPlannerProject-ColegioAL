@@ -23,7 +23,6 @@ class UniqueDirectorRoleFormMixin:
             )
         return rol
 
-
 class UsuarioForm(UniqueDirectorRoleFormMixin, UserCreationForm):
     class Meta:
         model = Usuario

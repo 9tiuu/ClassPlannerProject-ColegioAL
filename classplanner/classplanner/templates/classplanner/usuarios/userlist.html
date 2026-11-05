@@ -7,13 +7,16 @@
 {% endif %}
 {% endblock %}
 {% block content %}
-<div class="p-4 min-h-[10vh] mt-2 rounded-lg">
+<div class="p-4 min-h-[10vh] mt-4 rounded-lg">
     {% if request.user.rol.name != 'Director' %}
-    <p class="mb-3 text-slate-500"><a class="hover:underline" href="{% url 'home' %}">Gestión</a> / <a class="hover:underline" href="#">Usuarios</a></p>
-    <h2 class="text-4xl font-semibold text-[#234FA8] mb-4">Usuarios</h2>
+    <p class="mb-2 text-slate-500 text-sm dark:text-slate-400"><a class="hover:underline" href="{% url 'home' %}">Gestión</a> / <a class="hover:underline font-semibold text-slate-700 dark:text-slate-200" href="#">Usuarios</a></p>
+    <h2 class="mb-2 text-4xl font-semibold text-[#234FA8] dark:text-blue-400 sm:text-3xl">Usuarios</h2>
+    <p class="text-sm text-slate-500 dark:text-slate-400 sm:text-base">Listado de todos los usuarios del sistema.</p>
     {% else %}
-    <p class="mb-3 text-slate-500"><a class="hover:underline" href="{% url 'home' %}">Gestión</a> / <a class="hover:underline" href="#">Profesores</a></p>
-    <h2 class="text-4xl font-semibold text-[#234FA8] mb-4">Profesores</h2>
+    <!-- Crear vista individual para no mezclarlo con los de los usuarios -->
+    <p class="mb-2 text-slate-500 text-sm dark:text-slate-400"><a class="hover:underline" href="{% url 'home' %}">Gestión</a> / <a class="hover:underline font-semibold text-slate-700 dark:text-slate-200" href="#}">Profesores</a></p>
+    <h2 class="mb-2 text-4xl font-semibold text-[#234FA8] dark:text-blue-400 sm:text-3xl">Profesores</h2>
+    <p class="text-sm text-slate-500 dark:text-slate-400 sm:text-base">Listado de profesores/docentes del sistema.</p>
     {% endif %}
 </div>
 <div class="p-4 border-slate-300 dark:border-slate-700 min-h-[71vh] border-default border mt-10 rounded-lg">
@@ -109,13 +112,14 @@
                         {% endif %}
                         <td class="px-6 py-4 whitespace-nowrap md:whitespace-normal">{{ u.rut }}</td>
                         <td class="px-6 py-4 whitespace-nowrap md:whitespace-normal">{{ u.email }}</td>
+
                         {% if u.telefono == 'None' or u.telefono == NULL %}
                         <td class="px-6 py-4 whitespace-nowrap md:whitespace-normal">---</td>
                         {% else %}
                         <td class="px-6 py-4 whitespace-nowrap md:whitespace-normal">{{ u.telefono }}</td>
                         {% endif %}
-                        <td class="px-6 py-4 whitespace-nowrap md:whitespace-normal flex gap-2 ">
-                            
+                        
+                        <td class="px-6 py-4 whitespace-nowrap md:whitespace-normal flex gap-2 ">                          
                             {% if request.user.rol.name != 'root' and u.rol.name == 'root' or request.user.rol.name != 'root' and u.rol.name == 'Administrador' %}
                                 <p class="text-danger">NO AUTORIZADO</p>
                             {% else %}

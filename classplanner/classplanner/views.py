@@ -14,7 +14,7 @@ import re
 from math import floor
 
 from easyaudit.models import CRUDEvent
-from .models import Rol, Usuario, Asignatura, PlanDeEstudio, Curso, Estudiante, Aula, PromedioAsignatura
+from .models import Rol, Usuario, Asignatura, PlanDeEstudio, Curso, Estudiante, Aula, PromedioAsignatura, CargaHoraria, Bloque, BloqueDeClase
 from .forms import (
     RolForm, UsuarioForm, UserUpdateForm,
     PlanDeEstudioCreateForm, PlanDeEstudioUpdateForm,
@@ -36,6 +36,7 @@ from django.db.models.query import QuerySet
 from functools import wraps
 from .static.classplanner.py.exportar_planes import exportar_planes
 from .static.classplanner.py.exportar_notas import _exportar_notas_pdf
+from datetime import time, datetime, date
 
 # Create your views here.
 
@@ -1196,6 +1197,194 @@ def UpdatePlanDeEstudioForm(request, pk=None): # hacer validacion hrs plan curso
         )
 
     return render(request, 'classplanner/plandeestudio/plandeestudioupdateform.html', {'form': form})
+
+# ----------------------------------- # CARGAS HORARIAS
+
+@method_decorator(login_required, name='dispatch')
+@method_decorator(roles_required('root', 'Administrador', 'Director'), name='dispatch')
+class ListCargaHoraria(ListView):
+    model = CargaHoraria
+    template_name = 'classplanner/cargahoraria/cargahorarialist.html'
+    context_object_name = 'cargahoraria'
+
+DIAS_CODIGO = {1: 'L', 2: 'M', 3: 'X', 4: 'J', 5: 'V'}
+def es_recreo(inicio, termino):
+    # deteccion de un bloque correspondiente a recreo; detecta si dura menos de 30 min
+    duracion = (datetime.combine(date.today(), termino) - datetime.combine(date.today(), inicio)).total_seconds() / 60
+    return duracion < 30
+
+def obtener_bloques_por_jornada():
+    vistos = set()
+    bloques_jm, bloques_jt = [], []
+
+    for b in Bloque.objects.order_by('hora_inicio', 'hora_termino'):
+        clave = (b.hora_inicio, b.hora_termino)
+
+        if clave in vistos:
+            continue
+        vistos.add(clave)
+
+        item = {
+            'hora_inicio': b.hora_inicio,
+            'hora_termino': b.hora_termino,
+            'es_recreo': es_recreo(b.hora_inicio, b.hora_termino),
+        }
+
+        if time(7, 45) <= b.hora_inicio < time(13, 30):
+            bloques_jm.append(item)
+        elif time(14, 0) <= b.hora_inicio < time(19, 0):
+            bloques_jt.append(item)
+
+    return {'JM': bloques_jm, 'JT': bloques_jt}
+
+def leer_casillas(post, bloques_por_jornada):
+    casillas, errores = [], []
+
+    for clave in post:
+        if not clave.startswith('asignatura_'):
+            continue
+
+        _, jornada, fila, dia = clave.split('_')
+        asignatura_id = post.get(clave)
+        curso_id = post.get(f'curso_{jornada}_{fila}_{dia}')
+
+        if not asignatura_id and not curso_id:
+            continue  # casilla vacía
+        if not (asignatura_id and curso_id):
+            errores.append('Hay una casilla con asignatura pero sin curso (o al revés).')
+            continue
+
+        bloque = bloques_por_jornada[jornada][int(fila) - 1]  # fila = forloop.counter (desde 1)
+
+        casillas.append({
+            'hora_inicio': bloque['hora_inicio'],
+            'hora_termino': bloque['hora_termino'],
+            'dia': DIAS_CODIGO[int(dia)],
+            'asignatura_id': int(asignatura_id),
+            'curso_id': int(curso_id),
+        })
+
+    return casillas, errores
+
+@login_required
+@roles_required('root', 'Administrador', 'Director')
+def CreateCargaHoraria(request):
+    bloques_por_jornada = obtener_bloques_por_jornada()
+
+    if request.method == 'POST':
+        errores = []
+
+        # Docente
+        docente = Usuario.objects.filter(
+            id=request.POST.get('usuario_id') or 0, rol__name='Docente', is_active=True
+        ).first()
+
+        if not docente:
+            errores.append('Selecciona un docente válido.')
+        elif CargaHoraria.objects.filter(usuario_id=docente).exists():
+            errores.append(f'{docente} ya tiene una carga horaria creada.')
+
+        # Horas de contrato
+        try:
+            hrs_contrato = float(request.POST.get('hrs_contrato', '').replace(',', '.'))
+            if hrs_contrato <= 0:
+                raise ValueError
+        except ValueError:
+            hrs_contrato = None
+            errores.append('Las horas de contrato deben ser un número mayor que 0.')
+
+        # Casillas 
+        casillas, errores_casillas = leer_casillas(request.POST, bloques_por_jornada)
+        errores += errores_casillas
+
+        if not casillas:
+            errores.append('Asigna al menos una hora de clase.')
+
+        hrs_aula = len(casillas) # cantidad de bloques asignados
+        if hrs_contrato and hrs_aula > hrs_contrato:
+            errores.append(f'Asignaste {hrs_aula} horas de aula y el contrato es de {hrs_contrato:g} horas.')
+
+        if casillas: # resolver objetos reales (valida que existan)
+            asignaturas_db = Asignatura.objects.in_bulk({c['asignatura_id'] for c in casillas})
+            cursos_db = Curso.objects.in_bulk({c['curso_id'] for c in casillas})
+
+            bloques_db = {
+                (b.dia, b.hora_inicio, b.hora_termino): b
+                for b in Bloque.objects.filter(
+                    hora_inicio__in={c['hora_inicio'] for c in casillas}
+                )
+            }
+
+            for c in casillas:
+                c['asignatura'] = asignaturas_db.get(c['asignatura_id'])
+                c['curso'] = cursos_db.get(c['curso_id'])
+                c['bloque'] = bloques_db.get((c['dia'], c['hora_inicio'], c['hora_termino']))
+
+                if not (c['asignatura'] and c['curso']):
+                    errores.append('Una asignatura o curso seleccionado ya no existe.')
+                    break
+
+                if not c['bloque']:
+                    errores.append(f'No existe el bloque {c["dia"]} {c["hora_inicio"]:%H:%M} en la base de datos.')
+                    break
+
+                # deteccion de conflicto si el curso ya tiene clase en ese bloque con otro docente
+                conflicto = (
+                    BloqueDeClase.objects
+                    .filter(curso_id=c['curso'], bloque_id=c['bloque'])
+                    .select_related('carga_horaria_id__usuario_id')
+                    .first()
+                )
+
+                if conflicto:
+                    errores.append(
+                        f'El curso {c["curso"]} ya tiene clase el {c["bloque"].get_dia_display()} '
+                        f'a las {c["hora_inicio"]:%H:%M} con {conflicto.carga_horaria_id.usuario_id}.'
+                    )
+
+        if errores:
+            for e in dict.fromkeys(errores): 
+                messages.error(request, e)
+        else:
+            with transaction.atomic():
+                carga = CargaHoraria.objects.create(
+                    usuario_id=docente,
+                    hrs_contrato=hrs_contrato,
+                    hrs_aula=hrs_aula,
+                    hrs_cd=0,
+                    hrs_aa=0,
+                )
+
+                BloqueDeClase.objects.bulk_create([
+                    BloqueDeClase(
+                        carga_horaria_id=carga,
+                        bloque_id=c['bloque'],
+                        asignatura_id=c['asignatura'],
+                        curso_id=c['curso'],
+                    )
+                    for c in casillas
+                ])
+
+            messages.success(request, 'Carga horaria creada correctamente.')
+            return redirect('cargashorarias')
+
+    dias = [(1, 'Lunes'), (2, 'Martes'), (3, 'Miércoles'), (4, 'Jueves'), (5, 'Viernes')]
+
+    docentes = (
+        Usuario.objects
+        .filter(rol__name='Docente', is_active=True)
+        .select_related('rol')
+        .order_by('name', 'last_name')
+    )
+
+    return render(request, 'classplanner/cargahoraria/cargahorariacreate.html', {
+        'bloques_jm': bloques_por_jornada['JM'],
+        'bloques_jt': bloques_por_jornada['JT'],
+        'dias': dias,
+        'cursos': Curso.objects.all(),
+        'asignaturas': Asignatura.objects.all(),
+        'docentes': docentes,
+    })
 
 # ----------------------------------- #
 

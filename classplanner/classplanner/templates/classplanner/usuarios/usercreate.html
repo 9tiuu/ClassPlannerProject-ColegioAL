@@ -3,12 +3,13 @@
 <title>Crear Usuario | ClassPlanner</title>
 {% endblock %}
 {% block content %}
-<div class="p-4 min-h-[6vh] mt-2 rounded-lg">
-    <p class="mb-3 text-slate-500"><button class="hover:underline" id="home-link" data-url="{% url 'home' %}" onclick="window.exitConfirm(this)">Gestión</button> / <button class="hover:underline" id="usuarios-link" data-url="{% url 'userlist' %}" onclick="window.exitConfirm(this)">Usuarios</button> / Crear</p>
-    <h2 class="text-4xl font-semibold text-[#234FA8] dark:text-blue-500 mb-1">Nuevo usuario</h2>
-    <p class="text-slate-500 dark:text-[#a8b2d2] mb-3 text-sm">Registre un nuevo usuario completando los siguientes campos:</p>
+<div class="p-4 min-h-[10vh] mt-4 rounded-lg">
+    <p class="mb-2 text-slate-500 text-sm dark:text-slate-400"><button class="hover:underline" id="home-link" data-url="{% url 'home' %}" onclick="window.exitConfirm(this)">Gestión</button> / <button class="hover:underline" id="userlist-link" data-url="{% url 'userlist' %}" onclick="window.exitConfirm(this)">Usuarios</button> / <a class="hover:underline font-semibold text-slate-700 dark:text-slate-200" href="#">Crear</a></p>
+    <h2 class="mb-2 text-4xl font-semibold text-[#234FA8] dark:text-blue-400 sm:text-3xl">Nuevo Usuario</h2>
+    <p class="text-sm text-slate-500 dark:text-slate-400 sm:text-base">Registre un nuevo usuario completando los siguientes campos:</p>
 </div>
-<div class="justify-center flex flex-col grid grid-cols-1 bg-white p-4 border-slate-300 dark:border-slate-700 border-default border mt-10 rounded-lg">
+
+<div class="justify-center flex flex-col grid-cols-1 p-4 border-slate-300 dark:border-slate-700 border-default border mt-10 rounded-lg">
     <div class="p-3 bg-white dark:bg-[#141826] rounded-lg">
         <form method="POST" enctype="multipart/form-data" class="users-c-form">
             {% csrf_token %}  

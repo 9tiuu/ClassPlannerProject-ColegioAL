@@ -23,11 +23,12 @@ class Usuario(AbstractUser):
     rol = models.ForeignKey(Rol, on_delete=models.RESTRICT, null=True)
     avatar = models.ImageField(upload_to='avatars', blank=True, null=True)
     passwd_changed = models.BooleanField(default=False, blank=True)
-    
     # abstractuser tiene campo is_active
+
     def delete(self, *args, **kwargs):
-       self.is_active = False
-       self.save()
+        self.is_active = False
+        self.save()
+
     def __str__(self) -> str:
         return f'{self.name} {self.last_name}'
 
@@ -79,8 +80,8 @@ class Estudiante(models.Model):
     is_active = models.BooleanField(default=True, blank=True)
 
     def delete(self, *args, **kwargs):
-       self.is_active = False
-       self.save()
+        self.is_active = False
+        self.save()
     def __str__(self) -> str:
         return f'{self.nombre} {self.apellido_p} {self.apellido_m}'
 
@@ -134,8 +135,6 @@ class Horario(models.Model):
 
 class CargaHoraria(models.Model):
     usuario_id = models.OneToOneField(Usuario, on_delete=models.CASCADE)
-    asignatura_id = models.ManyToManyField(Asignatura)
-    curso_id = models.ManyToManyField(Curso)
     hrs_contrato = models.FloatField()
     hrs_aula = models.FloatField()
     hrs_cd = models.FloatField()
@@ -143,3 +142,13 @@ class CargaHoraria(models.Model):
 
     def __str__(self) -> str:
         return f'{self.usuario_id} - {self.hrs_contrato}hrs. Contrato - {self.hrs_aula}hrs. Aula'
+
+class BloqueDeClase(models.Model):
+    carga_horaria_id = models.ForeignKey(CargaHoraria, on_delete=models.CASCADE)
+    bloque_id = models.ForeignKey(Bloque, on_delete=models.RESTRICT)
+    asignatura_id = models.ForeignKey(Asignatura, on_delete=models.RESTRICT)
+    curso_id = models.ForeignKey(Curso, on_delete=models.RESTRICT)
+    aula = models.ForeignKey(Aula, on_delete=models.RESTRICT, null=True, blank=True)
+
+    def __str__(self) -> str:
+        return f'({self.asignatura_id} / {self.curso_id}): {self.bloque_id}'

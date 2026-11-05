@@ -9,6 +9,7 @@ from .views import (
     ListEstudiantes, CreateEstudiante, UpdateEstudiante, DeleteEstudiante,
     ListPromedioAsignatura, CreatePromedioAsignatura, UpdatePromedioAsignatura, DeletePromedioAsignatura,
     ListAsignatura, CreateAsignatura, UpdateAsignatura, DeleteAsignatura,
+    ListCargaHoraria, 
 )
 from .views import custom_logout
 # from django.contrib.auth.views import LoginView
@@ -70,6 +71,10 @@ urlpatterns = [
     path('plandeestudioupdate/<int:pk>/', views.UpdatePlanDeEstudio, name='plandeestudioupdate'),
     path('plandeestudioupdateform/<int:pk>/', views.UpdatePlanDeEstudioForm, name='plandeestudioupdateform'),
     path('plandeestudiosexport/<str:export>', views.ExportarPlanes, name='planesexport'),
+
+    # CARGAS HORARIAS
+    path('cargashorarias/', ListCargaHoraria.as_view(), name='cargashorarias'),
+    path('cargashorariascreate/', views.CreateCargaHoraria, name='cargashorariascreate'),
 
     # AUTENTICACION
     path('logout/', custom_logout, name='logout'),

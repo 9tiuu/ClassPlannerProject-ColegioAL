@@ -76,6 +76,7 @@
 .dark #id_plan_diferencial + .select2 .select2-selection__rendered,
 .dark .asignatura-select2-dropdown .select2-results__option {
     color: #fff;
+    background-color: transparent;
 }
 
 .dark #id_nombre + .select2 .select2-selection--single,

@@ -6,15 +6,13 @@
 
 {% block content %}
 
-<div class="p-4 border border-slate-300 dark:border-slate-700 min-h-screen mt-10 rounded-lg">
-    <p class="mb-3 text-slate-500 dark:text-[#a8b2d2]">
-        <button class="hover:underline" id="home-link" data-url="{% url 'home' %}" onclick="window.exitConfirm(this)">Gestión</button> /
-        <button class="hover:underline" id="aulas-link" data-url="{% url 'aulas' %}" onclick="window.exitConfirm(this)">Aulas</button> / Eliminar
-    </p>
+<div class="p-4 min-h-[10vh] mt-4 rounded-lg">
+    <p class="mb-2 text-slate-500 text-sm dark:text-slate-400"><a class="hover:underline" href="{% url 'home' %}">Gestión</a> / <a class="hover:underline dark:text-slate-400" href="{% url 'aulas' %}">Aulas</a> / <a class="hover:underline font-semibold text-slate-700 dark:text-slate-200" href="#">Eliminar</a></p>
+    <h2 class="mb-2 text-4xl font-semibold text-[#234FA8] dark:text-blue-400 sm:text-3xl">Eliminar Aula</h2>
+    <p class="text-sm text-slate-500 dark:text-slate-400 sm:text-base">Revise los datos antes de confirmar la eliminación.</p>
+</div>
 
-    <h2 class="text-3xl font-bold text-[#234FA8] dark:text-blue-500 mb-1">Eliminar aula</h2>
-    <p class="text-slate-500 dark:text-[#a8b2d2] mb-8 text-sm">Revise los datos antes de confirmar la eliminación.</p>
-
+<div class="">
     <div class="grid grid-cols-1 lg:grid-cols-5 border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden bg-white dark:bg-[#141826] shadow-sm">
 
         <div class="lg:col-span-2 flex flex-col items-center justify-center p-8 bg-red-50/50 dark:bg-red-950/10 border-b lg:border-b-0 lg:border-r border-slate-200 dark:border-slate-700 min-h-72">
