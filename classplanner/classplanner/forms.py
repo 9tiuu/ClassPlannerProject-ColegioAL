@@ -311,8 +311,8 @@ class PromedioAsignaturaUpdateForm(forms.ModelForm):
                 asignatura_id=asignatura,
             ).exclude(pk=self.instance.pk).count()
 
-            if cantidad >= 5:
-                raise forms.ValidationError('Un estudiante puede tener como máximo 5 notas por asignatura.')
+            if cantidad >= 8:
+                raise forms.ValidationError('Un estudiante puede tener como máximo 8 notas por asignatura.')
 
         return cleaned
 

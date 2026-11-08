@@ -9,6 +9,7 @@ from django.views.generic.detail import DetailView
 from django.views import View
 from django.contrib import messages
 from django.db.models.deletion import RestrictedError
+from django.db.models import Case, IntegerField, When
 from datetime import datetime
 import re
 from math import floor
@@ -372,7 +373,15 @@ class ListCursos(ListView):
         for curso in queryset:
             if curso.horas_plan_total == int(curso.horas_plan_total):
                 curso.horas_plan_total = floor(curso.horas_plan_total)
-        return queryset
+
+        orden_nivel = Case(
+            *[
+                When(nivel=nivel, then=posicion)
+                for posicion, nivel in enumerate(Curso.Nivel.values)
+            ],
+            output_field=IntegerField(),
+        )
+        return queryset.order_by(orden_nivel)
 
 @method_decorator(login_required, name='dispatch')
 @method_decorator(roles_required('root', 'Administrador', 'Director'), name='dispatch')
@@ -509,8 +518,18 @@ class ListEstudiantes(ListView):
         is_root = self.request.user.rol.name == 'root'
         if is_root:
             mostrar_desactivados = self.request.GET.get('change_state') == '1'
-            return Estudiante.objects.filter(is_active=not mostrar_desactivados)
-        else: return Estudiante.objects.filter(is_active=True)
+            queryset = Estudiante.objects.filter(is_active=not mostrar_desactivados)
+        else:
+            queryset = Estudiante.objects.filter(is_active=True)
+
+        orden_nivel = Case(
+            *[
+                When(curso_id__nivel=nivel, then=posicion)
+                for posicion, nivel in enumerate(Curso.Nivel.values)
+            ],
+            output_field=IntegerField(),
+        )
+        return queryset.order_by(orden_nivel, 'curso_id__letra')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
