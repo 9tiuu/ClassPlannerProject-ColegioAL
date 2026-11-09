@@ -14,7 +14,7 @@ import re
 from math import floor
 
 from easyaudit.models import CRUDEvent
-from .models import Rol, Usuario, Asignatura, PlanDeEstudio, Curso, Estudiante, Aula, PromedioAsignatura, CargaHoraria, Bloque, BloqueDeClase
+from .models import Rol, Usuario, Asignatura, PlanDeEstudio, Curso, Estudiante, Aula, PromedioAsignatura, CargaHoraria, Bloque, BloqueDeClase, Horario
 from .forms import (
     RolForm, UsuarioForm, UserUpdateForm,
     PlanDeEstudioCreateForm, PlanDeEstudioUpdateForm,
@@ -25,7 +25,7 @@ from .forms import (
 )
 
 from django.contrib.auth import logout, get_user_model
-from django.shortcuts import redirect
+from django.shortcuts import redirect, render
 from django.db import transaction
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
@@ -37,6 +37,8 @@ from functools import wraps
 from .static.classplanner.py.exportar_planes import exportar_planes
 from .static.classplanner.py.exportar_notas import _exportar_notas_pdf
 from datetime import time, datetime, date
+from collections import Counter
+from django.db.models import Count
 
 # Create your views here.
 
@@ -1208,6 +1210,14 @@ class ListCargaHoraria(ListView):
     context_object_name = 'cargahoraria'
 
 DIAS_CODIGO = {1: 'L', 2: 'M', 3: 'X', 4: 'J', 5: 'V'}
+PATRON_CASILLA = re.compile(r'^asignatura_(JM|JT)_(\d+)_(\d+)$')
+
+def a_int(valor):
+    try:
+        return int(valor)
+    except (TypeError, ValueError):
+        return None
+
 def es_recreo(inicio, termino):
     # deteccion de un bloque correspondiente a recreo; detecta si dura menos de 30 min
     duracion = (datetime.combine(date.today(), termino) - datetime.combine(date.today(), inicio)).total_seconds() / 60
@@ -1219,7 +1229,6 @@ def obtener_bloques_por_jornada():
 
     for b in Bloque.objects.order_by('hora_inicio', 'hora_termino'):
         clave = (b.hora_inicio, b.hora_termino)
-
         if clave in vistos:
             continue
         vistos.add(clave)
@@ -1237,52 +1246,31 @@ def obtener_bloques_por_jornada():
 
     return {'JM': bloques_jm, 'JT': bloques_jt}
 
-def leer_casillas(post, bloques_por_jornada):
-    casillas, errores = [], []
-
-    for clave in post:
-        if not clave.startswith('asignatura_'):
-            continue
-
-        _, jornada, fila, dia = clave.split('_')
-        asignatura_id = post.get(clave)
-        curso_id = post.get(f'curso_{jornada}_{fila}_{dia}')
-
-        if not asignatura_id and not curso_id:
-            continue  # casilla vacía
-        if not (asignatura_id and curso_id):
-            errores.append('Hay una casilla con asignatura pero sin curso (o al revés).')
-            continue
-
-        bloque = bloques_por_jornada[jornada][int(fila) - 1]  # fila = forloop.counter (desde 1)
-
-        casillas.append({
-            'hora_inicio': bloque['hora_inicio'],
-            'hora_termino': bloque['hora_termino'],
-            'dia': DIAS_CODIGO[int(dia)],
-            'asignatura_id': int(asignatura_id),
-            'curso_id': int(curso_id),
-        })
-
-    return casillas, errores
-
 @login_required
 @roles_required('root', 'Administrador', 'Director')
-def CreateCargaHoraria(request):
-    bloques_por_jornada = obtener_bloques_por_jornada()
+def CreateCargaHoraria(request): # Pendiente: distribucion de horas no lectivas
+    errores = {}
 
     if request.method == 'POST':
-        errores = []
+        errores = {'docente': [], 'anio': [], 'hrs_contrato': []}
+
+        # Año
+        valor = request.POST.get('anio_planificacion', '').strip()
+        anio = a_int(valor)
+
+        if valor == '' or anio is None or not (1000 <= anio <= 9999):
+            errores['anio'].append('Ingrese un año válido de 4 dígitos (por ejemplo 2026).')
+            anio = None
 
         # Docente
         docente = Usuario.objects.filter(
-            id=request.POST.get('usuario_id') or 0, rol__name='Docente', is_active=True
+            pk=a_int(request.POST.get('usuario_id')), rol__name='Docente', is_active=True
         ).first()
 
         if not docente:
-            errores.append('Selecciona un docente válido.')
-        elif CargaHoraria.objects.filter(usuario_id=docente).exists():
-            errores.append(f'{docente} ya tiene una carga horaria creada.')
+            errores['docente'].append('Seleccione un docente disponible.')
+        elif anio and CargaHoraria.objects.filter(usuario_id=docente, anio_planificacion=anio).exists():
+            errores['docente'].append(f'{docente} ya tiene una carga horaria para el año {anio}.')
 
         # Horas de contrato
         try:
@@ -1291,99 +1279,356 @@ def CreateCargaHoraria(request):
                 raise ValueError
         except ValueError:
             hrs_contrato = None
-            errores.append('Las horas de contrato deben ser un número mayor que 0.')
+            errores['hrs_contrato'].append('Las horas de contrato deben ser un número mayor que 0.')
 
-        # Casillas 
-        casillas, errores_casillas = leer_casillas(request.POST, bloques_por_jornada)
-        errores += errores_casillas
-
-        if not casillas:
-            errores.append('Asigna al menos una hora de clase.')
-
-        hrs_aula = len(casillas) # cantidad de bloques asignados
-        if hrs_contrato and hrs_aula > hrs_contrato:
-            errores.append(f'Asignaste {hrs_aula} horas de aula y el contrato es de {hrs_contrato:g} horas.')
-
-        if casillas: # resolver objetos reales (valida que existan)
-            asignaturas_db = Asignatura.objects.in_bulk({c['asignatura_id'] for c in casillas})
-            cursos_db = Curso.objects.in_bulk({c['curso_id'] for c in casillas})
-
-            bloques_db = {
-                (b.dia, b.hora_inicio, b.hora_termino): b
-                for b in Bloque.objects.filter(
-                    hora_inicio__in={c['hora_inicio'] for c in casillas}
-                )
-            }
-
-            for c in casillas:
-                c['asignatura'] = asignaturas_db.get(c['asignatura_id'])
-                c['curso'] = cursos_db.get(c['curso_id'])
-                c['bloque'] = bloques_db.get((c['dia'], c['hora_inicio'], c['hora_termino']))
-
-                if not (c['asignatura'] and c['curso']):
-                    errores.append('Una asignatura o curso seleccionado ya no existe.')
-                    break
-
-                if not c['bloque']:
-                    errores.append(f'No existe el bloque {c["dia"]} {c["hora_inicio"]:%H:%M} en la base de datos.')
-                    break
-
-                # deteccion de conflicto si el curso ya tiene clase en ese bloque con otro docente
-                conflicto = (
-                    BloqueDeClase.objects
-                    .filter(curso_id=c['curso'], bloque_id=c['bloque'])
-                    .select_related('carga_horaria_id__usuario_id')
-                    .first()
-                )
-
-                if conflicto:
-                    errores.append(
-                        f'El curso {c["curso"]} ya tiene clase el {c["bloque"].get_dia_display()} '
-                        f'a las {c["hora_inicio"]:%H:%M} con {conflicto.carga_horaria_id.usuario_id}.'
-                    )
-
-        if errores:
-            for e in dict.fromkeys(errores): 
-                messages.error(request, e)
-        else:
-            with transaction.atomic():
-                carga = CargaHoraria.objects.create(
-                    usuario_id=docente,
-                    hrs_contrato=hrs_contrato,
-                    hrs_aula=hrs_aula,
-                    hrs_cd=0,
-                    hrs_aa=0,
-                )
-
-                BloqueDeClase.objects.bulk_create([
-                    BloqueDeClase(
-                        carga_horaria_id=carga,
-                        bloque_id=c['bloque'],
-                        asignatura_id=c['asignatura'],
-                        curso_id=c['curso'],
-                    )
-                    for c in casillas
-                ])
-
+        if not any(errores.values()):
+            CargaHoraria.objects.create(
+                usuario_id=docente,
+                anio_planificacion=anio,
+                hrs_contrato=hrs_contrato,
+                hrs_aula=0,
+                hrs_cd=0,
+                hrs_aa=0,
+            )
             messages.success(request, 'Carga horaria creada correctamente.')
             return redirect('cargashorarias')
 
-    dias = [(1, 'Lunes'), (2, 'Martes'), (3, 'Miércoles'), (4, 'Jueves'), (5, 'Viernes')]
-
-    docentes = (
-        Usuario.objects
-        .filter(rol__name='Docente', is_active=True)
-        .select_related('rol')
-        .order_by('name', 'last_name')
-    )
+    # Todos los docentes activos: la validación por año se hace al enviar
+    docentes = Usuario.objects.filter(
+        rol__name='Docente', 
+        is_active=True,
+    ).order_by('name', 'last_name')
 
     return render(request, 'classplanner/cargahoraria/cargahorariacreate.html', {
+        'docentes': docentes,
+        'errores': errores,
+        'anio_sel': request.POST.get('anio_planificacion', date.today().year),
+    })
+
+# ----------------------------------- # HORARIOS
+
+@login_required
+@roles_required('root', 'Administrador', 'Director')
+def ListHorarios(request):
+    horarios = Horario.objects.select_related('plan_de_estudio_id__curso_id', 'aula_id')
+
+    # Cursos que ya tienen horario
+    ids_cursos = set(horarios.values_list('plan_de_estudio_id__curso_id', flat=True))
+    cursos = list(Curso.objects.filter(pk__in=ids_cursos))
+
+    curso_sel = next((c for c in cursos if c.pk == a_int(request.GET.get('curso'))), None)
+    if curso_sel is None and cursos:
+        curso_sel = cursos[0]
+
+    jornadas, horario_sel = [], None
+
+    if curso_sel:
+        horario_sel = horarios.filter(plan_de_estudio_id__curso_id=curso_sel).first()
+
+        clases = (
+            BloqueDeClase.objects
+            .filter(curso_id=curso_sel)
+            .select_related('bloque_id', 'asignatura_id', 'usuario_id')
+        )
+
+        ocupadas = {
+            (c.bloque_id.dia, c.bloque_id.hora_inicio, c.bloque_id.hora_termino): c
+            for c in clases
+        }
+
+        bloques_por_jornada = obtener_bloques_por_jornada()
+
+        for codigo, nombre in (('JM', 'Jornada de mañana'), ('JT', 'Jornada de tarde')):
+            filas, tiene_clases = [], False
+
+            # numero = forloop.counter de la creación (cuenta también los recreos)
+            for numero, b in enumerate(bloques_por_jornada[codigo], start=1):
+                celdas = [
+                    ocupadas.get((DIAS_CODIGO[n], b['hora_inicio'], b['hora_termino']))
+                    for n in sorted(DIAS_CODIGO)
+                ]
+                if any(celdas):
+                    tiene_clases = True
+                filas.append({**b, 'numero': numero, 'celdas': celdas})
+
+            if tiene_clases: # solo se muestran las jornadas con clases
+                jornadas.append({'codigo': codigo, 'nombre': nombre, 'filas': filas})
+
+    dias = [(1, 'Lunes'), (2, 'Martes'), (3, 'Miércoles'), (4, 'Jueves'), (5, 'Viernes')]
+
+    return render(request, 'classplanner/horarios/horarioslist.html', {
+        'horarios': horarios,
+        'cursos': cursos,
+        'curso_sel': curso_sel,
+        'horario_sel': horario_sel,
+        'jornadas': jornadas,
+        'dias': dias,
+    })
+
+def leer_casillas(post, bloques_por_jornada):
+    casillas, errores = [], [] 
+
+    for clave in post:
+        m = PATRON_CASILLA.match(clave)
+        if not m:
+            continue
+
+        jornada, fila, dia = m.group(1), int(m.group(2)), int(m.group(3))
+        asignatura_id = post.get(clave)
+        docente_id = post.get(f'docente_{jornada}_{fila}_{dia}')
+
+        if not asignatura_id and not docente_id:
+            continue  # casilla vacía
+        if not (asignatura_id and docente_id):
+            errores.append('Hay una casilla con asignatura pero sin docente (o al revés).')
+            continue
+
+        try:
+            bloque = bloques_por_jornada[jornada][fila - 1] # forloop.counter
+            casillas.append({
+                'hora_inicio': bloque['hora_inicio'],
+                'hora_termino': bloque['hora_termino'],
+                'dia': DIAS_CODIGO[dia],
+                'asignatura_id': int(asignatura_id),
+                'docente_id': int(docente_id),
+            })
+        except (IndexError, KeyError, ValueError):
+            errores.append('Se recibió una casilla con una posición inválida.')
+
+    return casillas, errores
+
+def restaurar_casillas(post):
+    restauradas = [] # Devuelve las casillas del POST para repintarlas tras un error
+    for clave in post:
+        m = PATRON_CASILLA.match(clave)
+        if not m:
+            continue
+        jornada, fila, dia = m.groups()
+        asignatura = post.get(clave)
+        docente = post.get(f'docente_{jornada}_{fila}_{dia}')
+        if asignatura and docente:
+            restauradas.append({
+                'clave': f'{jornada}_{fila}_{dia}',
+                'asignatura': asignatura,
+                'docente': docente,
+            })
+    return restauradas
+
+def datos_para_horario():
+    filas = PlanDeEstudio.objects.select_related('curso_id', 'asignatura_id')
+
+    planes_data = {}
+    for p in filas:
+        curso = p.curso_id
+        entrada = planes_data.setdefault(
+            str(curso.pk), {'curso': str(curso), 'asignaturas': []}
+        )
+        entrada['asignaturas'].append(
+            {'id': p.asignatura_id.pk, 'nombre': p.asignatura_id.nombre}
+        )
+
+    cursos = list(Curso.objects.filter(pk__in=[int(k) for k in planes_data]))
+    asignadas = dict(BloqueDeClase.objects.values_list('usuario_id').annotate(n=Count('id')))
+
+    cargas = (
+        CargaHoraria.objects
+        .filter(usuario_id__is_active=True)
+        .select_related('usuario_id')
+        .order_by('usuario_id__name', 'usuario_id__last_name')
+    )
+    
+    docentes_data = [
+        {
+            'id': c.usuario_id.pk,
+            'nombre': str(c.usuario_id),
+            'contrato': c.hrs_contrato,
+            'asignadas': asignadas.get(c.usuario_id.pk, 0),
+        }
+        for c in cargas
+    ]
+    return cursos, planes_data, docentes_data
+
+@login_required
+@roles_required('root', 'Administrador', 'Director')
+def CreateHorario(request):
+    bloques_por_jornada = obtener_bloques_por_jornada()
+    errores = {}
+
+    if request.method == 'POST':
+        errores = {
+            'plan': [], 'aula': [], 'anio': [], 'casillas': []
+        }
+
+        valor = request.POST.get('anio_planificacion', '').strip()
+        anio = a_int(valor)
+
+        if valor == '' or anio is None or not (1000 <= anio <= 9999):
+            errores['anio'].append('Ingrese un año válido de 4 dígitos (por ejemplo 2026).')
+            anio = None
+
+        # Curso (plan de estudio)
+        curso = Curso.objects.filter(pk=a_int(request.POST.get('curso_id'))).first()
+        plan = None
+        ids_plan = None
+
+        if not curso:
+            errores['plan'].append('Seleccione un curso disponible.')
+        else:
+            filas_plan = PlanDeEstudio.objects.filter(curso_id=curso)
+            plan = filas_plan.first()
+            ids_plan = set(filas_plan.values_list('asignatura_id', flat=True))
+
+            if not plan:
+                errores['plan'].append(f'El curso {curso} no tiene plan de estudio registrado.')
+            elif anio and Horario.objects.filter(
+                plan_de_estudio_id__curso_id=curso, anio_planificacion=anio
+            ).exists():
+                errores['anio'].append(f'El curso {curso} ya tiene un horario para el año {anio}.')
+
+        # Aula
+        aula = Aula.objects.filter(pk=a_int(request.POST.get('aula_id'))).first()
+        if not aula:
+            errores['aula'].append('Seleccione un aula.')
+
+        # Casillas
+        casillas, errores_casillas = leer_casillas(request.POST, bloques_por_jornada)
+        errores['casillas'] += errores_casillas
+        if not casillas:
+            errores['casillas'].append('Asigne al menos una hora de clase.')
+
+        if casillas:
+            asignaturas_db = Asignatura.objects.in_bulk({c['asignatura_id'] for c in casillas})
+
+            # solo cargas del año del horario
+            cargas_db = {
+                c.usuario_id.pk: c
+                for c in CargaHoraria.objects
+                .filter(
+                    usuario_id__in={c['docente_id'] for c in casillas},
+                    anio_planificacion=anio,
+                )
+                .select_related('usuario_id')
+            }
+
+            bloques_db = {
+                (b.dia, b.hora_inicio, b.hora_termino): b
+                for b in Bloque.objects.filter(hora_inicio__in={c['hora_inicio'] for c in casillas})
+            }
+
+            datos_ok = True
+            for c in casillas:
+                c['asignatura'] = asignaturas_db.get(c['asignatura_id'])
+                c['carga'] = cargas_db.get(c['docente_id'])
+                c['bloque'] = bloques_db.get((c['dia'], c['hora_inicio'], c['hora_termino']))
+
+                if not c['asignatura']:
+                    errores['casillas'].append('Una asignatura seleccionada ya no existe.')
+                    datos_ok = False
+                elif ids_plan is not None and c['asignatura_id'] not in ids_plan:
+                    errores['casillas'].append(f'La asignatura "{c["asignatura"].nombre}" no pertenece al plan de estudio del curso.')
+                    datos_ok = False
+
+                if not c['carga']: 
+                    errores['casillas'].append(f'Un docente seleccionado no tiene carga horaria para el año {anio}.')
+                    datos_ok = False
+
+                if not c['bloque']:
+                    errores['casillas'].append(f'No existe el bloque {c["dia"]} {c["hora_inicio"]:%H:%M} en la base de datos.')
+                    datos_ok = False
+
+            if datos_ok and anio:  # solo si el año es válido
+                existentes = ( # deteccion de conflicto: el docente ya tiene clase en ese bloque ese mismo año (en otro curso)
+                    BloqueDeClase.objects.filter(
+                        usuario_id__in=list(cargas_db),
+                        bloque_id__in=[c['bloque'].pk for c in casillas],
+                        horario_id__anio_planificacion=anio,
+                    ).select_related('usuario_id', 'bloque_id', 'curso_id')
+                )
+
+                ocupados = {
+                    (e.usuario_id.pk, e.bloque_id.pk): e for e in existentes
+                }
+
+                for c in casillas:
+                    e = ocupados.get((c['docente_id'], c['bloque'].pk))
+                    if e:
+                        errores['casillas'].append(
+                            f'{c["carga"].usuario_id} ya tiene clase el {c["bloque"].get_dia_display()} '
+                            f'a las {c["hora_inicio"]:%H:%M} en el curso {e.curso_id}.'
+                        )
+
+                # Horas de contrato: bloques del mismo año ya registrados + nuevos <= contrato
+                nuevos = Counter(c['docente_id'] for c in casillas)
+                actuales = dict(
+                    BloqueDeClase.objects.filter(
+                        usuario_id__in=list(nuevos),
+                        horario_id__anio_planificacion=anio,
+                    )
+                    .values_list('usuario_id')
+                    .annotate(n=Count('id'))
+                )
+
+                for docente_id, n in nuevos.items():
+                    carga = cargas_db[docente_id]
+                    total = actuales.get(docente_id, 0) + n
+
+                    if total > carga.hrs_contrato:
+                        errores['casillas'].append(
+                            f'{carga.usuario_id} no puede sobrepasar sus horas de contrato '
+                            f'({carga.hrs_contrato:g}): quedaría con {total} bloques.'
+                        )
+
+        # Guardar (todo o nada)
+        if not any(errores.values()):
+            with transaction.atomic():
+                horario = Horario.objects.create(
+                    plan_de_estudio_id=plan,
+                    aula_id=aula,
+                    anio_planificacion=anio,
+                )
+
+                for c in casillas:
+                    BloqueDeClase.objects.create(
+                        horario_id=horario,
+                        usuario_id=c['carga'].usuario_id,
+                        bloque_id=c['bloque'],
+                        asignatura_id=c['asignatura'],
+                        curso_id=curso,
+                    )
+
+                # actualizar hrs_aula de la carga horaria docente del año seleccionado
+                for docente_id in {c['docente_id'] for c in casillas}:
+                    CargaHoraria.objects.filter(
+                        usuario_id=docente_id, anio_planificacion=anio
+                    ).update(
+                        hrs_aula=BloqueDeClase.objects.filter(
+                            usuario_id=docente_id,
+                            horario_id__anio_planificacion=anio,
+                        ).count()
+                    )
+
+            messages.success(request, 'Horario creado correctamente.')
+            return redirect('horarios')
+
+    cursos, planes_data, docentes_data = datos_para_horario()
+    dias = [(1, 'Lunes'), (2, 'Martes'), (3, 'Miércoles'), (4, 'Jueves'), (5, 'Viernes')]
+
+    return render(request, 'classplanner/horarios/horariocreate.html', {
         'bloques_jm': bloques_por_jornada['JM'],
         'bloques_jt': bloques_por_jornada['JT'],
         'dias': dias,
-        'cursos': Curso.objects.all(),
-        'asignaturas': Asignatura.objects.all(),
-        'docentes': docentes,
+        'cursos': cursos,
+        'aulas': Aula.objects.all(),
+        'datos': {
+            'planes': planes_data,
+            'docentes': docentes_data,
+            'previas': restaurar_casillas(request.POST) if request.method == 'POST' else [],
+        },
+        'errores': errores,
+        'curso_sel': request.POST.get('curso_id', ''),
+        'aula_sel': request.POST.get('aula_id', ''),
+        'jornada_sel': request.POST.get('jornada', 'JM'),
+        'anio_sel': request.POST.get('anio_planificacion', date.today().year),
     })
 
 # ----------------------------------- #

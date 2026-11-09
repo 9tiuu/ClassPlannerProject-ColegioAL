@@ -62,12 +62,9 @@
                         <th scope="col" class="px-6 py-3 font-bold whitespace-nowrap md:whitespace-normal">
                             Docente/Profesor
                         </th>
-                        {% comment %} <th scope="col" class="px-6 py-3 font-bold whitespace-nowrap md:whitespace-normal">
-                            Asignaturas
-                        </th>
                         <th scope="col" class="px-6 py-3 font-bold whitespace-nowrap md:whitespace-normal">
-                            Cursos
-                        </th> {% endcomment %}
+                            Planificación
+                        </th>
                         <th scope="col" class="px-6 py-3 font-bold whitespace-nowrap md:whitespace-normal">
                             Horas de Contrato
                         </th>
@@ -93,16 +90,21 @@
                             {{ c.usuario_id }}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap md:whitespace-normal capitalize">
+                            <p class="text-cyan-600 dark:text-cyan-500 text-xs font-semibold bg-cyan-600/20 px-4 py-1 text-center w-16 rounded-full">
+                                {{ c.anio_planificacion }}
+                            </p>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap md:whitespace-normal capitalize">
                             {{ c.hrs_contrato }}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap md:whitespace-normal">
-                            {{ c.hrs_aula }}
+                            {% if c.hrs_aula <= 0 %} <b class="text-amber-600">Por definir</b> {% else %} {{ c.hrs_aula }} {% endif %}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap md:whitespace-normal">
-                            {{ c.hrs_cd }}
+                            {% if c.hrs_cd <= 0 %} <b class="text-amber-600">Por definir</b> {% else %} {{ c.hrs_cd }} {% endif %}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap md:whitespace-normal">
-                            {{ c.hrs_aa }}
+                            {% if c.hrs_aa <= 0 %} <b class="text-amber-600">Por definir</b> {% else %} {{ c.hrs_aa }} {% endif %}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap md:whitespace-normal">
                             <div class="flex gap-2">

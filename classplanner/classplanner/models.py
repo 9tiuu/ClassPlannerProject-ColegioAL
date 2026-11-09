@@ -125,30 +125,31 @@ class PlanDeEstudio(models.Model):
     def __str__(self) -> str:
         return f'{self.curso_id}: {self.hrs_asignatura}hrs. {self.asignatura_id}'
 
-class Horario(models.Model):
-    plan_de_estudio_id = models.ForeignKey(PlanDeEstudio, on_delete=models.RESTRICT)
-    aula_id = models.ForeignKey(Aula, on_delete=models.RESTRICT)
-    bloque_id = models.ManyToManyField(Bloque)
-
-    def __str__(self) -> str:
-        return f'Plan {self.plan_de_estudio_id}, Bloque: {self.bloque_id}, Aula: {self.aula_id}'
-
 class CargaHoraria(models.Model):
     usuario_id = models.OneToOneField(Usuario, on_delete=models.CASCADE)
     hrs_contrato = models.FloatField()
-    hrs_aula = models.FloatField()
-    hrs_cd = models.FloatField()
-    hrs_aa = models.FloatField()
+    hrs_aula = models.FloatField(null=True, blank=True)
+    hrs_cd = models.FloatField(null=True, blank=True)
+    hrs_aa = models.FloatField(null=True, blank=True)
+    anio_planificacion = models.PositiveIntegerField(null=True, blank=True)
 
     def __str__(self) -> str:
-        return f'{self.usuario_id} - {self.hrs_contrato}hrs. Contrato - {self.hrs_aula}hrs. Aula'
+        return f'{self.usuario_id} - {self.hrs_contrato} hrs. Contrato - {self.hrs_aula} hrs. Aula / Planificación: {self.anio_planificacion}'
+
+class Horario(models.Model):
+    plan_de_estudio_id = models.ForeignKey(PlanDeEstudio, on_delete=models.RESTRICT)
+    aula_id = models.ForeignKey(Aula, on_delete=models.RESTRICT)
+    anio_planificacion = models.PositiveIntegerField(null=True, blank=True)
+
+    def __str__(self) -> str:
+        return f'Plan {self.plan_de_estudio_id}, Aula: {self.aula_id}, Planificacion: {self.anio_planificacion}'
 
 class BloqueDeClase(models.Model):
-    carga_horaria_id = models.ForeignKey(CargaHoraria, on_delete=models.CASCADE)
+    horario_id = models.ForeignKey(Horario, on_delete=models.CASCADE, null=True, blank=True)
+    usuario_id = models.ForeignKey(Usuario, on_delete=models.RESTRICT, null=True, blank=True)
     bloque_id = models.ForeignKey(Bloque, on_delete=models.RESTRICT)
     asignatura_id = models.ForeignKey(Asignatura, on_delete=models.RESTRICT)
     curso_id = models.ForeignKey(Curso, on_delete=models.RESTRICT)
-    aula = models.ForeignKey(Aula, on_delete=models.RESTRICT, null=True, blank=True)
 
     def __str__(self) -> str:
-        return f'({self.asignatura_id} / {self.curso_id}): {self.bloque_id}'
+        return f'({self.asignatura_id} / {self.curso_id} / {self.usuario_id}): {self.bloque_id}'

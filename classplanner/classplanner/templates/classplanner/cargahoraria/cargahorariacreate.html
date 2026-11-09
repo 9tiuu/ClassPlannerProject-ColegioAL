@@ -20,7 +20,7 @@
                     <select name="usuario_id" id="usuario_id" class="bg-white dark:bg-[#141826] text-sm focus:outline-none focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 focus:transition focus:duration-300 rounded-lg h-12 border-2 p-3 border-slate-300 dark:border-slate-700 dark:placeholder:text-[#a8b2d2] dark:text-white">
                         <option value="" {% if not form.usuario_id.value %} selected {% endif %}>Por seleccionar...</option>
                         {% for d in docentes %}
-                            <option value="{{ d.id }}">
+                            <option value="{{ d.id }}" {% if request.POST.usuario_id == d.id|stringformat:"s" %}selected{% endif %}>
                                 {{ d }}
                             </option>
                         {% endfor %}
@@ -33,10 +33,18 @@
                         {% endfor %}
                     </div>
                     {% endif %}
+
+                    {% if errores.docente %}
+                    <div class="errors mt-1">
+                        {% for error in errores.docente %}
+                        <p class="text-red-600 dark:text-red-500 text-sm font-semibold">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
                 </div>
                 <div class="flex flex-col w-full">
                     <label for="hrs_contrato" class="mb-1 text-base font-semibold text-slate-600 dark:text-white">Horas de contrato <b class="text-red-600">*</b></label>
-                    <input type="text" name="hrs_contrato" id="hrs_contrato" value="{{ form.hrs_contrato.value|default:"" }}" class="bg-white dark:bg-[#141826] text-sm focus:outline-none focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 focus:transition focus:duration-300 rounded-lg h-12 border-2 p-3 border-slate-300 dark:border-slate-700 dark:placeholder:text-[#a8b2d2] dark:text-white" minlength="2" maxlength="2" placeholder="Ej: 36" required>
+                    <input type="number" name="hrs_contrato" id="hrs_contrato" value="{{ form.hrs_contrato.value|default:"" }}" class="bg-white dark:bg-[#141826] text-sm focus:outline-none focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 focus:transition focus:duration-300 rounded-lg h-12 border-2 p-3 border-slate-300 dark:border-slate-700 dark:placeholder:text-[#a8b2d2] dark:text-white" placeholder="Ej: 36">
 
                     {% if form.hrs_contrato.errors %}
                     <div class="errors mb-2">
@@ -45,14 +53,34 @@
                         {% endfor %}
                     </div>
                     {% endif %}
+
+                    {% if errores.hrs_contrato %}
+                    <div class="errors mt-1">
+                        {% for error in errores.hrs_contrato %}
+                        <p class="text-red-600 dark:text-red-500 text-sm font-semibold">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
                 </div>
+            </div>
+            <div class="flex flex-col w-full mb-5">
+                <label for="anio_planificacion" class="mb-1 text-base font-semibold text-slate-600 dark:text-white">Año <b class="text-red-600">*</b></label>
+                <input type="number" name="anio_planificacion" id="anio_planificacion" value="{{ anio_sel }}" class="bg-white dark:bg-[#141826] text-sm focus:outline-none focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 rounded-lg h-12 border-2 p-3 border-slate-300 dark:border-slate-700 dark:text-white" placeholder="Ej: 2026">
+                
+                {% if errores.anio %}
+                <div class="errors mt-1">
+                    {% for error in errores.anio %}
+                    <p class="text-red-600 dark:text-red-500 text-sm font-semibold">{{ error }}</p>
+                    {% endfor %}
+                </div>
+                {% endif %}               
             </div>
 
             <div class="flex flex-col w-full mb-5">
                 <p class="mb-1 text-base font-semibold text-slate-600 dark:text-white">Tipo de Jornada</p>
                 <div class="flex md:flex-row flex-col w-full gap-5">
                     <div class="flex items-center gap-2 w-full bg-white dark:bg-[#141826] text-sm rounded-lg border-2 p-4 border-slate-300 dark:border-slate-700 dark:text-white group">
-                        <input id="radio-des-group-1" checked type="radio" name="jornada" value="JM" class="appearance-none w-4 h-4 shrink-0 rounded-full border border-slate-500 dark:border-[#a8b2d2] checked:border-blue-600 checked:bg-blue-600 checked:[box-shadow:inset_0_0_0_3px_#ffffffaf] dark:checked:[box-shadow:inset_0_0_0_3px_#14182695] cursor-pointer">
+                        <input id="radio-des-group-1" {% if jornada_sel == 'JM' %}checked{% endif %} type="radio" name="jornada" value="JM" class="appearance-none w-4 h-4 shrink-0 rounded-full border border-slate-500 dark:border-[#a8b2d2] checked:border-blue-600 checked:bg-blue-600 checked:[box-shadow:inset_0_0_0_3px_#ffffffaf] dark:checked:[box-shadow:inset_0_0_0_3px_#14182695] cursor-pointer">
                         <label for="radio-des-group-1" class="flex items-start cursor-pointer text-gray-600 text-sm font-normal ml-2 w-full">
                             <div class="block">
                                 <h5 class="w-full text-sm font-medium text-black dark:text-white">Mañana (JM)</h5>
@@ -63,7 +91,7 @@
                         </label>
                     </div>
                     <div class="flex items-center w-full bg-white dark:bg-[#141826] text-sm rounded-lg border-2 p-4 border-slate-300 dark:border-slate-700 dark:text-white group">
-                        <input id="radio-des-group-2" type="radio" name="jornada" value="JT" class="appearance-none w-4 h-4 shrink-0 rounded-full border border-slate-500 dark:border-[#a8b2d2] checked:border-blue-600 checked:bg-blue-600 checked:[box-shadow:inset_0_0_0_3px_#ffffffaf] dark:checked:[box-shadow:inset_0_0_0_3px_#14182695] cursor-pointer">
+                        <input id="radio-des-group-2" {% if jornada_sel == 'JT' %}checked{% endif %} type="radio" name="jornada" value="JT" class="appearance-none w-4 h-4 shrink-0 rounded-full border border-slate-500 dark:border-[#a8b2d2] checked:border-blue-600 checked:bg-blue-600 checked:[box-shadow:inset_0_0_0_3px_#ffffffaf] dark:checked:[box-shadow:inset_0_0_0_3px_#14182695] cursor-pointer">
                         <label for="radio-des-group-2" class="flex items-start cursor-pointer text-gray-600 text-sm font-normal ml-2 w-full">
                             <div class="block">
                                 <h5 class="w-full text-sm font-medium text-black dark:text-white">Tarde (JT)</h5>
@@ -74,7 +102,7 @@
                         </label>
                     </div>
                     <div class="flex items-center w-full bg-white dark:bg-[#141826] text-sm rounded-lg border-2 p-4 border-slate-300 dark:border-slate-700 dark:text-white group">
-                        <input id="radio-des-group-3" type="radio" name="jornada" value="AMBAS" class="appearance-none w-4 h-4 shrink-0 rounded-full border border-slate-500 dark:border-[#a8b2d2] checked:border-blue-600 checked:bg-blue-600 checked:[box-shadow:inset_0_0_0_3px_#ffffffaf] dark:checked:[box-shadow:inset_0_0_0_3px_#14182695] cursor-pointer">
+                        <input id="radio-des-group-3" {% if jornada_sel == 'AMBAS' %}checked{% endif %} type="radio" name="jornada" value="AMBAS" class="appearance-none w-4 h-4 shrink-0 rounded-full border border-slate-500 dark:border-[#a8b2d2] checked:border-blue-600 checked:bg-blue-600 checked:[box-shadow:inset_0_0_0_3px_#ffffffaf] dark:checked:[box-shadow:inset_0_0_0_3px_#14182695] cursor-pointer">
                         <label for="radio-des-group-3" class="flex items-start cursor-pointer text-gray-600 text-sm font-normal ml-2 w-full">
                             <div class="block">
                                 <h5 class="w-full text-sm font-medium text-black dark:text-white">Ambas jornadas</h5>
@@ -89,133 +117,45 @@
 
             <div class="flex flex-col w-full h-full mb-5">
                 <p class="mb-1 text-base font-semibold text-slate-600 dark:text-white">Distribución de Horas de Aula</p>
-                <div class=" bg-white dark:bg-[#141826] text-sm rounded-lg border-2 p-3 border-slate-300 dark:border-slate-700 dark:placeholder:text-[#a8b2d2] dark:text-white">
+
+                {% if errores.casillas %}
+                <div class="errors mb-2">
+                    {% for error in errores.casillas %}
+                    <p class="bg-red-100 dark:bg-red-900 p-4 my-3 text-sm text-red-700 rounded-lg dark:text-red-300 transition duration-200">{{ error }}</p>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <div class="bg-white w-full dark:bg-[#141826] text-sm rounded-lg border-2 p-3 border-slate-300 dark:border-slate-700 dark:placeholder:text-[#a8b2d2] dark:text-white">
                     
-                    <!-- TABLA JORNADA DE MAÑANA -->
-                    <div id="table_jm" class="relative max-h-[80vh] overflow-x-auto bg-neutral-primary-soft shadow-xs rounded-base border border-default border-slate-300 dark:border-slate-800 rounded-lg">
-                        <table class="min-w-full text-sm text-left rtl:text-right text-body">
-                            <thead class="text-sm text-left text-slate-700 dark:text-white bg-slate-200 dark:bg-[#10141f] text-body bg-neutral-secondary-soft border-b rounded-base border-default dark:border-slate-800">
-                                <tr>
-                                    <th scope="col" class="flex gap-2 px-4 min-w-36 py-3 font-bold whitespace-nowrap md:whitespace-normal">
-                                        <p>Horas</p> 
-                                        <p class="text-orange-500 text-xs bg-orange-600/20 text-center px-2 py-0.5 rounded">
-                                            JM
-                                        </p>
-                                    </th>
-                                    {% for n, d in dias %}
-                                    <th scope="col" class="px-6 py-3 font-bold whitespace-nowrap md:whitespace-normal">
-                                        {{ d }}
-                                    </th>
-                                    {% endfor %}
-                                </tr>
-                            </thead>
+                    <div class="flex md:flex-row gap-2 flex-col overflow-x-auto w-full">
+                        <div class="w-full">
+                            <!-- TABLA JORNADA DE MAÑANA -->
+                            <div id="table_jm" class="relative max-h-[80vh] overflow-x-auto bg-neutral-primary-soft shadow-xs rounded-base border border-default border-slate-300 dark:border-slate-800 rounded-lg">
+                                <table class="min-w-full text-sm text-left rtl:text-right text-body">
+                                    <thead class="text-sm text-left text-slate-700 dark:text-white bg-slate-200 dark:bg-[#10141f] text-body bg-neutral-secondary-soft border-b rounded-base border-default dark:border-slate-800">
+                                        <tr>
+                                            <th scope="col" class="flex gap-2 px-4 min-w-36 py-3 font-bold whitespace-nowrap md:whitespace-normal">
+                                                <p>Horas</p> 
+                                                <p class="text-orange-500 text-xs bg-orange-600/20 text-center px-2 py-0.5 rounded">
+                                                    JM
+                                                </p>
+                                            </th>
+                                        </tr>
+                                    </thead>
 
-                            <tbody class="dark:text-[#a8b2d2] text-slate-500">
-                                {% for b in bloques_jm %}
-                                <tr class="border-b border-default odd:bg-white even:bg-white even:dark:bg-[#171c2b] dark:odd:bg-[#171c2b] dark:border-b-slate-800">
-                                    <td class="px-6 py-2 whitespace-nowrap md:whitespace-normal">
-                                        <p class="font-bold">Hora {{ forloop.counter }}</p>
-                                        <p>{{ b.hora_inicio }} - {{ b.hora_termino }}</p>
-                                    </td>
-
-                                    {% if b.es_recreo %}
-                                        <td colspan="{{ dias|length }}" class="p-2">
-                                            <div class="flex items-center justify-center rounded-lg border border-amber-500/30 bg-amber-500/10 min-h-[3.6rem] px-4 py-2">
-                                                <p class="font-bold text-amber-600 dark:text-amber-400">Recreo</p>
-                                            </div>
-                                        </td>
-                                    {% else %}
-                                        {% for num, nombre in dias %}
-                                        <td class="p-2 whitespace-nowrap md:whitespace-normal">
-                                            <button type="button" class="casilla w-full text-left cursor-pointer" data-bloque="{{ forloop.parentloop.counter }}" data-dia="{{ num }}">
-                                                <!-- Estado vacío -->
-                                                <div class="vacio flex items-center justify-center bg-slate-400/10 dark:bg-slate-600/10 border min-h-[3.6rem] border-slate-300 dark:border-slate-700 rounded-lg px-4 py-2 md:min-w-52 min-w-52 hover:bg-slate-400/20">
-                                                    <p class="font-bold w-full text-center">+</p>
-                                                </div>
-
-                                                <!-- Estado asignado -->
-                                                <div class="asignado hidden bg-blue-600/10 border border-blue-600/25 rounded-lg px-4 py-2 md:min-w-52 min-w-52 min-h-[3.6rem]">
-                                                    <p class="font-bold w-full txt-asignatura text-xs text-blue-500"></p>
-                                                    <p class="txt-curso text-xs"></p>
-                                                </div>
-
-                                                <input type="hidden" class="in-asignatura" name="asignatura_JM_{{ forloop.parentloop.counter }}_{{ num }}">
-                                                <input type="hidden" class="in-curso" name="curso_JM_{{ forloop.parentloop.counter }}_{{ num }}">
-                                            </button>
-                                        </td>
-                                        {% endfor %}
-                                    {% endif %}
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                    
-                    <!-- TABLA JORNADA DE LA TARDE -->
-                    <div id="table_jt" class="relative hidden max-h-[80vh] overflow-x-auto bg-neutral-primary-soft shadow-xs rounded-base border border-default border-slate-300 dark:border-slate-800 rounded-lg">
-                        <table class="min-w-full text-sm text-left rtl:text-right text-body">
-                            <thead class="text-sm text-left text-slate-700 dark:text-white bg-slate-200 dark:bg-[#10141f] text-body bg-neutral-secondary-soft border-b rounded-base border-default dark:border-slate-800">
-                                <tr>
-                                    <th scope="col" class="flex gap-2 px-4 min-w-36 py-3 font-bold whitespace-nowrap md:whitespace-normal">
-                                        <p>Horas</p> 
-                                        <p class="text-violet-600 dark:text-violet-500 text-xs bg-violet-600/20 text-center px-2 py-0.5 rounded">
-                                            JT
-                                        </p>
-                                    </th>
-                                    {% for n, d in dias %}
-                                    <th scope="col" class="px-6 py-3 font-bold whitespace-nowrap md:whitespace-normal">
-                                        {{ d }}
-                                    </th>
-                                    {% endfor %}
-                                </tr>
-                            </thead>
-
-                            <tbody class="dark:text-[#a8b2d2] text-slate-500">
-                                {% for b in bloques_jt %}
-                                <tr class="border-b border-default odd:bg-white even:bg-white even:dark:bg-[#171c2b] dark:odd:bg-[#171c2b] dark:border-b-slate-800">
-                                    <td class="px-6 py-2 whitespace-nowrap md:whitespace-normal">
-                                        <p class="font-bold">Hora {{ forloop.counter }}</p>
-                                        <p>{{ b.hora_inicio }} - {{ b.hora_termino }}</p>
-                                    </td>
-
-                                    {% if b.es_recreo %}
-                                        <td colspan="{{ dias|length }}" class="p-2">
-                                            <div class="flex items-center justify-center rounded-lg border border-amber-500/30 bg-amber-500/10 min-h-[3.6rem] px-4 py-2">
-                                                <p class="font-bold text-amber-600 dark:text-amber-400">Recreo</p>
-                                            </div>
-                                        </td>
-                                    {% else %}
-                                        {% for num, nombre in dias %}
-                                        <td class="p-2 whitespace-nowrap md:whitespace-normal">
-                                            <button type="button" class="casilla w-full text-left cursor-pointer" data-bloque="{{ forloop.parentloop.counter }}" data-dia="{{ num }}">
-                                                <!-- Estado vacío -->
-                                                <div class="vacio flex items-center justify-center bg-slate-400/10 dark:bg-slate-600/10 border min-h-[3.6rem] border-slate-300 dark:border-slate-700 rounded-lg px-4 py-2 md:min-w-52 min-w-52 hover:bg-slate-400/20">
-                                                    <p class="font-bold w-full text-center">+</p>
-                                                </div>
-
-                                                <!-- Estado asignado -->
-                                                <div class="asignado hidden bg-blue-600/10 border border-blue-600/25 rounded-lg px-4 py-2 md:min-w-52 min-w-52 min-h-[3.6rem]">
-                                                    <p class="font-bold w-full txt-asignatura text-xs text-blue-500"></p>
-                                                    <p class="txt-curso text-xs"></p>
-                                                </div>
-
-                                                <input type="hidden" class="in-asignatura" name="asignatura_JT_{{ forloop.parentloop.counter }}_{{ num }}">
-                                                <input type="hidden" class="in-curso" name="curso_JT_{{ forloop.parentloop.counter }}_{{ num }}">
-                                            </button>
-                                        </td>
-                                        {% endfor %}
-                                    {% endif %}
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+                                    <tbody class="dark:text-[#a8b2d2] text-slate-500">
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
 
                 </div>
             </div>
 
             <div class="flex justify-end flex-row gap-2 my-8 w-full">              
-                <a href="{% url 'userlist' %}" class="flex items-center text-sm gap-2 border-2 font-semibold border-slate-300 dark:border-slate-700 dark:bg-[#141826] dark:hover:bg-[#1d2236] dark:text-[#a8b2d2] dark:hover:text-white text-slate-500 hover:bg-gray-100 hover:text-slate-700 text-center hover:transition transition hover:duration-300 duration-300 rounded-lg px-4 py-3">
+                <a href="{% url 'cargashorarias' %}" class="flex items-center text-sm gap-2 border-2 font-semibold border-slate-300 dark:border-slate-700 dark:bg-[#141826] dark:hover:bg-[#1d2236] dark:text-[#a8b2d2] dark:hover:text-white text-slate-500 hover:bg-gray-100 hover:text-slate-700 text-center hover:transition transition hover:duration-300 duration-300 rounded-lg px-4 py-3">
                     Volver atrás
                 </a>
                 <button type="submit" class="flex items-center gap-2 text-white text-sm font-semibold bg-blue-600 hover:bg-blue-800 text-center hover:transition transition hover:duration-300 duration-300 rounded-lg px-4 py-3 ">
@@ -226,127 +166,5 @@
     </div>
 </div>
 
-<div id="modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
-    <div class="w-full md:max-w-lg max-w-sm rounded-lg bg-white p-6 dark:bg-[#171c2b] dark:text-[#a8b2d2]">
-        <h3 class="mb-1 text-xl font-bold text-[#234FA8] dark:text-blue-400">Asignar hora de clase</h3>
-        <p class="text-sm mb-4 text-slate-500 dark:text-slate-400 sm:text-base">Seleccione los siguientes campos:</p>
-
-        <div class="mb-6">
-            <label class="mb-1 block text-sm font-semibold text-slate-600 dark:text-white">Asignatura <b class="text-red-600">*</b></label>
-            <select id="sel-asignatura" class="w-full bg-white dark:bg-[#171c2b] text-sm focus:outline-none focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 focus:transition focus:duration-300 rounded-lg h-12 border-2 p-3 border-slate-300 dark:border-slate-700 dark:placeholder:text-[#a8b2d2] dark:text-white">
-                <option value="">Por seleccionar..</option>
-                {% for a in asignaturas %}
-                    <option value="{{ a.id }}">{{ a.nombre }}</option>
-                {% endfor %}
-            </select>
-        </div>
-
-        <div class="mb-8">
-            <label class="mb-1 block text-sm font-semibold text-slate-600 dark:text-white">Curso <b class="text-red-600">*</b></label>
-            <select id="sel-curso" class="w-full bg-white dark:bg-[#171c2b] text-sm focus:outline-none focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 focus:transition focus:duration-300 rounded-lg h-12 border-2 p-3 border-slate-300 dark:border-slate-700 dark:placeholder:text-[#a8b2d2] dark:text-white">
-                <option value="">Por seleccionar...</option>
-                {% for c in cursos %}
-                    <option value="{{ c.id }}">{{ c }}</option>
-                {% endfor %}
-            </select>
-        </div>
-
-        <div class="flex justify-between">
-            <button type="button" id="btn-quitar" class="text-sm font-semibold text-red-500 hover:text-red-700 dark:text-red-400 hover:dark:text-red-500">
-                Quitar
-            </button>
-            <div class="flex gap-2">
-                <button type="button" id="btn-cancelar" class="flex items-center text-sm gap-2 border-2 font-semibold border-slate-300 dark:border-slate-700 dark:bg-[#141826] dark:hover:bg-[#1d2236] dark:text-[#a8b2d2] dark:hover:text-white text-slate-500 hover:bg-gray-100 hover:text-slate-700 text-center hover:transition transition hover:duration-300 duration-300 rounded-lg px-4 py-3">
-                    Cancelar
-                </button>
-                <button type="button" id="btn-guardar" class="flex items-center gap-2 text-white text-sm font-semibold bg-blue-600 hover:bg-blue-800 text-center hover:transition transition hover:duration-300 duration-300 rounded-lg px-4 py-3"
-                    >Guardar selección
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<script>
-    const modal = document.getElementById('modal');
-    const selCurso = document.getElementById('sel-curso');
-    const selAsig = document.getElementById('sel-asignatura');
-    let casillaActual = null;
-
-    function abrirModal(casilla) {
-        casillaActual = casilla;
-        // Precargar valores si la casilla ya tenía algo
-        selCurso.value = casilla.querySelector('.in-curso').value;
-        selAsig.value = casilla.querySelector('.in-asignatura').value;
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
-    }
-
-    function cerrarModal() {
-        modal.classList.add('hidden');
-        modal.classList.remove('flex');
-        casillaActual = null;
-    }
-
-    function pintarCasilla(casilla, cursoId, asigId) {
-        const vacio = casilla.querySelector('.vacio');
-        const asignado = casilla.querySelector('.asignado');
-
-        casilla.querySelector('.in-curso').value = cursoId;
-        casilla.querySelector('.in-asignatura').value = asigId;
-
-        if (cursoId && asigId) {
-            casilla.querySelector('.txt-asignatura').textContent =
-            selAsig.options[selAsig.selectedIndex].text;
-            casilla.querySelector('.txt-curso').textContent =
-            'Curso: ' + selCurso.options[selCurso.selectedIndex].text;
-            vacio.classList.add('hidden');
-            asignado.classList.remove('hidden');
-        } else {
-            vacio.classList.remove('hidden');
-            asignado.classList.add('hidden');
-        }
-    }
-
-    document.querySelectorAll('.casilla').forEach(c => {
-        c.addEventListener('click', () => abrirModal(c));
-    });
-
-    document.getElementById('btn-guardar').addEventListener('click', () => {
-    if (!selCurso.value || !selAsig.value) {
-        alert('Selecciona un curso y una asignatura'); // Alerta temportal
-        return;
-    }
-        pintarCasilla(casillaActual, selCurso.value, selAsig.value);
-        cerrarModal();
-    });
-
-    document.getElementById('btn-quitar').addEventListener('click', () => {
-        selCurso.value = '';
-        selAsig.value = '';
-        pintarCasilla(casillaActual, '', '');
-        cerrarModal();
-    });
-
-    document.getElementById('btn-cancelar').addEventListener('click', cerrarModal);
-    modal.addEventListener('click', e => { if (e.target === modal) cerrarModal(); });
-
-    const radiosJornada = document.querySelectorAll('input[name="jornada"]');
-    const tablaJM = document.getElementById('table_jm');
-    const tablaJT = document.getElementById('table_jt');
-
-    function mostrarTabla(tabla, visible) {
-        tabla.classList.toggle('hidden', !visible);
-        tabla.querySelectorAll('input').forEach(i => i.disabled = !visible);
-    }
-
-    function actualizarTablas() {
-        const jornada = document.querySelector('input[name="jornada"]:checked').value;
-        mostrarTabla(tablaJM, jornada === 'JM' || jornada === 'AMBAS');
-        mostrarTabla(tablaJT, jornada === 'JT' || jornada === 'AMBAS');
-    }
-
-    radiosJornada.forEach(r => r.addEventListener('change', actualizarTablas));
-    actualizarTablas();
 </script>
 {% endblock %}
