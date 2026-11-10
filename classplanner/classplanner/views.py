@@ -39,6 +39,8 @@ from .static.classplanner.py.exportar_notas import _exportar_notas_pdf
 from datetime import time, datetime, date
 from collections import Counter
 from django.db.models import Count
+from django.http import JsonResponse
+from django.utils import timezone
 
 # Create your views here.
 
@@ -100,7 +102,69 @@ def periodo_planificacion_required():
 
 @login_required
 def Home(request):
-    return render(request, 'classplanner/base.html', {})
+    context = {}
+    if request.user.rol.name in ('root', 'Administrador', 'Director'):
+        datos = datos_dashboard_admin()
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return JsonResponse(datos)
+        context.update(datos)
+    return render(request, 'classplanner/base.html', context)
+
+@login_required
+@roles_required('root', 'Administrador', 'Director')
+def dashboard_admin_data(request):
+    return JsonResponse(datos_dashboard_admin())
+
+def datos_dashboard_admin():
+    anio = timezone.now().year
+
+    cargas = (
+        CargaHoraria.objects
+        .filter(
+            anio_planificacion=anio,
+            usuario_id__rol__name='Docente',
+            usuario_id__is_active=True,
+        )
+        .select_related('usuario_id')
+        .order_by('-hrs_contrato')[:5]
+    )
+
+    totales = {
+        fila['curso_id']: fila['total']
+        for fila in (
+            Estudiante.objects
+            .filter(is_active=True)
+            .values('curso_id')
+            .annotate(total=Count('rut'))
+        )
+    }
+
+    por_nivel = {}
+    for curso in Curso.objects.all():
+        fila = por_nivel.setdefault(
+            curso.nivel,
+            {'etiqueta': curso.get_nivel_display(), 'A': 0, 'B': 0},
+        )
+        if curso.letra in ('A', 'B'):
+            fila[curso.letra] += totales.get(curso.pk, 0)
+
+    orden = sorted(por_nivel, key=lambda nivel: (not nivel.endswith('B'), nivel))
+
+    return {
+        'total_docentes': Usuario.objects.filter(rol__name='Docente', is_active=True).count(),
+        'total_asignaturas': Asignatura.objects.count(),
+        'total_estudiantes': Estudiante.objects.filter(is_active=True).count(),
+        'total_cursos': Curso.objects.count(),
+        'docentes_carga': {
+            'labels': [f'{c.usuario_id.name} {c.usuario_id.last_name}' for c in cargas],
+            'values': [c.hrs_contrato for c in cargas],
+        },
+        'estudiantes_cursos': {
+            'labels': [por_nivel[n]['etiqueta'] for n in orden],
+            'a': [por_nivel[n]['A'] for n in orden],
+            'b': [por_nivel[n]['B'] for n in orden],
+        },
+    }
 
 # ----------------------------------- # ROLES
 
