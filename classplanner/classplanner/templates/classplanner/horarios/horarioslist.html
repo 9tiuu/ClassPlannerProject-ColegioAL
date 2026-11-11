@@ -29,10 +29,11 @@
                         <option value="{{ c.pk }}" {% if curso_sel.pk == c.pk %}selected{% endif %}>{{ c }}</option>
                     {% endfor %}
                 </select>
-
-                <button type="button" title class="flex w-full bg-sky-600 hover:bg-sky-700 text-white items-center justify-center cursor-pointer text-sm rounded hover:transition transition hover:duration-200 duration-200 px-1 py-1.5 font-semibold">
+                {% if horario_sel %}
+                <a href="{% url 'horarioupdate' horario_sel.pk %}" title="Modificar horario" class="flex w-full bg-sky-600 hover:bg-sky-700 text-white items-center justify-center cursor-pointer text-sm rounded hover:transition transition hover:duration-200 duration-200 px-1 py-1.5 font-semibold">
                     Editar horario
-                </button>
+                </a>
+                {% endif %}
             </form>
             {% else %}
             <div></div>
@@ -45,6 +46,15 @@
 
         {% if horarios %}
             <div class="space-y-3 text-sm dark:text-white">
+                {% if horario_sel %}
+                <div class="flex items-start md:flex-row flex-col-reverse gap-2 mb-2">
+                    <p class="text-base font-semibold text-slate-600 dark:text-white">Distribución de Horas de Aula por Bloques</p>
+                    <p class="text-green-600 dark:text-green-500 text-xs font-semibold bg-green-600/20 px-2 py-1 text-center w-32 rounded">
+                        Planificación {{ horario_sel.anio_planificacion }}
+                    </p>
+                </div>
+                {% endif %}
+
                 {% for j in jornadas %}
                 <div class="relative max-h-[80vh] overflow-x-auto border border-slate-300 dark:border-slate-800 rounded-lg">
                     <table class="min-w-full text-sm text-left">

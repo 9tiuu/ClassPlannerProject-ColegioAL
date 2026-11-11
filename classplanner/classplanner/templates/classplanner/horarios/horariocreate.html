@@ -44,9 +44,10 @@
                     {% endfor %}
                 </div>
             </div>
-            <div class="flex flex-col w-full mb-5">
-                <label for="anio_planificacion" class="mb-1 text-base font-semibold text-slate-600 dark:text-white">Año <b class="text-red-600">*</b></label>
-                <input type="number" name="anio_planificacion" id="anio_planificacion" value="{{ anio_sel }}" class="bg-white dark:bg-[#141826] text-sm focus:outline-none focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 rounded-lg h-12 border-2 p-3 border-slate-300 dark:border-slate-700 dark:text-white" placeholder="Ej: 2026">
+            <div class="hidden flex-col w-full mb-5">
+                <label class="mb-1 hidden text-base font-semibold text-slate-600 dark:text-white">Año de Planificación</label>
+                <input type="text" id="anio_planificacion" value="{{ anio_sel }}" readonly class="hidden bg-slate-100 dark:bg-[#10141f] text-sm focus:outline-none focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 rounded-lg h-12 border-2 p-3 border-slate-300 dark:border-slate-700 dark:text-[#a8b2d2] cursor-not-allowed">
+                
                 
                 {% if errores.anio %}
                 <div class="errors mt-1">
@@ -58,7 +59,7 @@
             </div>
 
             <!-- Tipo de jornada -->
-            <div class="flex flex-col w-full mb-5">
+            <div class="flex flex-col w-full mb-8">
                 <p class="mb-1 text-base font-semibold text-slate-600 dark:text-white">Tipo de Jornada</p>
                 <div class="flex md:flex-row flex-col w-full gap-5">
                     <div class="flex items-center gap-2 w-full bg-white dark:bg-[#141826] text-sm rounded-lg border-2 p-4 border-slate-300 dark:border-slate-700 dark:text-white group">
@@ -93,7 +94,12 @@
 
             <!-- Tablas -->
             <div class="flex flex-col w-full h-full mb-5">
-                <p class="mb-1 text-base font-semibold text-slate-600 dark:text-white">Distribución de Horas de Aula</p>
+                <div class="flex items-start md:flex-row flex-col-reverse gap-2 mb-2">
+                    <p class="text-base font-semibold text-slate-600 dark:text-white">Distribución de Horas de Aula por Bloques</p>
+                    <p class="text-cyan-600 dark:text-cyan-500 text-xs font-semibold bg-cyan-600/20 px-2 py-1 text-center w-32 rounded">
+                        Planificación {{ anio_sel }}
+                    </p>
+                </div>
 
                 {% if errores.casillas %}
                 <div class="errors mb-2">

@@ -80,6 +80,7 @@ urlpatterns = [
     # HORARIOS
     path('horarios/', views.ListHorarios, name='horarios'),
     path('horarioscreate/', views.CreateHorario, name='horariocreate'),
+    path('horariosupdate/<int:pk>/', views.UpdateHorario, name='horarioupdate'),
 
     # AUTENTICACION
     path('logout/', custom_logout, name='logout'),

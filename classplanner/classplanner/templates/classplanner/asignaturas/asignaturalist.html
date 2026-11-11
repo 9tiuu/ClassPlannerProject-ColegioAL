@@ -113,7 +113,7 @@
                     <div class="border-t mt-4 border-slate-300 dark:border-slate-700 pt-3 flex items-center justify-between">
 
                         <p id="plan-{{ a.ident }}" class="text-xs bg-slate-400/20 px-4 py-1 w-auto rounded-lg text-slate-500 dark:text-white font-medium truncate">
-                            {% if a.plan_diferencial_id %} {{ a.plan_diferencial_id }} {% else %} --- {% endif %}
+                            {% if a.plan_diferencial %} {{ a.plan_diferencial }} {% else %} --- {% endif %}
                         </p>
 
                         <div class="flex gap-2">
@@ -193,7 +193,7 @@
                         </td>
 
                         <td class="px-6 py-4 whitespace-nowrap md:whitespace-normal">
-                            {% if a.plan_diferencial_id %} {{ a.plan_diferencial_id }} {% else %} --- {% endif %}
+                            {% if a.plan_diferencial %} {{ a.plan_diferencial }} {% else %} --- {% endif %}
                         </td>
 
                         <td class="px-6 py-4 whitespace-nowrap md:whitespace-normal">
