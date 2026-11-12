@@ -101,7 +101,7 @@
                             </div>
                         </label>
                     </div>
-                    <div class="flex items-center w-full bg-white dark:bg-[#141826] text-sm rounded-lg border-2 p-4 border-slate-300 dark:border-slate-700 dark:text-white group">
+                    {% comment %} <div class="flex items-center w-full bg-white dark:bg-[#141826] text-sm rounded-lg border-2 p-4 border-slate-300 dark:border-slate-700 dark:text-white group">
                         <input id="radio-des-group-3" {% if jornada_sel == 'AMBAS' %}checked{% endif %} type="radio" name="jornada" value="AMBAS" class="appearance-none w-4 h-4 shrink-0 rounded-full border border-slate-500 dark:border-[#a8b2d2] checked:border-blue-600 checked:bg-blue-600 checked:[box-shadow:inset_0_0_0_3px_#ffffffaf] dark:checked:[box-shadow:inset_0_0_0_3px_#14182695] cursor-pointer">
                         <label for="radio-des-group-3" class="flex items-start cursor-pointer text-gray-600 text-sm font-normal ml-2 w-full">
                             <div class="block">
@@ -111,12 +111,12 @@
                                 </p>
                             </div>
                         </label>
-                    </div>
+                    </div> {% endcomment %}
                 </div>
             </div>
 
             <div class="flex flex-col w-full h-full mb-5">
-                <p class="mb-1 text-base font-semibold text-slate-600 dark:text-white">Distribución de Horas de Aula</p>
+                <p class="mb-1 text-base font-semibold text-slate-600 dark:text-white">Distribución de Horas NO Lectivas</p>
 
                 {% if errores.casillas %}
                 <div class="errors mb-2">
@@ -165,6 +165,4 @@
         </form>
     </div>
 </div>
-
-</script>
 {% endblock %}

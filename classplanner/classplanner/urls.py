@@ -76,6 +76,7 @@ urlpatterns = [
     # CARGAS HORARIAS
     path('cargashorarias/', ListCargaHoraria.as_view(), name='cargashorarias'),
     path('cargashorariascreate/', views.CreateCargaHoraria, name='cargashorariascreate'),
+    path('cargashorariasupdate/<int:pk>/', views.UpdateCargaHoraria, name='cargashorariasupdate'),
 
     # HORARIOS
     path('horarios/', views.ListHorarios, name='horarios'),

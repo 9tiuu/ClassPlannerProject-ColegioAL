@@ -1252,7 +1252,9 @@ def CreateCargaHoraria(request): # Pendiente: distribucion de horas no lectivas
     errores = {}
 
     if request.method == 'POST':
-        errores = {'docente': [], 'anio': [], 'hrs_contrato': []}
+        errores = {
+            'docente': [], 'anio': [], 'hrs_contrato': []
+        }
 
         # Año
         valor = request.POST.get('anio_planificacion', '').strip()
@@ -1260,6 +1262,9 @@ def CreateCargaHoraria(request): # Pendiente: distribucion de horas no lectivas
 
         if valor == '' or anio is None or not (1000 <= anio <= 9999):
             errores['anio'].append('Ingrese un año válido de 4 dígitos (por ejemplo 2026).')
+            anio = None
+        elif anio < 2026:
+            errores['anio'].append('No puede crear una carga horaria para años anteriores.')
             anio = None
 
         # Docente
@@ -1304,6 +1309,83 @@ def CreateCargaHoraria(request): # Pendiente: distribucion de horas no lectivas
         'anio_sel': request.POST.get('anio_planificacion', date.today().year),
     })
 
+@login_required
+@roles_required('root', 'Administrador', 'Director')
+def UpdateCargaHoraria(request, pk):
+    carga = get_object_or_404(
+        CargaHoraria.objects.select_related('usuario_id'), pk=pk
+    )   
+    docente = carga.usuario_id
+    anio = carga.anio_planificacion
+    errores = {}
+
+    if request.method == 'POST':
+        errores = {'hrs_contrato': []}
+
+        try:
+            hrs_contrato = float(request.POST.get('hrs_contrato', ''.replace(',', '.')))
+            if hrs_contrato <= 0:
+                raise ValueError
+        except ValueError:
+            hrs_contrato = None
+            errores['hrs_contrato'].append(
+                f'Las horas de contrato deben ser un número mayor que 0.'
+            )
+
+        if hrs_contrato and hrs_contrato < (carga.hrs_aula or 0):
+            errores['hrs_contrato'].append(
+                f'El docente ya tiene {carga.hrs_aula:g} horas de aula asignadas.'
+            )
+
+        if not any(errores.values()):
+            carga.hrs_contrato = hrs_contrato
+            carga.save(update_fields=['hrs_contrato'])
+            
+            messages.success(request, 'Carga horaria actualizada correctamente.')
+            return redirect('cargashorarias')
+
+    clases = (
+        BloqueDeClase.objects
+        .filter(usuario_id=docente, horario_id__anio_planificacion=anio)
+        .select_related('bloque_id', 'asignatura_id', 'curso_id')
+    )
+
+    ocupadas = {
+        (c.bloque_id.dia, c.bloque_id.hora_inicio, c.bloque_id.hora_termino): c
+        for c in clases
+    }
+
+    jornadas = []
+    bloques_por_jornada = obtener_bloques_por_jornada()
+
+    for codigo_jornada, nombre in (('JM', 'Jornada de mañana'), ('JT', 'Jornada de tarde')):
+        filas, tiene_clases = [], False
+
+        for cantidad, b in enumerate(bloques_por_jornada[codigo_jornada], start=1):
+            celdas = [
+                ocupadas.get((DIAS_CODIGO[n], b['hora_inicio'], b['hora_termino']))
+                for n in sorted(DIAS_CODIGO)
+            ]
+
+            if any(celdas):
+                tiene_clases = True
+            filas.append({**b, 'cantidad':cantidad, 'celdas':celdas})
+
+        if tiene_clases:
+            jornadas.append({'codigo_jornada':codigo_jornada, 'nombre':nombre, 'filas':filas})
+
+    dias = [(1, 'Lunes'), (2, 'Martes'), (3, 'Miércoles'), (4, 'Jueves'), (5, 'Viernes')]
+
+    return render(request, 'classplanner/cargahoraria/cargahorariaupdate.html', {
+        'carga': carga,
+        'docente': docente,
+        'anio': anio,
+        'jornadas': jornadas,
+        'total_bloques': len(clases),
+        'dias': dias,
+        'errores': errores,
+    })
+
 # ----------------------------------- # HORARIOS
 
 @login_required
@@ -1346,6 +1428,7 @@ def ListHorarios(request):
                     ocupadas.get((DIAS_CODIGO[n], b['hora_inicio'], b['hora_termino']))
                     for n in sorted(DIAS_CODIGO)
                 ]
+                
                 if any(celdas):
                     tiene_clases = True
                 filas.append({**b, 'numero': numero, 'celdas': celdas})
