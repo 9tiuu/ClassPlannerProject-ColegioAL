@@ -85,7 +85,9 @@
         <!-- DASHBOARD DOCENTES -->
         <div class="flex flex-col rounded-2xl bg-white p-4 shadow dark:bg-[#141826]">
             <h3 class="text-lg font-semibold text-black dark:text-white">Docentes con más Carga Horaria</h3>
-            <p class="text-xs text-black dark:text-white">Top 5 docentes según horas de contrato</p>
+            <p class="text-xs text-black dark:text-white">
+                Top 5 docentes según horas de contrato del año {% now "Y" %}
+            </p>
 
             <div class="mt-2 flex flex-1 flex-col items-center justify-center gap-4 rounded-xl border-2 border-slate-300 p-3 dark:border-slate-700 sm:flex-row sm:gap-8">
                 <div class="relative h-36 w-36 shrink-0">
@@ -93,7 +95,9 @@
                 </div>
                 <div>
                     <ul id="leyenda-docentes" class="space-y-2"></ul>
-                    <p id="vacio-docentes" class="hidden text-xs text-black dark:text-white">Sin cargas horarias registradas</p>
+                    <p id="vacio-docentes" class="hidden text-xs text-black dark:text-white">
+                        Sin cargas horarias registradas para este año
+                    </p>
                 </div>
             </div>
         </div>
