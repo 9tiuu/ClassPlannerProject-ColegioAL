@@ -35,11 +35,11 @@
 </head>
 <body class="bg-slate-100 dark:bg-[#0c0e16]" hx-headers='{"x-csrftoken": "{{ csrf_token }}"}'>
     <!-- Navbar -->
-    <nav class="fixed bg-[#141826] top-0 z-50 w-full border-b border-slate-800">
+    <nav class="fixed bg-white dark:bg-[#141826] top-0 z-50 w-full border-b border-slate-300 dark:border-slate-800">
         <div class="px-3 py-3 lg:px-5 lg:pl-3">
             <div class="flex items-center justify-between">
                 <div class="flex items-center justify-start rtl:justify-end">
-                    <button data-drawer-target="top-bar-sidebar" id="sidebar-buttom" data-drawer-toggle="top-bar-sidebar" aria-controls="top-bar-sidebar" type="button" class="sm:hidden text-heading text-white rounded-lg bg-transparent box-border border border-transparent hover:bg-neutral-secondary-medium focus:ring-4 focus:ring-neutral-tertiary font-medium leading-5 rounded-base text-sm p-2 focus:outline-none focus:ring-slate-800">
+                    <button data-drawer-target="top-bar-sidebar" id="sidebar-buttom" data-drawer-toggle="top-bar-sidebar" aria-controls="top-bar-sidebar" type="button" class="sm:hidden text-slate-700 dark:text-white rounded-lg bg-transparent box-border border border-transparent hover:bg-gray-100 dark:hover:bg-[#1d2236] focus:ring-4 focus:ring-neutral-tertiary font-medium leading-5 rounded-base text-sm p-2 focus:outline-none focus:ring-slate-300 dark:focus:ring-slate-800">
                         <span class="sr-only">Open sidebar</span>
                         <svg class="w-6 h-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
                             <path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M5 7h14M5 12h14M5 17h10"/>
@@ -48,7 +48,7 @@
                     <a href="{% url 'home' %}" class="flex ms-2 md:me-24">
                         <div class="flex items-center">
                             <img src="{% static 'classplanner/img/ClassPlannerIcon-transparent.png' %}" class="md:w-14 w-8" alt="icon">
-                            <div class="ml-2 text-gray-100">
+                            <div class="ml-2 text-gray-900 dark:text-gray-100">
                                 <p class="uppercase font-extrabold md:text-xl text-sm">ClassPlanner</p>
                                 <p class="uppercase md:text-xs text-[9px] font-semibold">Gestión de Horarios</p>
                             </div>
@@ -60,11 +60,11 @@
                     <div class="flex items-center ms-3">
                         <div class="mr-4">
                             <div class="flex gap-2 items-center">
-                                <button id="darkModeButton" class="w-10 h-10 rounded-full bg-[#141826] hover:bg-[#1d2236] text-white border-2 border-slate-800 flex items-center justify-center hover:transition transition hover:duration-300 duration-300">
+                                <button id="darkModeButton" class="w-10 h-10 rounded-full bg-white dark:bg-[#141826] text-slate-700 dark:text-white hover:bg-gray-100 dark:hover:bg-[#1d2236] border-2 border-slate-300 dark:border-slate-800 flex items-center justify-center hover:transition transition hover:duration-300 duration-300">
                                     {% comment %} cambio de tema dark/light {% endcomment %}
                                 </button>
                                 <div class="flex gap-2 cursor-pointer" id="user-buttom">
-                                    <button type="button" class="text-sm border-2 border-slate-700 flex rounded-full" aria-expanded="false" data-dropdown-toggle="dropdown-user">
+                                    <button type="button" class="text-sm border-2 border-slate-300 dark:border-slate-700 flex rounded-full" aria-expanded="false" data-dropdown-toggle="dropdown-user">
                                         <span class="sr-only">Open user menu</span>
                                         {% if request.user.is_authenticated %}
                                             {% if request.user.avatar %}
@@ -76,10 +76,10 @@
                                     </button>
                                     <div class="md:flex items-center justify-center hidden">
                                         <div>
-                                            <p class="text-sm font-semibold text-white" role="none">
+                                            <p class="text-sm font-semibold text-slate-700 dark:text-white" role="none">
                                                 {{ request.user.name }} {{ request.user.last_name }}
                                             </p>
-                                            <p class="text-sm text-[#a8b2d2]" role="none">
+                                            <p class="text-sm text-slate-500 dark:text-[#a8b2d2]" role="none">
                                                 {{ request.user.email|truncatechars:18 }}
                                             </p>
                                         </div>
@@ -92,7 +92,7 @@
                         <div class="z-50 w-72 hidden absolute bg-white dark:bg-[#141826] top-0 right-0 md:mt-[5.5rem] mt-[4.5rem] mr-[1rem] border border-slate-300 dark:border-slate-800 rounded-lg shadow-xl" id="dropdown-user">
                             <div class="px-4 py-4 border-b border-default-medium border-slate-300 dark:border-slate-800" role="none">
                                 <div class="flex gap-2">
-                                    <p class="text-base font-semibold dark:text-white" role="none">
+                                    <p class="text-base font-semibold text-gray-600 dark:text-white" role="none">
                                         {{ request.user.name }} {{ request.user.last_name }}
                                     </p>
                                     {% if request.user.rol.name == 'root'%}
@@ -113,7 +113,7 @@
                                     {% comment %} {{ request.user.rol.name }} {% endcomment %}
                                     
                                 </p>
-                                <p class="text-sm text-blue-500" role="none">
+                                <p class="text-sm text-blue-500 dark:text-blue-400" role="none">
                                     {{ request.user.email }}
                                 </p>
                             </div>

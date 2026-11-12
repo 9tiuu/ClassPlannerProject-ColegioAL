@@ -9,12 +9,12 @@
     <p class="text-sm text-slate-500 dark:text-slate-400 sm:text-base">Registre un nuevo usuario completando los siguientes campos:</p>
 </div>
 
-<div class="justify-center flex flex-col grid-cols-1 p-4 border-slate-300 dark:border-slate-700 border-default border mt-10 rounded-lg">
-    <div class="p-3 bg-white dark:bg-[#141826] rounded-lg">
+<div class="justify-center bg-white dark:bg-[#141826] flex flex-col grid-cols-1 p-4 border-slate-300 dark:border-slate-700 border-default border mt-6 rounded-lg">
+    <div class="pt-2 px-3 rounded-lg">
         <form method="POST" enctype="multipart/form-data" class="users-c-form">
             {% csrf_token %}  
                 
-            <div class="flex flex-col w-full mb-5">
+            <div class="flex flex-col w-full">
                 <label for="username" class="mb-1 text-base font-semibold text-slate-600 dark:text-white">Nombre de usuario <b class="text-red-600">*</b></label>
                 <input type="text" name="username" id="id_username" value="{{ form.username.value|default:"" }}" class="bg-white dark:bg-[#141826] text-sm focus:outline-none focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 focus:transition focus:duration-300 rounded-lg h-12 border-2 p-3 border-slate-300 dark:border-slate-700 dark:placeholder:text-[#a8b2d2] dark:text-white" minlength="2" maxlength="45" placeholder="Ej: camilotorres" required>
 
@@ -138,10 +138,14 @@
 </div>
 <script>
     function exitConfirm(button) {
+        const isDarkMode = document.documentElement.classList.contains('dark');
+
         Swal.fire({
             "title": "¿Está seguro que desea salir?",
             "text": "No se guardarán los cambios.",
             "icon": "warning",
+            "background": isDarkMode ? "#141826" : "#ffffff",
+            "color": isDarkMode ? "#f8fafc" : "#0f172a",
             "showCancelButton": true,
             "confirmButtonColor": "#0d6efd",
             "cancelButtonColor": '#d33',

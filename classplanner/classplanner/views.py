@@ -9,6 +9,7 @@ from django.views.generic.detail import DetailView
 from django.views import View
 from django.contrib import messages
 from django.db.models.deletion import RestrictedError
+from django.db.models import Case, F, IntegerField, OuterRef, Subquery, When
 from datetime import datetime
 import re
 from math import floor
@@ -36,6 +37,7 @@ from django.db.models.query import QuerySet
 from functools import wraps
 from .static.classplanner.py.exportar_planes import exportar_planes
 from .static.classplanner.py.exportar_notas import _exportar_notas_pdf
+from .static.classplanner.py.exportar_cargas_horarios import exportar_cargas, exportar_horarios
 from datetime import time, datetime, date
 from collections import Counter
 from django.db.models import Count
@@ -375,7 +377,15 @@ class ListCursos(ListView):
         for curso in queryset:
             if curso.horas_plan_total == int(curso.horas_plan_total):
                 curso.horas_plan_total = floor(curso.horas_plan_total)
-        return queryset
+
+        orden_nivel = Case(
+            *[
+                When(nivel=nivel, then=posicion)
+                for posicion, nivel in enumerate(Curso.Nivel.values)
+            ],
+            output_field=IntegerField(),
+        )
+        return queryset.order_by(orden_nivel)
 
 @method_decorator(login_required, name='dispatch')
 @method_decorator(roles_required('root', 'Administrador', 'Director'), name='dispatch')
@@ -512,9 +522,19 @@ class ListEstudiantes(ListView):
         is_root = self.request.user.rol.name == 'root'
         if is_root:
             mostrar_desactivados = self.request.GET.get('change_state') == '1'
-            return Estudiante.objects.filter(is_active=not mostrar_desactivados)
-        else: return Estudiante.objects.filter(is_active=True)
+            queryset = Estudiante.objects.filter(is_active=not mostrar_desactivados)
+        else:
+            queryset = Estudiante.objects.filter(is_active=True)
 
+        orden_nivel = Case(
+            *[
+                When(curso_id__nivel=nivel, then=posicion)
+                for posicion, nivel in enumerate(Curso.Nivel.values)
+            ],
+            output_field=IntegerField(),
+            )
+        return queryset.order_by(orden_nivel)
+    
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['mostrar_desactivados'] = (
@@ -1098,7 +1118,6 @@ def UpdatePlanDeEstudioForm(request, pk=None): # hacer validacion hrs plan curso
         form = PlanDeEstudioUpdateForm(request.POST)
 
         if not horas or len(horas) != len(asignaturas):
-            print("Por favor, complete todos los campos")
             form.add_error(None, 'Por favor, complete todos los campos')
             return render(
                 request,
@@ -1115,14 +1134,11 @@ def UpdatePlanDeEstudioForm(request, pk=None): # hacer validacion hrs plan curso
             planesUpdate = []
             planesCreate = []
             planesDelete = []
-            print("planes: ", planes,"\nhoras: ", horas,"\nasigns: ",asignaturas)
             for plan_id, hrs, asignatura_id in zip(
                 planes, horas, asignaturas
             ):
                 plan = planes_existentes.get(plan_id)
 
-                #print("planes existentes: ",planes_existentes,"\nplan loop: ",plan)
-                print("plan loop: ",plan)
                 if plan is None and not plan_id == "":
                     form.add_error(None, 'Ocurrió un error, no se pudo validar el plan seleccionado.')
                     return render(
@@ -1164,7 +1180,6 @@ def UpdatePlanDeEstudioForm(request, pk=None): # hacer validacion hrs plan curso
                         planesUpdate.append(plan)
 
             with transaction.atomic():
-                print("\n-----\nplanesUpdate: ", planesUpdate,"\nplanesDelete: ",planesDelete,"\nplanesCreate: ",planesCreate,"\n-----\n")
                 for plan in planes_existentes.values():
                     if plan not in planesDelete and plan not in planesUpdate and plan not in planesDelete:
                         planesDelete.append(plan)
@@ -1385,6 +1400,49 @@ def UpdateCargaHoraria(request, pk):
         'dias': dias,
         'errores': errores,
     })
+
+@login_required
+@roles_required('root', 'Administrador', 'Director')
+def ExportarCargaHoraria(request):
+    if request.method != 'POST':
+        raise BadRequest('Solicitud de exportación inválida')
+
+    cargas_seleccionadas = request.POST.getlist('export_checkbox')
+
+    cargas = CargaHoraria.objects.select_related('usuario_id').order_by(
+        'anio_planificacion',
+        'usuario_id__name',
+        'usuario_id__last_name',
+    )
+    if 'exportar_todo' not in cargas_seleccionadas:
+        if not cargas_seleccionadas:
+            raise BadRequest('Seleccione cargas horarias válidas para exportar')
+        cargas = cargas.filter(pk__in=cargas_seleccionadas)
+
+    if not cargas.exists():
+        raise BadRequest('Seleccione cargas horarias válidas para exportar')
+
+    bloques = (
+        BloqueDeClase.objects
+        .filter(
+            usuario_id__in=cargas.values('usuario_id'),
+            horario_id__anio_planificacion__in=cargas.values('anio_planificacion'),
+        )
+        .select_related(
+            'usuario_id',
+            'bloque_id',
+            'asignatura_id',
+            'curso_id',
+            'horario_id',
+        )
+        .order_by(
+            'usuario_id__name',
+            'bloque_id__hora_inicio',
+            'bloque_id__dia',
+            'asignatura_id__ident',
+        )
+    )
+    return exportar_cargas(cargas, bloques)
 
 # ----------------------------------- # HORARIOS
 
@@ -1953,6 +2011,101 @@ def UpdateHorario(request, pk): # Pendiente: validar asignaturas asignadas en bl
         'aula_sel': aula_sel,
         'jornada_sel': jornada_sel,
     })
+
+@login_required
+@roles_required('root', 'Administrador', 'Director')
+def ExportarHorario(request): # Pendiente: exportar históricos, botón adicional en list para mostrar otra lista de horarios creados en años anteriores + exportar esos
+    if request.method != 'POST':
+        raise BadRequest('Solicitud de exportación inválida')
+
+    cursos_seleccionados = [
+        curso_id.strip()
+        for curso_id in request.POST.getlist('curso_id')
+        if curso_id.strip()
+    ]
+    valores_exportar_todos = request.POST.getlist('exportar_todo')
+    if (
+        len(valores_exportar_todos) != 1
+        or valores_exportar_todos[0] not in ('', '1')
+    ):
+        raise BadRequest('Selección de exportación inválida')
+
+    exportar_todos = valores_exportar_todos[0] == '1'
+    if exportar_todos and cursos_seleccionados:
+        raise BadRequest('Seleccione un curso o todos los cursos')
+    if not exportar_todos and len(cursos_seleccionados) != 1:
+        raise BadRequest('Seleccione un curso o todos los cursos')
+
+    ultimo_horario = (
+        Horario.objects
+        .filter(plan_de_estudio_id__curso_id=OuterRef('plan_de_estudio_id__curso_id'))
+        .order_by('-anio_planificacion', '-pk')
+        .values('pk')[:1]
+    )
+    orden_nivel = Case(
+        *[
+            When(
+                plan_de_estudio_id__curso_id__nivel=nivel,
+                then=posicion,
+            )
+            for posicion, nivel in enumerate(Curso.Nivel.values)
+        ],
+        output_field=IntegerField(),
+    )
+    horarios = (
+        Horario.objects
+        .annotate(_horario_reciente=Subquery(ultimo_horario))
+        .filter(pk=F('_horario_reciente'))
+        .select_related('plan_de_estudio_id__curso_id__usuario_id', 'aula_id')
+        .order_by(
+            orden_nivel,
+            'plan_de_estudio_id__curso_id__letra',
+        )
+    )
+    if not exportar_todos:
+        curso_id = a_int(cursos_seleccionados[0])
+        if curso_id is None:
+            raise BadRequest('Seleccione un curso válido')
+        horarios = horarios.filter(plan_de_estudio_id__curso_id=curso_id)
+
+    horarios_exportados = list(horarios)
+    if not horarios_exportados:
+        raise BadRequest('No hay horarios disponibles para exportar')
+
+    cursos = []
+    for horario in horarios_exportados:
+        curso = horario.plan_de_estudio_id.curso_id
+        curso.horario_export = horario
+        cursos.append(curso)
+
+    horario_ids = [horario.pk for horario in horarios_exportados]
+    bloques = (
+        BloqueDeClase.objects
+        .filter(horario_id__in=horario_ids)
+        .select_related(
+            'usuario_id',
+            'bloque_id',
+            'asignatura_id',
+            'curso_id',
+            'horario_id__aula_id',
+        )
+        .order_by(
+            'bloque_id__hora_inicio',
+            'bloque_id__dia',
+            'asignatura_id__ident',
+        )
+    )
+    cargas = (
+        CargaHoraria.objects
+        .filter(
+            usuario_id__in=bloques.values('usuario_id'),
+            anio_planificacion__in=[
+                horario.anio_planificacion for horario in horarios_exportados
+            ],
+        )
+        .select_related('usuario_id')
+    )
+    return exportar_horarios(cursos, cargas, bloques)
 
 # ----------------------------------- #
 

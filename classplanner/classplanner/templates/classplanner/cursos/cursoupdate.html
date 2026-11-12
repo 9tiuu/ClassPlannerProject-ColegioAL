@@ -36,7 +36,7 @@
                 {% if form.nivel.errors %}
                 <div class="mb-2">
                     {% for error in form.nivel.errors %}
-                    <p class="text-sm text-red-600 dark:text-red-400">{{ error }}</p>
+                    <p class="bg-red-100 dark:bg-red-900 p-4 my-3 text-sm text-red-700 rounded-lg dark:text-red-300 transition duration-200">{{ error }}</p>
                     {% endfor %}
                 </div>
                 {% endif %}
@@ -55,7 +55,7 @@
                     {% if form.letra.errors %}
                     <div class="mb-2">
                         {% for error in form.letra.errors %}
-                        <p class="text-sm text-red-600 dark:text-red-400">{{ error }}</p>
+                        <p class="bg-red-100 dark:bg-red-900 p-4 my-3 text-sm text-red-700 rounded-lg dark:text-red-300 transition duration-200">{{ error }}</p>
                         {% endfor %}
                     </div>
                     {% endif %}
@@ -68,7 +68,7 @@
                     {% if form.horas_plan_total.errors %}
                     <div class="mb-2">
                         {% for error in form.horas_plan_total.errors %}
-                        <p class="text-sm text-red-600 dark:text-red-400">{{ error }}</p>
+                        <p class="bg-red-100 dark:bg-red-900 p-4 my-3 text-sm text-red-700 rounded-lg dark:text-red-300 transition duration-200">{{ error }}</p>
                         {% endfor %}
                     </div>
                     {% endif %}
@@ -88,7 +88,7 @@
                 {% if form.usuario_id.errors %}
                 <div class="mb-2">
                     {% for error in form.usuario_id.errors %}
-                    <p class="text-sm text-red-600 dark:text-red-400">{{ error }}</p>
+                    <p class="bg-red-100 dark:bg-red-900 p-4 my-3 text-sm text-red-700 rounded-lg dark:text-red-300 transition duration-200">{{ error }}</p>
                     {% endfor %}
                 </div>
                 {% endif %}
@@ -107,10 +107,14 @@
 </div>
 <script>
     function exitConfirm(button) {
+        const isDarkMode = document.documentElement.classList.contains('dark');
+
         Swal.fire({
             "title": "¿Está seguro que desea salir?",
             "text": "No se guardarán los cambios.",
             "icon": "warning",
+            "background": isDarkMode ? "#141826" : "#ffffff",
+            "color": isDarkMode ? "#f8fafc" : "#0f172a",
             "showCancelButton": true,
             "confirmButtonColor": "#0d6efd",
             "cancelButtonColor": '#d33',

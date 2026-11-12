@@ -7,11 +7,11 @@
 <div class="p-4 min-h-[10vh] mt-4 rounded-lg">
     <p class="mb-2 text-slate-500 text-sm dark:text-slate-400"><a class="hover:underline" href="{% url 'home' %}">Gestión</a> / <a class="hover:underline" href="{% url 'horarios' %}">Horarios</a> / <a class="hover:underline font-semibold text-slate-700 dark:text-slate-200" href="#">Crear</a></p>
     <h2 class="mb-2 text-2xl font-semibold text-[#234FA8] dark:text-blue-400 sm:text-3xl">Nuevo Horario</h2>
-    <p class="text-sm text-slate-500 dark:text-slate-400 sm:text-base">Seleccione el curso y asigne asignatura y docente a cada bloque de clase:</p>
+    <p class="text-sm text-slate-500 dark:text-slate-400 sm:text-base">Seleccione el curso y aula, luego asigne una asignatura y docente a cada bloque de clase:</p>
 </div>
 
-<div class="p-4 border-slate-300 dark:border-slate-700 min-h-[70vh] border mt-10 rounded-lg">
-    <div class="p-4 bg-white dark:bg-[#141826] rounded-lg">
+<div class="p-4 bg-white dark:bg-[#141826] border-slate-300 dark:border-slate-700 min-h-[70vh] border mt-10 rounded-lg">
+    <div class="p-4 rounded-lg">
         <form method="POST">
             {% csrf_token %}
 
