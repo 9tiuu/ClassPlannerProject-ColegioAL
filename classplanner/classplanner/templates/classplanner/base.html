@@ -280,79 +280,49 @@
     <!-- Interfaces / Dashboard -->
     <div class="bg-slate-100 dark:bg-[#0c0e16] sm:ml-72 mt-14 p-4">
         {% block content %}
-            <div class="p-4 border-slate-300 dark:border-slate-700 min-h-screen border-default border mt-10 rounded-lg">
-                <div class="grid grid-cols-3 gap-4 mb-4">
-                    <div class="flex items-center justify-center h-24 rounded-base bg-gray-200 dark:bg-[#141826]">
-                        <p class="text-gray-600">
-                        <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7 7V5"/></svg>
-                        </p>
+            {% if request.user.rol.name == 'root' or request.user.rol.name == 'Administrador' or request.user.rol.name == 'Director' %}
+                {% include 'classplanner/dashboards/dashboard_admin.html' %}
+            {% else %} 
+                <div class="min-h-screen -translate-y-1 -m-4">
+                    <div class="bg-blue-700 w-full h-56 relative">
+                        <img src="{% static 'classplanner/img/welcomeimage.png' %}" class="w-full h-full object-cover" alt="icon">
                     </div>
-                    <div class="flex items-center justify-center h-24 rounded-base bg-gray-200 dark:bg-[#141826]">
-                        <p class="text-gray-600">
-                        <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7 7V5"/></svg>
-                        </p>
-                    </div>
-                    <div class="flex items-center justify-center h-24 rounded-base bg-gray-200 dark:bg-[#141826]">
-                        <p class="text-gray-600">
-                        <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7 7V5"/></svg>
-                        </p>
-                    </div>
-                </div>
-                <div class="flex items-center justify-center h-48 rounded-base bg-gray-200 dark:bg-[#141826] mb-4">
-                    <p class="text-gray-600">
-                        <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7 7V5"/></svg>
-                    </p>
-                </div>
-                <div class="grid grid-cols-2 gap-4 mb-4">
-                    <div class="flex items-center justify-center h-24 rounded-base bg-gray-200 dark:bg-[#141826]">
-                        <p class="text-gray-600">
-                        <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7 7V5"/></svg>
-                        </p>
-                    </div>
-                    <div class="flex items-center justify-center h-24 rounded-base bg-gray-200 dark:bg-[#141826]">
-                        <p class="text-gray-600">
-                        <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7 7V5"/></svg>
-                        </p>
-                    </div>
-                    <div class="flex items-center justify-center h-24 rounded-base bg-gray-200 dark:bg-[#141826]">
-                        <p class="text-gray-600">
-                        <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7 7V5"/></svg>
-                        </p>
-                    </div>
-                    <div class="flex items-center justify-center h-24 rounded-base bg-gray-200 dark:bg-[#141826]">
-                        <p class="text-gray-600">
-                        <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7 7V5"/></svg>
-                        </p>
+                    <div class="md:-translate-y-32 -translate-y-36">
+                        <div class="bg-transparent mb-8 w-full px-6 flex flex-col items-start">
+                            <h2 class="text-white mb-1 text-3xl font-bold">Dashboards</h2>
+                            <p class="text-white text-base font-normal">¡Bienvenido/a @{{ request.user.name }} {{ request.user.last_name }}! Aquí tiene un resumen de su jornada laboral.<p>
+                        </div>
+                        <div class="bg-transparent gap-4 w-full h-96 px-6 flex flex-col md:flex-row items-center justify-center">
+                            <div class="bg-white dark:bg-[#141826] shadow rounded-lg w-full h-full p-4 gap-2 grid md:grid-cols-2 grid-cols-1">
+                                <div class="border border-slate-300 dark:border-slate-800 rounded-lg w-full p-4">
+                                
+                                </div>
+                                <div class="border border-slate-300 dark:border-slate-800 rounded-lg w-full p-4">
+                                
+                                </div>
+                                <div class="border border-slate-300 dark:border-slate-800 rounded-lg w-full p-4">
+                                
+                                </div>
+                                <div class="border border-slate-300 dark:border-slate-800 rounded-lg w-full p-4">
+                                
+                                </div>
+                            </div>
+                            <div class="bg-white dark:bg-[#141826] shadow rounded-lg w-full h-full p-4 flex flex-col md:flex-row items-center justify-center">
+                                <div class="border border-slate-300 dark:border-slate-800 rounded-lg w-full h-full p-4">
+                                
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-transparent my-4 w-full h-96 px-6 flex flex-col md:flex-row items-center justify-center">
+                            <div class="bg-white dark:bg-[#141826] shadow rounded-lg w-full h-full p-4 flex flex-col md:flex-row items-center justify-center">
+                                <div class="border border-slate-300 dark:border-slate-800 rounded-lg w-full h-full p-4">
+                                
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div class="flex items-center justify-center h-48 rounded-base bg-gray-200 dark:bg-[#141826] mb-4">
-                    <p class="text-gray-600">
-                        <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7 7V5"/></svg>
-                    </p>
-                </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="flex items-center justify-center h-24 rounded-base bg-gray-200 dark:bg-[#141826]">
-                        <p class="text-gray-600">
-                        <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7 7V5"/></svg>
-                        </p>
-                    </div>
-                    <div class="flex items-center justify-center h-24 rounded-base bg-gray-200 dark:bg-[#141826]">
-                        <p class="text-gray-600">
-                        <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7 7V5"/></svg>
-                        </p>
-                    </div>
-                    <div class="flex items-center justify-center h-24 rounded-base bg-gray-200 dark:bg-[#141826]">
-                        <p class="text-gray-600">
-                        <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7 7V5"/></svg>
-                        </p>
-                    </div>
-                    <div class="flex items-center justify-center h-24 rounded-base bg-gray-200 dark:bg-[#141826]">
-                        <p class="text-gray-600">
-                        <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7 7V5"/></svg>
-                        </p>
-                    </div>
-                </div>
-            </div>
+            {% endif %}
         {% endblock %}
     </div>
 
