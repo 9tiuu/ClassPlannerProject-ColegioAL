@@ -50,7 +50,7 @@
             <form method="POST">
                 {% csrf_token %}
             <div class="flex gap-2">
-                <a href="{% url 'cargashorariascreate' %}" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-800 text-center hover:transition transition hover:duration-300 duration-300 rounded-lg px-8 py-3">
+                <a href="{% url 'cargashorariascreate' %}" class="flex w-full items-center gap-2 bg-blue-600 hover:bg-blue-800 text-center hover:transition transition hover:duration-300 duration-300 rounded-lg px-8 py-3">
                     <p class="w-full text-white font-semibold">+ Nueva Carga Horaria</p>
                 </a>
                 <button title="Exportar seleccionados a PDF" type="submit" formaction="{% url 'cargashorariasexport' %}" class="flex items-center justify-between gap-3 rounded-xl bg-rose-600 px-6 py-3 text-center font-semibold text-white shadow-sm transition duration-200 hover:bg-rose-700 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[#141826]">
@@ -65,7 +65,7 @@
         {% if cargahoraria %}
 
         <div id="asigtable" class="relative max-h-[70vh] overflow-x-auto bg-neutral-primary-soft shadow-xs rounded-base border border-default border-slate-300 dark:border-slate-800 rounded-lg">
-            <table class="min-w-full text-sm text-left rtl:text-right text-body">
+            <table id="data-table" class="min-w-full text-sm text-left rtl:text-right text-body">
                 <thead class="text-sm text-left text-slate-700 dark:text-white bg-slate-200 dark:bg-[#10141f] text-body bg-neutral-secondary-soft border-b rounded-base border-default dark:border-slate-800">
                     <tr>
                         <th scope="col" class="w-px whitespace-nowrap pr-2 pl-6 py-3 center">
@@ -105,24 +105,24 @@
                             <input class="h-5 w-5 cursor-pointer rounded border border-slate-400 bg-white accent-[#234FA8] shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#234FA8] [color-scheme:light] dark:border-slate-500 dark:bg-[#171c2b] dark:accent-blue-400 dark:focus-visible:ring-blue-400 dark:[color-scheme:dark]"
                                 title="Seleccionar" type="checkbox" name="export_checkbox" id="{{ c.usuario_id }}" value="{{ c.pk }}">
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap md:whitespace-normal capitalize">
+                        <td name="search" class="px-6 py-4 whitespace-nowrap md:whitespace-normal capitalize">
                             {{ c.usuario_id }}
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap md:whitespace-normal capitalize">
+                        <td name="search" class="px-6 py-4 whitespace-nowrap md:whitespace-normal capitalize">
                             <p class="text-green-600 dark:text-green-500 text-xs font-semibold bg-green-600/20 px-4 py-1 text-center w-16 rounded">
                                 {{ c.anio_planificacion }}
                             </p>
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap md:whitespace-normal capitalize">
+                        <td name="search" class="px-6 py-4 whitespace-nowrap md:whitespace-normal capitalize">
                             {{ c.hrs_contrato }}
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap md:whitespace-normal">
+                        <td name="search" class="px-6 py-4 whitespace-nowrap md:whitespace-normal">
                             {% if c.hrs_aula <= 0 %} <b class="text-amber-600">Por definir</b> {% else %} {{ c.hrs_aula }} {% endif %}
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap md:whitespace-normal">
+                        <td name="search" class="px-6 py-4 whitespace-nowrap md:whitespace-normal">
                             {% if c.hrs_cd <= 0 %} <b class="text-amber-600">Por definir</b> {% else %} {{ c.hrs_cd }} {% endif %}
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap md:whitespace-normal">
+                        <td name="search" class="px-6 py-4 whitespace-nowrap md:whitespace-normal">
                             {% if c.hrs_aa <= 0 %} <b class="text-amber-600">Por definir</b> {% else %} {{ c.hrs_aa }} {% endif %}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap md:whitespace-normal">

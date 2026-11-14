@@ -1342,7 +1342,7 @@ def CreateCargaHoraria(request): # Pendiente: distribucion de horas no lectivas
         if valor == '' or anio is None or not (1000 <= anio <= 9999):
             errores['anio'].append('Ingrese un año válido de 4 dígitos (por ejemplo 2026).')
             anio = None
-        elif anio < 2026:
+        elif anio <= 2026:
             errores['anio'].append('No puede crear una carga horaria para años anteriores.')
             anio = None
 
@@ -1385,7 +1385,7 @@ def CreateCargaHoraria(request): # Pendiente: distribucion de horas no lectivas
     return render(request, 'classplanner/cargahoraria/cargahorariacreate.html', {
         'docentes': docentes,
         'errores': errores,
-        'anio_sel': request.POST.get('anio_planificacion', date.today().year),
+        'anio_sel': request.POST.get('anio_planificacion', int(date.today().year) + 1),
     })
 
 @login_required
