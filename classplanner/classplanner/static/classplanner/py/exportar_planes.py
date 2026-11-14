@@ -88,7 +88,6 @@ def _exportar_planes_pdf(planes):
         planes.select_related(
             'curso_id',
             'asignatura_id',
-            'asignatura_id__plan_diferencial_id',
         )
     )
     cursos_por_grupo = {}
@@ -112,7 +111,7 @@ def _exportar_planes_pdf(planes):
 
         if (
             nivel in ('3°M', '4°M')
-            and plan.asignatura_id.plan_diferencial_id is not None
+            and plan.asignatura_id.plan_diferencial
         ):
             horas_plan_diferencial_por_curso[curso_id] = (
                 horas_plan_diferencial_por_curso.get(curso_id, 0)
@@ -335,13 +334,14 @@ def exportar_planes(planes=QuerySet, export_to=str):
                 horas_por_asignatura_y_curso.get(key, 0) + plan.hrs_asignatura
             )
 
-            if (nivel == '4°M' or nivel == '3°M') and plan.asignatura_id.plan_diferencial_id != None:
+            if (
+                nivel in ('3°M', '4°M')
+                and plan.asignatura_id.plan_diferencial
+            ):
                 horas_plan_diferencial_por_curso[curso_id] = (
                     horas_plan_diferencial_por_curso.get(curso_id, 0)
                     + plan.hrs_asignatura
                 )
-                print("horas_plan_diferencial_por_curso: ",horas_plan_diferencial_por_curso)
-                print("plan.asignatura_id.plan_diferencial_id.nombre: ",plan.asignatura_id.plan_diferencial_id.nombre)
 
 
         wb = Workbook(write_only=False)
@@ -460,64 +460,64 @@ def exportar_planes(planes=QuerySet, export_to=str):
     elif export_to == 'pdf':
         return _exportar_planes_pdf(planes)
 
-    def create_file(
-        wb=None,
-        curso_names=None,
-        worksheet=None,
-        sheet_title='PlanesDeEstudio',
+def create_file(
+    wb=None,
+    curso_names=None,
+    worksheet=None,
+    sheet_title='PlanesDeEstudio',
+):
+    if wb is None:
+        wb = Workbook()
+    if curso_names is None:
+        curso_names = ('curso 1', 'curso 2')
+
+    ws = worksheet or wb.active
+    ws.title = sheet_title
+
+    curso_names = list(curso_names)
+    last_curso_column = max(4, 3 + len(curso_names))
+    ws.merge_cells('A1:A2')
+    ws.merge_cells('B1:C1')
+    ws.merge_cells(
+        start_row=1,
+        start_column=4,
+        end_row=1,
+        end_column=last_curso_column,
+    )
+    ws['A1'] = 'Plan de Estudios'
+    ws['B1'] = 'Horas pedagógicas\n(MINEDUC)'
+    ws['B2'] = 'Anuales'
+    ws['C2'] = 'Semanales'
+    ws.cell(row=1, column=4, value='Horas pedagógicas semanales')
+
+    for column, curso_name in enumerate(curso_names, start=4):
+        ws.cell(row=2, column=column, value=curso_name[:-4].replace("B"," básico").replace("M"," medio"))
+
+    ws.column_dimensions['A'].width = 38
+    ws.column_dimensions['B'].width = 13
+    ws.column_dimensions['C'].width = 13
+    for column in range(4, last_curso_column + 1):
+        ws.column_dimensions[get_column_letter(column)].width = 18
+    for row in ws.iter_rows(
+        min_row=1,
+        max_row=2,
+        min_col=1,
+        max_col=last_curso_column,
     ):
-        if wb is None:
-            wb = Workbook()
-        if curso_names is None:
-            curso_names = ('curso 1', 'curso 2')
-
-        ws = worksheet or wb.active
-        ws.title = sheet_title
-
-        curso_names = list(curso_names)
-        last_curso_column = max(4, 3 + len(curso_names))
-        ws.merge_cells('A1:A2')
-        ws.merge_cells('B1:C1')
-        ws.merge_cells(
-            start_row=1,
-            start_column=4,
-            end_row=1,
-            end_column=last_curso_column,
-        )
-        ws['A1'] = 'Plan de Estudios'
-        ws['B1'] = 'Horas pedagógicas\n(MINEDUC)'
-        ws['B2'] = 'Anuales'
-        ws['C2'] = 'Semanales'
-        ws.cell(row=1, column=4, value='Horas pedagógicas semanales')
-
-        for column, curso_name in enumerate(curso_names, start=4):
-            ws.cell(row=2, column=column, value=curso_name[:-4].replace("B"," básico").replace("M"," medio"))
-
-        ws.column_dimensions['A'].width = 38
-        ws.column_dimensions['B'].width = 13
-        ws.column_dimensions['C'].width = 13
-        for column in range(4, last_curso_column + 1):
-            ws.column_dimensions[get_column_letter(column)].width = 18
-        for row in ws.iter_rows(
-            min_row=1,
-            max_row=2,
-            min_col=1,
-            max_col=last_curso_column,
-        ):
-            for cell in row:
-                cell.border = plan_table_border
-                cell.font = subtitle_font
-                cell.alignment = Alignment(
-                    horizontal='center',
-                    vertical='center',
-                    wrap_text=True,
-                )
+        for cell in row:
+            cell.border = plan_table_border
+            cell.font = subtitle_font
+            cell.alignment = Alignment(
+                horizontal='center',
+                vertical='center',
+                wrap_text=True,
+            )
 
 
-        ws['B1'].alignment = Alignment(
-            horizontal='center',
-            vertical='center',
-            wrap_text=True,
-        )
-        ws.row_dimensions[1].height = 36
-        ws.row_dimensions[2].height = 18
+    ws['B1'].alignment = Alignment(
+        horizontal='center',
+        vertical='center',
+        wrap_text=True,
+    )
+    ws.row_dimensions[1].height = 36
+    ws.row_dimensions[2].height = 18

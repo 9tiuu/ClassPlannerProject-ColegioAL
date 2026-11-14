@@ -89,10 +89,14 @@
 </div>
 <script>
     function exitConfirm(button) {
+        const isDarkMode = document.documentElement.classList.contains('dark');
+
         Swal.fire({
             "title": "¿Está seguro que desea salir?",
             "text": "No se guardarán los cambios.",
             "icon": "warning",
+            "background": isDarkMode ? "#141826" : "#ffffff",
+            "color": isDarkMode ? "#f8fafc" : "#0f172a",
             "showCancelButton": true,
             "confirmButtonColor": "#0d6efd",
             "cancelButtonColor": '#d33',

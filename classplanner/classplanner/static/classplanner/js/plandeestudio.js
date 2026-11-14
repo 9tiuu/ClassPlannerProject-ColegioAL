@@ -4,7 +4,6 @@ const isUpdateForm = Boolean(document.querySelector("#plan-div[data-plan-mode='u
 const pdeidArray = isUpdateForm
     ? Array.from(document.querySelectorAll("[name='pde_id']"))
     : []
-console.log("pdeidArray: ",pdeidArray.values())
 
 function ipt_asignatura(chkbox) {
     if (isUpdateForm && chkbox && !chkbox.checked) {

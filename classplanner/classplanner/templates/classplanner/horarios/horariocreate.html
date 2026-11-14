@@ -7,11 +7,11 @@
 <div class="p-4 min-h-[10vh] mt-4 rounded-lg">
     <p class="mb-2 text-slate-500 text-sm dark:text-slate-400"><a class="hover:underline" href="{% url 'home' %}">Gestión</a> / <a class="hover:underline" href="{% url 'horarios' %}">Horarios</a> / <a class="hover:underline font-semibold text-slate-700 dark:text-slate-200" href="#">Crear</a></p>
     <h2 class="mb-2 text-2xl font-semibold text-[#234FA8] dark:text-blue-400 sm:text-3xl">Nuevo Horario</h2>
-    <p class="text-sm text-slate-500 dark:text-slate-400 sm:text-base">Seleccione el curso y asigne asignatura y docente a cada bloque de clase:</p>
+    <p class="text-sm text-slate-500 dark:text-slate-400 sm:text-base">Seleccione el curso y aula, luego asigne una asignatura y docente a cada bloque de clase:</p>
 </div>
 
-<div class="p-4 border-slate-300 dark:border-slate-700 min-h-[70vh] border mt-10 rounded-lg">
-    <div class="p-4 bg-white dark:bg-[#141826] rounded-lg">
+<div class="p-4 bg-white dark:bg-[#141826] border-slate-300 dark:border-slate-700 min-h-[70vh] border mt-10 rounded-lg">
+    <div class="p-4 rounded-lg">
         <form method="POST">
             {% csrf_token %}
 
@@ -80,7 +80,7 @@
                             </div>
                         </label>
                     </div>
-                    <div class="flex items-center gap-2 w-full bg-white dark:bg-[#141826] text-sm rounded-lg border-2 p-4 border-slate-300 dark:border-slate-700 dark:text-white group">
+                    {% comment %} <div class="flex items-center gap-2 w-full bg-white dark:bg-[#141826] text-sm rounded-lg border-2 p-4 border-slate-300 dark:border-slate-700 dark:text-white group">
                         <input id="radio-des-group-3" type="radio" name="jornada" value="AMBAS" {% if jornada_sel == 'AMBAS' %}checked{% endif %} class="appearance-none w-4 h-4 shrink-0 rounded-full border border-slate-500 dark:border-[#a8b2d2] checked:border-blue-600 checked:bg-blue-600 checked:[box-shadow:inset_0_0_0_3px_#ffffffaf] dark:checked:[box-shadow:inset_0_0_0_3px_#14182695] cursor-pointer">
                         <label for="radio-des-group-3" class="flex items-start cursor-pointer text-sm font-normal ml-2 w-full">
                             <div class="block">
@@ -88,7 +88,7 @@
                                 <p class="text-sm text-slate-500 dark:text-[#a8b2d2] group-hover:text-blue-600 dark:group-hover:text-blue-500 transition duration-300 w-full">(07:45 - 13:30) y (14:00 - 19:00)</p>
                             </div>
                         </label>
-                    </div>
+                    </div> {% endcomment %}
                 </div>
             </div>
 
