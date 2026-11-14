@@ -1,16 +1,24 @@
 # https://github.com/shoutit/shoutit-api/blob/a5cea9b764a2e1dcb3a1b8f90b89f8501d743b45/src/common/constants.py#L302
 # https://www.curriculumnacional.cl/Curriculum/Planes_Estudio
 # https://www.curriculumnacional.cl/Curriculum/Bases_Curriculares
+from django.db.models.query import QuerySet
+from classplanner.models import AreasPlanesDiferenciales, NombresAsignatura
 
-AREAS_PLAN_DIFERENCIADO = {
-    "Artes": "Artes",
-    "Ciencias": "Ciencias",
-    "Educación Física y Salud": "Educación Física y Salud",
-    "Filosofía": "Filosofía",
-    "Historia, Geografía y Ciencias sociales": "Historia, Geografía y Ciencias sociales",
-    "Lengua y Literatura": "Lengua y Literatura",
-    "Matemática": "Matemática",
-}
+planesDiferenciales = AreasPlanesDiferenciales.objects.all()
+asignatura = NombresAsignatura.objects.all()
+
+AREAS_PLAN_DIFERENCIADO = {}
+for plan in list(planesDiferenciales.values_list('nombre',flat=True)):
+    AREAS_PLAN_DIFERENCIADO[plan] = plan
+# AREAS_PLAN_DIFERENCIADO = {
+#     "Artes": "Artes",
+#     "Ciencias": "Ciencias",
+#     "Educación Física y Salud": "Educación Física y Salud",
+#     "Filosofía": "Filosofía",
+#     "Historia, Geografía y Ciencias sociales": "Historia, Geografía y Ciencias sociales",
+#     "Lengua y Literatura": "Lengua y Literatura",
+#     "Matemática": "Matemática",
+# }
 
 ASIGNATURAS_MINEDUC = {
     "Lenguaje y Comunicación": "Lenguaje y Comunicación",

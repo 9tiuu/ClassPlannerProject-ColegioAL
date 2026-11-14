@@ -357,17 +357,17 @@ class PlanDeEstudioUpdateForm(forms.ModelForm):
 class AsignaturasCreateForm(forms.ModelForm):
     class Meta:
         model = Asignatura
-        fields = ['ident', 'nombre', 'descripcion', 'plan_diferencial']
+        fields = ['ident', 'nombres_asignatura_id', 'descripcion', 'areas_planes_diferenciales_id']
         widgets = { 
-            'nombre': forms.Select(attrs={'class': 'w-full rounded border my-2 px-2 py-2 bg-white dark:bg-[#141826] text-sm focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 focus:transition focus:duration-300 rounded-lg invalid:border-red-400 focus:outline-none dark:bg-slate-800 dark:text-white'}),
-            'plan_diferencial': forms.Select(attrs={'class': 'w-full rounded border my-2 px-2 py-2 bg-white dark:bg-[#141826] text-sm focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 focus:transition focus:duration-300 rounded-lg invalid:border-red-400 focus:outline-none dark:bg-slate-800 dark:text-white'}),
+            'nombres_asignatura_id': forms.Select(attrs={'class': 'w-full rounded border my-2 px-2 py-2 bg-white dark:bg-[#141826] text-sm focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 focus:transition focus:duration-300 rounded-lg invalid:border-red-400 focus:outline-none dark:bg-slate-800 dark:text-white'}),
+            'areas_planes_diferenciales_id': forms.Select(attrs={'class': 'w-full rounded border my-2 px-2 py-2 bg-white dark:bg-[#141826] text-sm focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 focus:transition focus:duration-300 rounded-lg invalid:border-red-400 focus:outline-none dark:bg-slate-800 dark:text-white'}),
         }
 
 class AsignaturaUpdateForm(forms.ModelForm):
     class Meta:
         model = Asignatura
-        fields = ['ident', 'nombre', 'descripcion', 'plan_diferencial']
+        fields = ['ident', 'nombres_asignatura_id', 'descripcion', 'areas_planes_diferenciales_id']
         widgets = { 
-            'nombre': forms.Select(attrs={'class': 'w-full rounded border my-2 px-2 py-2 bg-white dark:bg-[#141826] text-sm focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 focus:transition focus:duration-300 rounded-lg invalid:border-red-400 focus:outline-none dark:bg-slate-800 dark:text-white'}),
-            'plan_diferencial': forms.Select(attrs={'class': 'w-full rounded border my-2 px-2 py-2 bg-white dark:bg-[#141826] text-sm focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 focus:transition focus:duration-300 rounded-lg invalid:border-red-400 focus:outline-none dark:bg-slate-800 dark:text-white'}),
+            'nombres_asignatura_id': forms.Select(attrs={'class': 'w-full rounded border my-2 px-2 py-2 bg-white dark:bg-[#141826] text-sm focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 focus:transition focus:duration-300 rounded-lg invalid:border-red-400 focus:outline-none dark:bg-slate-800 dark:text-white'}),
+            'areas_planes_diferenciales_id': forms.Select(attrs={'class': 'w-full rounded border my-2 px-2 py-2 bg-white dark:bg-[#141826] text-sm focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 focus:transition focus:duration-300 rounded-lg invalid:border-red-400 focus:outline-none dark:bg-slate-800 dark:text-white'}),
         }

@@ -1,6 +1,5 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
-from core.middleware.constants import ASIGNATURAS_CHOICES, AREAS_PLAN_DIFERENCIADO
 # from datetime import datetime, date, timedelta
 # from django.utils.timezone import now
 
@@ -19,7 +18,7 @@ class Usuario(AbstractUser):
     last_name = models.CharField(max_length=50)
     rut = models.CharField(max_length=10, unique=True, null=True)
     email = models.EmailField(max_length=254, unique=True)
-    telefono = models.CharField(max_length=12, blank=True, null=True) # falta validacion
+    telefono = models.CharField(max_length=12, blank=True, null=True)
     rol = models.ForeignKey(Rol, on_delete=models.RESTRICT, null=True)
     avatar = models.ImageField(upload_to='avatars', blank=True, null=True)
     passwd_changed = models.BooleanField(default=False, blank=True)
@@ -32,16 +31,33 @@ class Usuario(AbstractUser):
     def __str__(self) -> str:
         return f'{self.name} {self.last_name}'
 
+class NombresAsignatura(models.Model):
+    nombre = models.CharField(max_length=80, unique=True)
+
+    def __str__(self):
+        return self.nombre
+
+class AreasPlanesDiferenciales(models.Model):
+    nombre = models.CharField(max_length=60, unique=True)
+    
+    def __str__(self):
+        return self.nombre
+
 class Asignatura(models.Model):
     ident = models.CharField(
-        max_length=5, unique=True,
+        max_length=10, unique=True,
         error_messages = {
             'unique': 'Ya existe una asignatura con este identificador'
         }
         )
-    nombre = models.CharField(max_length=150, choices=ASIGNATURAS_CHOICES)
     descripcion = models.TextField()
-    plan_diferencial = models.CharField(max_length=150, choices=AREAS_PLAN_DIFERENCIADO, blank=True, null=True)
+    nombres_asignatura_id = models.ForeignKey(NombresAsignatura, on_delete=models.RESTRICT)
+    areas_planes_diferenciales_id = models.ForeignKey(AreasPlanesDiferenciales, on_delete=models.RESTRICT, blank=True, null=True)
+    is_active = models.BooleanField(default=True, blank=True)
+
+    def delete(self, *args, **kwargs):
+        self.is_active = False
+        self.save()
 
     def __str__(self) -> str:
         return f'{self.ident} - {self.nombre}'
@@ -65,6 +81,7 @@ class Curso(models.Model):
     letra = models.CharField(max_length=1)
     horas_plan_total = models.FloatField()
     usuario_id = models.ForeignKey(Usuario, on_delete=models.RESTRICT)
+    created_at = models.DateField(auto_now_add=True)
     
     def __str__(self) -> str:
         return f'{self.nivel} "{self.letra}"'
@@ -89,15 +106,17 @@ class PromedioAsignatura(models.Model):
     nota = models.FloatField(null=True, blank=True)
     estudiante_id = models.ForeignKey(Estudiante, on_delete=models.CASCADE, to_field='rut')
     asignatura_id = models.ForeignKey(Asignatura, on_delete=models.CASCADE)
+    created_at = models.DateField(auto_now_add=True)
 
     def __str__(self) -> str:
         valor = '—' if self.nota is None else self.nota
-        return f'Nota de {self.estudiante_id_id} en {self.asignatura_id.ident}: {valor}'
+        return f'Nota de {self.estudiante_id} en {self.asignatura_id.ident}: {valor}'
     
 class Aula(models.Model):
     nombre = models.CharField(max_length=50)
     cupos = models.IntegerField()
     curso_id = models.ManyToManyField(Curso, blank=True)
+    created_at = models.DateField(auto_now_add=True)
 
     def __str__(self) -> str:
         return f'{self.nombre}'

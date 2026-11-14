@@ -3,6 +3,7 @@ from html import escape
 from io import BytesIO
 from pathlib import Path
 import colorsys
+import random
 
 import reportlab
 from django.core.exceptions import BadRequest
@@ -593,7 +594,7 @@ def _colores_asignaturas(clases):
     }
     return {
         asignatura_id: colores_por_nombre.get(nombre)
-        or colors.cadetblue
+        or colors.Color(*colorsys.hsv_to_rgb(random.random(), 0.3, 0.95))
         for indice, (asignatura_id, nombre) in enumerate(ordenadas)
     }
 
