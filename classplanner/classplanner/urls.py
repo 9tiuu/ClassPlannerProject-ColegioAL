@@ -9,6 +9,8 @@ from .views import (
     ListEstudiantes, CreateEstudiante, UpdateEstudiante, DeleteEstudiante,
     ListPromedioAsignatura, CreatePromedioAsignatura, UpdatePromedioAsignatura, DeletePromedioAsignatura,
     ListAsignatura, CreateAsignatura, UpdateAsignatura, DeleteAsignatura,
+    ListCargaHoraria, 
+    # ListHorario,
 )
 from .views import custom_logout
 # from django.contrib.auth.views import LoginView
@@ -55,7 +57,7 @@ urlpatterns = [
     path('promedioasignatura/estudiante/<str:rut>/<int:curso_id>/crear/', CreatePromedioAsignatura.as_view(), name='promedioasignaturacreate'),
     path('promedioasignaturaupdate/<int:pk>/', UpdatePromedioAsignatura.as_view(), name='promedioasignaturaupdate'),
     path('promedioasignaturadelete/<int:pk>/', DeletePromedioAsignatura.as_view(), name='promedioasignaturadelete'),
-    path('plandeestudiosexport/<str:rut>/<int:export>', views.ExportarNotas, name='notasexport'),
+    path('promedioasignaturaexport/<str:rut>/<int:export>', views.ExportarNotas, name='notasexport'),
 
     # ASIGNATURAS
     path('asignaturas/', ListAsignatura.as_view(), name='asignaturas'),
@@ -70,6 +72,19 @@ urlpatterns = [
     path('plandeestudioupdate/<int:pk>/', views.UpdatePlanDeEstudio, name='plandeestudioupdate'),
     path('plandeestudioupdateform/<int:pk>/', views.UpdatePlanDeEstudioForm, name='plandeestudioupdateform'),
     path('plandeestudiosexport/<str:export>', views.ExportarPlanes, name='planesexport'),
+
+    # CARGAS HORARIAS
+    path('cargashorarias/', ListCargaHoraria.as_view(), name='cargashorarias'),
+    path('cargashorariascreate/', views.CreateCargaHoraria, name='cargashorariascreate'),
+    path('cargashorariasupdate/<int:pk>/', views.UpdateCargaHoraria, name='cargashorariasupdate'),
+    path('cargashorariasexport/', views.ExportarCargaHoraria, name='cargashorariasexport'),
+
+    # HORARIOS
+    path('horarios/', views.ListHorarios, name='horarios'),
+    path('horarioscreate/', views.CreateHorario, name='horariocreate'),
+    path('horariosupdate/<int:pk>/', views.UpdateHorario, name='horarioupdate'),
+    path('horariosexport/', views.ExportarHorario, name='horariosexport'),
+
 
     # AUTENTICACION
     path('logout/', custom_logout, name='logout'),

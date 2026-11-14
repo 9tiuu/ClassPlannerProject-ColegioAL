@@ -1,0 +1,56 @@
+<div id="table_{{ jornada|lower }}" class="relative max-h-[80vh] overflow-x-auto bg-neutral-primary-soft shadow-xs border border-slate-300 dark:border-slate-800 rounded-lg">
+    <table class="min-w-full text-sm text-left text-body">
+        <thead class="sticky top-0 z-10 text-sm text-slate-700 dark:text-white bg-slate-200 dark:bg-[#10141f] border-b dark:border-slate-800">
+            <tr>
+                <th scope="col" class="flex gap-2 px-4 min-w-36 py-3 font-bold">
+                    <p>Horas</p>
+                    {% if jornada == 'JM' %}
+                    <p class="text-orange-500 text-xs bg-orange-600/20 text-center px-2 py-0.5 rounded">JM</p>
+                    {% else %}
+                    <p class="text-violet-600 dark:text-violet-500 text-xs bg-violet-600/20 text-center px-2 py-0.5 rounded">JT</p>
+                    {% endif %}
+                </th>
+                {% for n, d in dias %}
+                <th scope="col" class="px-6 py-3 font-bold">{{ d }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+
+        <tbody class="dark:text-[#a8b2d2] text-slate-500">
+            {% for b in bloques %}
+            <tr class="border-b dark:border-b-slate-800 odd:bg-white even:bg-white even:dark:bg-[#171c2b] dark:odd:bg-[#171c2b]">
+                <td class="px-6 py-2">
+                    <p class="font-bold">Hora {{ forloop.counter }}</p>
+                    <p>{{ b.hora_inicio|time:"H:i" }} - {{ b.hora_termino|time:"H:i" }}</p>
+                </td>
+
+                {% if b.es_recreo %}
+                <td colspan="{{ dias|length }}" class="p-2">
+                    <div class="flex items-center justify-center rounded-lg border border-amber-500/30 bg-amber-500/10 min-h-[3.6rem] px-4 py-2">
+                        <p class="font-bold text-amber-600 dark:text-amber-400">Recreo</p>
+                    </div>
+                </td>
+                {% else %}
+                    {% for num, nombre in dias %}
+                    <td class="p-2">
+                        <button type="button" class="casilla w-full text-left cursor-pointer">
+                            <div class="vacio flex items-center justify-center bg-slate-400/10 dark:bg-slate-600/10 border min-h-[3.6rem] border-slate-300 dark:border-slate-700 rounded-lg px-4 py-2 min-w-52 hover:bg-slate-400/20">
+                                <p class="font-bold w-full text-center">+</p>
+                            </div>
+
+                            <div class="asignado hidden bg-blue-600/10 border border-blue-600/25 rounded-lg px-4 py-2 min-w-52 min-h-[3.6rem]">
+                                <p class="font-bold w-full txt-asignatura text-xs text-blue-500"></p>
+                                <p class="txt-docente text-xs"></p>
+                            </div>
+
+                            <input type="hidden" class="in-asignatura" name="asignatura_{{ jornada }}_{{ forloop.parentloop.counter }}_{{ num }}">
+                            <input type="hidden" class="in-docente" name="docente_{{ jornada }}_{{ forloop.parentloop.counter }}_{{ num }}">
+                        </button>
+                    </td>
+                    {% endfor %}
+                {% endif %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>

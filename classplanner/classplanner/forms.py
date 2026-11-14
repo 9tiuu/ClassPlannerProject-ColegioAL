@@ -23,7 +23,6 @@ class UniqueDirectorRoleFormMixin:
             )
         return rol
 
-
 class UsuarioForm(UniqueDirectorRoleFormMixin, UserCreationForm):
     class Meta:
         model = Usuario
@@ -262,7 +261,7 @@ class PromedioAsignaturaCreateForm(forms.ModelForm):
                 asignatura_id=asignatura,
             ).exclude(pk=self.instance.pk).count()
 
-            if cantidad >= 9:
+            if cantidad >= 8:
                 raise forms.ValidationError('Un estudiante puede tener como máximo 8 notas por asignatura.')
 
         return cleaned

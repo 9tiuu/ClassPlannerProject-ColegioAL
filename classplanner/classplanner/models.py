@@ -23,11 +23,12 @@ class Usuario(AbstractUser):
     rol = models.ForeignKey(Rol, on_delete=models.RESTRICT, null=True)
     avatar = models.ImageField(upload_to='avatars', blank=True, null=True)
     passwd_changed = models.BooleanField(default=False, blank=True)
-    
     # abstractuser tiene campo is_active
+
     def delete(self, *args, **kwargs):
-       self.is_active = False
-       self.save()
+        self.is_active = False
+        self.save()
+
     def __str__(self) -> str:
         return f'{self.name} {self.last_name}'
 
@@ -79,8 +80,8 @@ class Estudiante(models.Model):
     is_active = models.BooleanField(default=True, blank=True)
 
     def delete(self, *args, **kwargs):
-       self.is_active = False
-       self.save()
+        self.is_active = False
+        self.save()
     def __str__(self) -> str:
         return f'{self.nombre} {self.apellido_p} {self.apellido_m}'
 
@@ -124,22 +125,31 @@ class PlanDeEstudio(models.Model):
     def __str__(self) -> str:
         return f'{self.curso_id}: {self.hrs_asignatura}hrs. {self.asignatura_id}'
 
+class CargaHoraria(models.Model):
+    usuario_id = models.OneToOneField(Usuario, on_delete=models.CASCADE)
+    hrs_contrato = models.FloatField()
+    hrs_aula = models.FloatField(null=True, blank=True)
+    hrs_cd = models.FloatField(null=True, blank=True)
+    hrs_aa = models.FloatField(null=True, blank=True)
+    anio_planificacion = models.PositiveIntegerField(null=True, blank=True)
+
+    def __str__(self) -> str:
+        return f'{self.usuario_id} - {self.hrs_contrato} hrs. Contrato - {self.hrs_aula} hrs. Aula / Planificación: {self.anio_planificacion}'
+
 class Horario(models.Model):
     plan_de_estudio_id = models.ForeignKey(PlanDeEstudio, on_delete=models.RESTRICT)
     aula_id = models.ForeignKey(Aula, on_delete=models.RESTRICT)
-    bloque_id = models.ManyToManyField(Bloque)
+    anio_planificacion = models.PositiveIntegerField(null=True, blank=True)
 
     def __str__(self) -> str:
-        return f'Plan {self.plan_de_estudio_id}, Bloque: {self.bloque_id}, Aula: {self.aula_id}'
+        return f'Plan {self.plan_de_estudio_id}, Aula: {self.aula_id}, Planificacion: {self.anio_planificacion}'
 
-class CargaHoraria(models.Model):
-    usuario_id = models.OneToOneField(Usuario, on_delete=models.CASCADE)
-    asignatura_id = models.ManyToManyField(Asignatura)
-    curso_id = models.ManyToManyField(Curso)
-    hrs_contrato = models.FloatField()
-    hrs_aula = models.FloatField()
-    hrs_cd = models.FloatField()
-    hrs_aa = models.FloatField()
+class BloqueDeClase(models.Model):
+    horario_id = models.ForeignKey(Horario, on_delete=models.CASCADE, null=True, blank=True)
+    usuario_id = models.ForeignKey(Usuario, on_delete=models.RESTRICT, null=True, blank=True)
+    bloque_id = models.ForeignKey(Bloque, on_delete=models.RESTRICT)
+    asignatura_id = models.ForeignKey(Asignatura, on_delete=models.RESTRICT)
+    curso_id = models.ForeignKey(Curso, on_delete=models.RESTRICT)
 
     def __str__(self) -> str:
-        return f'{self.usuario_id} - {self.hrs_contrato}hrs. Contrato - {self.hrs_aula}hrs. Aula'
+        return f'({self.asignatura_id} / {self.curso_id} / {self.usuario_id}): {self.bloque_id}'

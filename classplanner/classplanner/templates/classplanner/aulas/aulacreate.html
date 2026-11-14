@@ -5,12 +5,15 @@
 {% endblock %}
 
 {% block content %}
-<div class="p-4 border-slate-300 dark:border-slate-700 min-h-screen border-default border mt-10 rounded-lg">
-    <p class="mb-3 text-slate-500 dark:text-[#a8b2d2]">Gestión / Aulas / Crear</p>
-    <h2 class="text-3xl font-bold text-[#234FA8] dark:text-blue-500 mb-1">Nueva aula</h2>
-    <p class="text-slate-500 dark:text-[#a8b2d2] mb-5 text-sm">Registre una nueva aula completando los siguientes campos:</p>
 
-    <div class="p-4 bg-white dark:bg-[#141826] rounded-lg">
+<div class="p-4 min-h-[10vh] mt-4 rounded-lg">
+    <p class="mb-2 text-slate-500 text-sm dark:text-slate-400"><button class="hover:underline" id="home-link" data-url="{% url 'home' %}" onclick="window.exitConfirm(this)">Gestión</button> / <button class="hover:underline" id="aulas-link" data-url="{% url 'aulas' %}" onclick="window.exitConfirm(this)">Aulas</button> / <a class="hover:underline font-semibold text-slate-700 dark:text-slate-200" href="#">Crear</a></p>
+    <h2 class="mb-2 text-4xl font-semibold text-[#234FA8] dark:text-blue-400 sm:text-3xl">Nueva Aula</h2>
+    <p class="text-sm text-slate-500 dark:text-slate-400 sm:text-base">Registre un nueva aula completando los siguientes campos:</p>
+</div>
+
+<div class="p-4 bg-white dark:bg-[#141826] border-slate-300 dark:border-slate-700 min-h-[70vh] border-default border mt-10 rounded-lg">
+    <div class="p-4 rounded-lg">
         <form method="POST" action="{% url 'aulacreate' %}">
             {% csrf_token %}
 
@@ -35,7 +38,7 @@
                 {% endif %}
             </div>
 
-            <div class="flex md:flex-row flex-col w-full gap-5 mb-5">
+            <div class="flex flex-col w-full gap-5 mb-5">
                 <div class="flex flex-col w-full">
                     <label for="id_cupos" class="mb-1 text-base font-semibold text-slate-600 dark:text-white">Capacidad de alumnos <b class="text-red-600">*</b></label>
                     <input type="number" name="cupos" id="id_cupos" value="{{ form.cupos.value|default:'' }}" class="w-full bg-white dark:bg-[#141826] text-sm focus:outline-none focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 rounded-lg h-12 border-2 p-3 border-slate-300 dark:border-slate-700 dark:placeholder:text-[#a8b2d2] dark:text-white" min="1" step="1" placeholder="Ej: 30" required>
@@ -51,11 +54,14 @@
 
                 <div class="flex flex-col w-full">
                     <label for="id_curso_id" class="mb-1 text-base font-semibold text-slate-600 dark:text-white">Cursos asignados (máximo 2)</label>
-                    <select name="curso_id" id="id_curso_id" multiple class="w-full bg-white dark:bg-[#141826] text-sm focus:outline-none focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 rounded-lg h-32 border-2 p-3 border-slate-300 dark:border-slate-700 dark:text-white">
+                    <div id="id_curso_id" class="flex flex-col gap-2 rounded-lg border-2 border-slate-300 p-3 dark:border-slate-700">
                         {% for option in form.curso_id %}
-                        <option value="{{ option.data.value }}" {% if option.data.selected %}selected{% endif %}>{{ option.data.label }}</option>
+                        <label class="flex items-center gap-2 text-sm text-slate-700 dark:text-white">
+                            <input type="checkbox" name="curso_id" value="{{ option.data.value }}" {% if option.data.selected %}checked{% endif %} class="rounded border-slate-300 text-blue-600 focus:ring-blue-600">
+                            {{ option.data.label }}
+                        </label>
                         {% endfor %}
-                    </select>
+                    </div>
 
                     {% if form.curso_id.errors %}
                     <div class="mb-2">
@@ -78,4 +84,30 @@
         </form>
     </div>
 </div>
+<script>
+    function exitConfirm(button) {
+        const isDarkMode = document.documentElement.classList.contains('dark');
+
+        Swal.fire({
+            "title": "¿Está seguro que desea salir?",
+            "text": "No se guardarán los cambios.",
+            "icon": "warning",
+            "background": isDarkMode ? "#141826" : "#ffffff",
+            "color": isDarkMode ? "#f8fafc" : "#0f172a",
+            "showCancelButton": true,
+            "confirmButtonColor": "#0d6efd",
+            "cancelButtonColor": '#d33',
+            "confirmButtonText": 'Si, salir',
+            "cancelButtonText": 'Cancelar',
+        }).then((r) => {
+            if (!r.isConfirmed) return;
+
+            if (button.id != '') {
+                window.location.assign(button.dataset.url);
+            } else {
+                window.location.assign('/home');
+            }
+        });
+    };
+</script>
 {% endblock %}

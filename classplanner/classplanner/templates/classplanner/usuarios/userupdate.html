@@ -1,15 +1,26 @@
-{% extends 'classplanner/base.html' %}
+{% extends "classplanner/base.html" %}
 {% block title %}
+{% if request.user.rol.name != 'Director' %}
 <title>Actualizar Usuario | ClassPlanner</title>
+{% else %}
+<title>Actualizar Profesor | ClassPlanner</title>
+{% endif %}
 {% endblock %}
 {% block content %}
-<div class="p-4 min-h-[6vh] mt-2 rounded-lg">
-    <p class="mb-3 text-slate-500"><button class="hover:underline" id="home-link" data-url="{% url 'home' %}" onclick="window.exitConfirm(this)">Gestión</button> / <button class="hover:underline" id="usuarios-link" data-url="{% url 'userlist' %}" onclick="window.exitConfirm(this)">Usuarios</button> / Actualizar</p>
-    <h2 class="text-4xl font-semibold text-[#234FA8] dark:text-blue-500 mb-1">Actualización de usuario</h2>
-    <p class="text-slate-500 dark:text-[#a8b2d2] mb-5 text-sm">Actualice los datos del usuario completando los siguientes campos:</p>
+<div class="p-4 min-h-[10vh] mt-4 rounded-lg">
+    {% if request.user.rol.name != 'Director' %}
+    <p class="mb-2 text-slate-500 text-sm dark:text-slate-400"><button class="hover:underline" id="home-link" data-url="{% url 'home' %}" onclick="window.exitConfirm(this)">Gestión</button> / <button class="hover:underline" id="userlist-link" data-url="{% url 'userlist' %}" onclick="window.exitConfirm(this)">Usuarios</button> / <a class="hover:underline font-semibold text-slate-700 dark:text-slate-200" href="#">Crear</a></p>
+    <h2 class="mb-2 text-4xl font-semibold text-[#234FA8] dark:text-blue-400 sm:text-3xl">Actualizar Usuario</h2>
+    <p class="text-sm text-slate-500 dark:text-slate-400 sm:text-base">Actualice los datos del usuario completando los siguientes campos:</p>
+    {% else %}
+    <p class="mb-2 text-slate-500 text-sm dark:text-slate-400"><button class="hover:underline" id="home-link" data-url="{% url 'home' %}" onclick="window.exitConfirm(this)">Gestión</button> / <button class="hover:underline" id="userlist-link" data-url="{% url 'userlist' %}" onclick="window.exitConfirm(this)">Profesores</button> / <a class="hover:underline font-semibold text-slate-700 dark:text-slate-200" href="#">Crear</a></p>
+    <h2 class="mb-2 text-4xl font-semibold text-[#234FA8] dark:text-blue-400 sm:text-3xl">Actualizar Profesor</h2>
+    <p class="text-sm text-slate-500 dark:text-slate-400 sm:text-base">Actualice los datos del profesor completando los siguientes campos:</p>
+    {% endif %}
 </div>
-<div class="justify-center flex flex-col grid grid-cols-1 bg-white p-4 border-slate-300 dark:border-slate-700 border-default border mt-10 rounded-lg">
-    <div class="p-3 dark:bg-[#141826] rounded-lg">
+
+<div class="justify-center bg-white dark:bg-[#141826] flex flex-col grid-cols-1 p-4 border-slate-300 dark:border-slate-700 border-default border mt-6 rounded-lg">
+    <div class="pt-2 px-3 rounded-lg">
         <form method="POST" enctype="multipart/form-data" class="users-c-form">
             {% csrf_token %}  
                 
@@ -87,7 +98,8 @@
                         {% endfor %}
                     </div>
                     {% endif %}
-                </div>                <div class="flex flex-col w-full">
+                </div>                
+                <div class="flex flex-col w-full">
                     <label for="rol" class="mb-1 text-base font-semibold text-slate-600 dark:text-white">Rol de usuario <b class="text-red-600">*</b></label>
                     <select name="rol" id="id_rol" class="bg-white dark:bg-[#141826] text-sm focus:outline-none focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 focus:transition focus:duration-300 rounded-lg h-12 border-2 p-3 border-slate-300 dark:border-slate-700 dark:placeholder:text-[#a8b2d2] dark:text-white {% if form.rol.field.disabled %}cursor-not-allowed opacity-60{% endif %}" {% if form.rol.field.disabled %}disabled{% endif %}>
                         <option value="" {% if not form.rol.value %} selected {% endif %}>Por seleccionar...</option>
@@ -112,19 +124,29 @@
                 <button type="button" id="users-back" data-url="{% url 'userlist' %}" onclick="window.exitConfirm(this)" class="flex items-center text-sm gap-2 border-2 font-semibold border-slate-300 dark:border-slate-700 dark:bg-[#141826] dark:hover:bg-[#1d2236] dark:text-[#a8b2d2] dark:hover:text-white text-slate-500 hover:bg-gray-100 hover:text-slate-700 text-center hover:transition transition hover:duration-300 duration-300 rounded-lg px-4 py-3">
                     Volver atrás
                 </button>
+                {% if request.user.rol.name != 'Director' %}
                 <button type="submit" class="flex items-center gap-2 text-white text-sm font-semibold bg-blue-600 hover:bg-blue-800 text-center hover:transition transition hover:duration-300 duration-300 rounded-lg px-4 py-3 ">
                     Actualizar usuario
                 </button>
+                {% else %}
+                <button type="submit" class="flex items-center gap-2 text-white text-sm font-semibold bg-blue-600 hover:bg-blue-800 text-center hover:transition transition hover:duration-300 duration-300 rounded-lg px-4 py-3 ">
+                    Actualizar profesor
+                </button>
+                {% endif %}
             </div>
         </form>
     </div>
 </div>
 <script>
     function exitConfirm(button) {
+        const isDarkMode = document.documentElement.classList.contains('dark');
+
         Swal.fire({
             "title": "¿Está seguro que desea salir?",
             "text": "No se guardarán los cambios.",
             "icon": "warning",
+            "background": isDarkMode ? "#141826" : "#ffffff",
+            "color": isDarkMode ? "#f8fafc" : "#0f172a",
             "showCancelButton": true,
             "confirmButtonColor": "#0d6efd",
             "cancelButtonColor": '#d33',

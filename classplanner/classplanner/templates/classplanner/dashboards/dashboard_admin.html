@@ -1,0 +1,286 @@
+<div class="-m-4 min-h-screen">
+    <div class="flex h-60 w-full items-end bg-gradient-to-br from-purple-800 via-indigo-700 to-sky-500 px-6 pb-24">
+        <div class="flex items-center gap-3">
+            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-cyan-600 text-white">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M9 3a2 2 0 0 1 2 2v6a2 2 0 0 1 -2 2h-4a2 2 0 0 1 -2 -2v-6a2 2 0 0 1 2 -2zm0 12a2 2 0 0 1 2 2v2a2 2 0 0 1 -2 2h-4a2 2 0 0 1 -2 -2v-2a2 2 0 0 1 2 -2zm10 -4a2 2 0 0 1 2 2v6a2 2 0 0 1 -2 2h-4a2 2 0 0 1 -2 -2v-6a2 2 0 0 1 2 -2zm0 -8a2 2 0 0 1 2 2v2a2 2 0 0 1 -2 2h-4a2 2 0 0 1 -2 -2v-2a2 2 0 0 1 2 -2z" />
+                </svg>
+            </div>
+            <div>
+                <h2 class="text-2xl font-bold text-white">Dashboard Administrativo</h2>
+                <p class="text-sm text-white/90">¡Bienvenido/a @{{ request.user.name }}! Aquí tiene un resumen administrativo de su institución.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="-mt-20 grid grid-cols-2 gap-2 px-6 md:grid-cols-4 xl:grid-cols-4">
+
+        <!-- DOCENTES -->
+        <div class="rounded-xl border-0 border-slate-300 bg-white p-4 shadow dark:border-slate-700 dark:bg-[#141826]">
+            <div class="flex items-center gap-3">
+                <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-500 text-white">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M7 14s-1 0-1-1 1-4 5-4 5 3 5 4-1 1-1 1zm4-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6m-5.784 6A2.24 2.24 0 0 1 5 13c0-1.355.68-2.75 1.936-3.72A6.3 6.3 0 0 0 5 9c-4 0-5 3-5 4s1 1 1 1zM4.5 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5"/>
+                    </svg>
+                </div>
+                <p class="font-semibold text-slate-700 dark:text-white">Docentes</p>
+            </div>
+            <p data-contador="total_docentes" class="mt-5 text-3xl font-bold text-blue-500">{{ total_docentes|default:0 }}</p>
+            <p class="text-xs text-slate-400">Total de docentes</p>
+        </div>
+
+        <!-- ASIGNATURAS -->
+        <div class="rounded-xl border-0 border-slate-300 bg-white p-4 shadow dark:border-slate-700 dark:bg-[#141826]">
+            <div class="flex items-center gap-3">
+                <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-green-500 text-white">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M21.5 5.134a1 1 0 0 1 .493 .748l.007 .118v13a1 1 0 0 1 -1.5 .866a8 8 0 0 0 -7.5 -.266v-15.174a10 10 0 0 1 8.5 .708m-10.5 -.707l.001 15.174a8 8 0 0 0 -7.234 .117l-.327 .18l-.103 .044l-.049 .016l-.11 .026l-.061 .01l-.117 .006h-.042l-.11 -.012l-.077 -.014l-.108 -.032l-.126 -.056l-.095 -.056l-.089 -.067l-.06 -.056l-.073 -.082l-.064 -.089l-.022 -.036l-.032 -.06l-.044 -.103l-.016 -.049l-.026 -.11l-.01 -.061l-.004 -.049l-.002 -13.068a1 1 0 0 1 .5 -.866a10 10 0 0 1 8.5 -.707" />
+                    </svg>
+                </div>
+                <p class="font-semibold text-slate-700 dark:text-white">Asignaturas</p>
+            </div>
+            <p data-contador="total_asignaturas" class="mt-5 text-3xl font-bold text-green-500">{{ total_asignaturas|default:0 }}</p>
+            <p class="text-xs text-slate-400">Total de asignaturas</p>
+        </div>
+
+        <!-- ESTUDIANTES -->
+        <div class="rounded-xl border-0 border-slate-300 bg-white p-4 shadow dark:border-slate-700 dark:bg-[#141826]">
+            <div class="flex items-center gap-3">
+                <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-red-400 text-white">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 3l11 5l-11 5l-11 -5z" />
+                        <path d="M6 11.8v4.7c0 1.7 2.7 3.5 6 3.5s6 -1.8 6 -3.5v-4.7l-6 2.7z" />
+                        <rect x="21.2" y="9" width="1.6" height="6" rx="0.8" />
+                    </svg>
+                </div>
+                <p class="font-semibold text-slate-700 dark:text-white">Estudiantes</p>
+            </div>
+            <p data-contador="total_estudiantes" class="mt-5 text-3xl font-bold text-red-400">{{ total_estudiantes|default:0 }}</p>
+            <p class="text-xs text-slate-400">Total de estudiantes</p>
+        </div>
+
+        <!-- CURSOS -->
+        <div class="rounded-xl border-0 border-slate-300 bg-white p-4 shadow dark:border-slate-700 dark:bg-[#141826]">
+            <div class="flex items-center gap-3">
+                <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-orange-400 text-white">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                        <path fill-rule="evenodd" d="M4 3h16a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-16a2 2 0 0 1 -2 -2v-10a2 2 0 0 1 2 -2zM5 6h14v8h-14z" />
+                        <rect x="7" y="8" width="10" height="2" rx="1" />
+                        <rect x="7" y="11" width="6" height="2" rx="1" />
+                        <rect x="11" y="17" width="2" height="3" />
+                        <rect x="7" y="20" width="10" height="2" rx="1" />
+                    </svg>
+                </div>
+                <p class="font-semibold text-slate-700 dark:text-white">Cursos</p>
+            </div>
+            <p data-contador="total_cursos" class="mt-5 text-3xl font-bold text-orange-400">{{ total_cursos|default:0 }}</p>
+            <p class="text-xs text-slate-400">Total de cursos</p>
+        </div>
+
+    </div>
+
+    <!-- DASHBOARDS -->
+    <div class="mt-3 grid grid-cols-1 gap-2 px-6 pb-6 lg:grid-cols-2">
+
+        <!-- DASHBOARD DOCENTES -->
+        <div class="flex flex-col rounded-2xl bg-white p-4 shadow dark:bg-[#141826]">
+            <h3 class="text-lg font-semibold text-[#234FA8] dark:text-blue-400">Docentes con más Carga Horaria</h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400">
+                Top 5 docentes según horas de contrato del año {% now "Y" %}
+            </p>
+
+            <div class="mt-4 flex flex-1 flex-col items-center justify-center gap-4 rounded-xl border-2 border-slate-300 p-3 dark:border-slate-700 sm:flex-row sm:gap-8">
+                <div id="graph-d" class="relative h-36 w-36 shrink-0">
+                    <canvas id="grafico-docentes"></canvas>
+                </div>
+                <div>
+                    <ul id="leyenda-docentes" class="space-y-2"></ul>
+                    <p id="vacio-docentes" class="hidden font-semibold text-xs md:text-sm text-slate-500 dark:text-slate-400">
+                        Sin cargas horarias registradas para este año
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- DASHBOARD ESTUDIANTES -->
+        <div class="rounded-2xl bg-white p-4 shadow dark:bg-[#141826]">
+            <h3 class="text-lg font-semibold text-[#234FA8] dark:text-blue-400">Estudiantes por Curso</h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400">Cantidad total de estudiantes por curso</p>
+
+            <div class="mt-4 rounded-xl border-2 border-slate-300 p-3 dark:border-slate-700">
+                <div class="relative h-56 w-full">
+                    <canvas id="grafico-cursos"></canvas>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+{{ docentes_carga|json_script:"datos-docentes" }}
+{{ estudiantes_cursos|json_script:"datos-cursos" }}
+
+<script>
+    (function () {
+        const URL_DATOS = "{% url 'home' %}";
+        const INTERVALO = 30000;
+
+        const leer = (id, respaldo) => {
+            const el = document.getElementById(id);
+            if (!el) return respaldo;
+            try {
+                const valor = JSON.parse(el.textContent);
+                return valor && typeof valor === 'object' ? valor : respaldo;
+            } catch (error) {
+                return respaldo;
+            }
+        };
+
+        const paleta = ['#5aa0ff', '#7ee0a5', '#ff6b6b', '#ffb866', '#7c83fd'];
+        const fondos = ['bg-[#5aa0ff]', 'bg-[#7ee0a5]', 'bg-[#ff6b6b]', 'bg-[#ffb866]', 'bg-[#7c83fd]'];
+
+        const oscuro = () => document.documentElement.classList.contains('dark');
+        const tinta = () => oscuro() ? '#ffffff' : '#000000';
+        const rejilla = () => oscuro() ? 'rgba(148, 163, 184, 0.15)' : 'rgba(148, 163, 184, 0.3)';
+        const fondoTarjeta = () => oscuro() ? '#141826' : '#ffffff';
+
+        const contadores = document.querySelectorAll('[data-contador]');
+        const leyenda = document.getElementById('leyenda-docentes');
+        const vacio = document.getElementById('vacio-docentes');
+
+        const dona = new Chart(document.getElementById('grafico-docentes'), {
+            type: 'doughnut',
+            data: {
+                labels: [],
+                datasets: [{
+                    data: [],
+                    backgroundColor: paleta,
+                    borderColor: fondoTarjeta(),
+                    borderWidth: 3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '58%',
+                plugins: { legend: { display: false } }
+            }
+        });
+
+        const barras = new Chart(document.getElementById('grafico-cursos'), {
+            type: 'bar',
+            data: {
+                labels: [],
+                datasets: [
+                    {
+                        label: 'Curso A',
+                        data: [],
+                        backgroundColor: '#5aa0ff',
+                        borderRadius: 4,
+                        barPercentage: 0.9,
+                        categoryPercentage: 0.7
+                    },
+                    {
+                        label: 'Curso B',
+                        data: [],
+                        backgroundColor: '#ff6b6b',
+                        borderRadius: 4,
+                        barPercentage: 0.9,
+                        categoryPercentage: 0.7
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        align: 'start',
+                        labels: {
+                            usePointStyle: true,
+                            boxWidth: 8,
+                            boxHeight: 8,
+                            color: tinta(),
+                            font: { size: 10, weight: 'bold' }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: tinta(), font: { size: 10 } }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: rejilla(), drawBorder: false },
+                        ticks: { color: tinta(), precision: 0, font: { size: 10 } }
+                    }
+                }
+            }
+        });
+
+        const pintarLeyenda = nombres => {
+            leyenda.replaceChildren();
+            nombres.forEach((nombre, i) => {
+                const li = document.createElement('li');
+                li.className = 'flex items-center gap-2 text-xs font-semibold text-black dark:text-white';
+                const punto = document.createElement('span');
+                punto.className = 'h-2.5 w-2.5 shrink-0 rounded-full ' + fondos[i % fondos.length];
+                li.append(punto, nombre);
+                leyenda.appendChild(li);
+            });
+            vacio.classList.toggle('hidden', nombres.length > 0);
+            document.getElementById("graph-d").classList.toggle('hidden', nombres.length <= 0)
+        };
+
+        const aplicar = datos => {
+            contadores.forEach(el => {
+                if (el.dataset.contador in datos) {
+                    el.textContent = datos[el.dataset.contador];
+                }
+            });
+
+            const docentes = datos.docentes_carga || { labels: [], values: [] };
+            dona.data.labels = docentes.labels;
+            dona.data.datasets[0].data = docentes.values;
+            dona.update();
+            pintarLeyenda(docentes.labels);
+
+            const cursos = datos.estudiantes_cursos || { labels: [], a: [], b: [] };
+            barras.data.labels = cursos.labels;
+            barras.data.datasets[0].data = cursos.a;
+            barras.data.datasets[1].data = cursos.b;
+            barras.update();
+        };
+
+        const cargar = () => {
+            fetch(URL_DATOS, {
+                credentials: 'same-origin',
+                cache: 'no-store',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+                .then(respuesta => respuesta.ok ? respuesta.json() : Promise.reject())
+                .then(aplicar)
+                .catch(() => {});
+        };
+
+        aplicar({
+            docentes_carga: leer('datos-docentes', { labels: [], values: [] }),
+            estudiantes_cursos: leer('datos-cursos', { labels: [], a: [], b: [] })
+        });
+
+        setInterval(() => { if (!document.hidden) cargar(); }, INTERVALO);
+        document.addEventListener('visibilitychange', () => { if (!document.hidden) cargar(); });
+
+        new MutationObserver(() => {
+            barras.options.plugins.legend.labels.color = tinta();
+            barras.options.scales.x.ticks.color = tinta();
+            barras.options.scales.y.ticks.color = tinta();
+            barras.options.scales.y.grid.color = rejilla();
+            barras.update();
+
+            dona.data.datasets[0].borderColor = fondoTarjeta();
+            dona.update();
+        }).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    })();
+</script>

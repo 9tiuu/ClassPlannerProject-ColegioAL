@@ -1,0 +1,184 @@
+{% extends 'classplanner/base.html' %}
+{% block title %}
+<title>Crear Carga horaria | ClassPlanner</title>
+{% endblock %}
+{% block content %}
+
+<div class="p-4 min-h-[10vh] mt-4 rounded-lg">
+    <p class="mb-2 text-slate-500 text-sm dark:text-slate-400"><a class="hover:underline" href="{% url 'home' %}">Gestión</a> / <a class="hover:underline" href="{% url 'cargashorarias' %}">Cargas horarias</a> / <a class="hover:underline font-semibold text-slate-700 dark:text-slate-200" href="#">Actualizar</a></p>
+    <h2 class="mb-2 text-2xl font-semibold text-[#234FA8] dark:text-blue-400 sm:text-3xl">Actualizar Carga Horaria</h2>
+    <p class="text-sm text-slate-500 dark:text-slate-400 sm:text-base">Actualice los datos de la carga horaria del docente seleccionado completando los siguientes campos:</p>
+</div>
+
+<div class="p-4 border-slate-300 dark:border-slate-700 min-h-[70vh] border-default border mt-10 rounded-lg">
+    <div class="p-4 bg-white dark:bg-[#141826] rounded-lg">
+        <div class="flex items-start md:flex-row flex-row-reverse gap-2 mb-4">
+            <p class="text-cyan-600 dark:text-cyan-500 text-xs font-semibold bg-cyan-600/20 px-2 py-1 text-center w-44 rounded">
+                    Docente: {{ docente }}
+            </p>
+            <p class="text-green-600 dark:text-green-500 text-xs font-semibold bg-green-600/20 px-2 py-1 text-center w-32 rounded">
+                    Planificación {{ anio }}
+            </p>
+        </div>
+        <form method="POST" enctype="multipart/form-data" class="users-c-form">
+            {% csrf_token %}        
+            <div class="flex md:flex-row flex-col w-full gap-5 mb-5">
+                <div class="flex flex-col w-full">
+                    <label for="hrs_contrato" class="mb-1 text-base font-semibold text-slate-600 dark:text-white">Horas de contrato <b class="text-red-600">*</b></label>
+                    <input type="number" name="hrs_contrato" id="hrs_contrato" value="{{ carga.hrs_contrato|stringformat:'g' }}" class="bg-white dark:bg-[#141826] text-sm focus:outline-none focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 focus:transition focus:duration-300 rounded-lg h-12 border-2 p-3 border-slate-300 dark:border-slate-700 dark:placeholder:text-[#a8b2d2] dark:text-white" placeholder="Ej: 36">
+
+                    {% if errores.hrs_contrato %}
+                    <div class="errors mt-1">
+                        {% for error in errores.hrs_contrato %}
+                        <p class="text-red-600 dark:text-red-500 text-sm font-semibold">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="flex items-start flex-row gap-2 mb-2">
+                <p class="text-base font-semibold text-slate-600 dark:text-white">Horas de Aula total: </p>
+                <p class="text-orange-600 dark:text-orange-500 text-xs font-semibold bg-orange-600/20 px-2 py-1 text-center w-20 rounded">
+                    {{ total_bloques }} Bloques
+                </p>
+            </div>
+
+            <div class="space-y-3 bg-white dark:bg-[#141826] text-sm rounded-lg border-2 p-3 border-slate-300 dark:border-slate-700 dark:text-white">
+                {% for j in jornadas %}
+                <div class="relative max-h-[80vh] overflow-x-auto border border-slate-300 dark:border-slate-800 rounded-lg">
+                    <table class="min-w-full text-sm text-left">
+                        <thead class="text-slate-700 dark:text-white bg-slate-200 dark:bg-[#10141f] border-b dark:border-slate-800">
+                            <tr>
+                                <th class="flex gap-2 px-4 min-w-36 py-3 font-bold">
+                                    <p>Horas</p>
+                                    {% if j.codigo == 'JM' %}
+                                    <p class="text-orange-500 text-xs bg-orange-600/20 px-2 py-0.5 rounded">JM</p>
+                                    {% else %}
+                                    <p class="text-violet-600 dark:text-violet-500 text-xs bg-violet-600/20 px-2 py-0.5 rounded">JT</p>
+                                    {% endif %}
+                                </th>
+                                {% for n, d in dias %}
+                                <th class="px-6 py-3 font-bold">{{ d }}</th>
+                                {% endfor %}
+                            </tr>
+                        </thead>
+                        <tbody class="dark:text-[#a8b2d2] text-slate-500">
+                            {% for f in j.filas %}
+                            <tr class="border-b dark:border-b-slate-800 odd:bg-white even:bg-white even:dark:bg-[#171c2b] dark:odd:bg-[#171c2b]">
+                                <td class="px-6 py-2">
+                                    <p class="font-bold">Hora {{ f.numero }}</p>
+                                    <p>{{ f.hora_inicio|time:"H:i" }} - {{ f.hora_termino|time:"H:i" }}</p>
+                                </td>
+
+                                {% if f.es_recreo %}
+                                <td colspan="{{ dias|length }}" class="p-2">
+                                    <div class="flex items-center justify-center rounded-lg border border-amber-500/30 bg-amber-500/10 min-h-[3.6rem] px-4 py-2">
+                                        <p class="font-bold text-amber-600 dark:text-amber-400">Recreo</p>
+                                    </div>
+                                </td>
+                                {% else %}
+                                    {% for clase in f.celdas %}
+                                    <td class="p-2">
+                                        {% if clase %}
+                                        <div class="bg-blue-600/10 border border-blue-600/25 rounded-lg px-4 py-2 min-w-52 min-h-[3.6rem]">
+                                            <p class="font-bold text-xs text-blue-500">{{ clase.asignatura_id.nombre }}</p>
+                                            <p class="text-xs">Curso: {{ clase.curso_id }}</p>
+                                        </div>
+                                        {% else %}
+                                        <div class="flex items-center justify-center bg-slate-400/10 dark:bg-slate-600/10 border border-slate-300 dark:border-slate-700 rounded-lg min-h-[3.6rem] px-4 py-2 min-w-52">
+                                            <p class="text-slate-400">—</p>
+                                        </div>
+                                        {% endif %}
+                                    </td>
+                                    {% endfor %}
+                                {% endif %}
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% empty %}
+                <p class="p-6 text-center text-slate-500 dark:text-[#a8b2d2]">Este docente aún no tiene bloques asignados en {{ anio }}.</p>
+                {% endfor %}
+            </div>
+
+            <div class="flex flex-col w-full mb-5 mt-5">
+                <p class="mb-1 text-base font-semibold text-slate-600 dark:text-white">Tipo de Jornada</p>
+                <div class="flex md:flex-row flex-col w-full gap-5">
+                    <div class="flex items-center gap-2 w-full bg-white dark:bg-[#141826] text-sm rounded-lg border-2 p-4 border-slate-300 dark:border-slate-700 dark:text-white group">
+                        <input id="radio-des-group-1" {% if jornada_sel == 'JM' %}checked{% endif %} type="radio" name="jornada" value="JM" class="appearance-none w-4 h-4 shrink-0 rounded-full border border-slate-500 dark:border-[#a8b2d2] checked:border-blue-600 checked:bg-blue-600 checked:[box-shadow:inset_0_0_0_3px_#ffffffaf] dark:checked:[box-shadow:inset_0_0_0_3px_#14182695] cursor-pointer">
+                        <label for="radio-des-group-1" class="flex items-start cursor-pointer text-gray-600 text-sm font-normal ml-2 w-full">
+                            <div class="block">
+                                <h5 class="w-full text-sm font-medium text-black dark:text-white">Mañana (JM)</h5>
+                                <p class="text-sm font-normal text-slate-500 dark:text-[#a8b2d2] group-hover:text-blue-600 dark:group-hover:text-blue-500 transition duration-300 w-full">
+                                    De: 07:45 - 13:30
+                                </p>
+                            </div>
+                        </label>
+                    </div>
+                    <div class="flex items-center w-full bg-white dark:bg-[#141826] text-sm rounded-lg border-2 p-4 border-slate-300 dark:border-slate-700 dark:text-white group">
+                        <input id="radio-des-group-2" {% if jornada_sel == 'JT' %}checked{% endif %} type="radio" name="jornada" value="JT" class="appearance-none w-4 h-4 shrink-0 rounded-full border border-slate-500 dark:border-[#a8b2d2] checked:border-blue-600 checked:bg-blue-600 checked:[box-shadow:inset_0_0_0_3px_#ffffffaf] dark:checked:[box-shadow:inset_0_0_0_3px_#14182695] cursor-pointer">
+                        <label for="radio-des-group-2" class="flex items-start cursor-pointer text-gray-600 text-sm font-normal ml-2 w-full">
+                            <div class="block">
+                                <h5 class="w-full text-sm font-medium text-black dark:text-white">Tarde (JT)</h5>
+                                <p class="text-sm font-normal text-slate-500 dark:text-[#a8b2d2] group-hover:text-blue-600 dark:group-hover:text-blue-500 transition duration-300 w-full">
+                                    De: 14:00 - 19:00
+                                </p>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex flex-col w-full h-full mb-5">
+                <p class="mb-1 text-base font-semibold text-slate-600 dark:text-white">Distribución de Horas NO Lectivas</p>
+
+                {% if errores.casillas %}
+                <div class="errors mb-2">
+                    {% for error in errores.casillas %}
+                    <p class="bg-red-100 dark:bg-red-900 p-4 my-3 text-sm text-red-700 rounded-lg dark:text-red-300 transition duration-200">{{ error }}</p>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <div class="bg-white w-full dark:bg-[#141826] text-sm rounded-lg border-2 p-3 border-slate-300 dark:border-slate-700 dark:placeholder:text-[#a8b2d2] dark:text-white">
+                    
+                    <div class="flex md:flex-row gap-2 flex-col overflow-x-auto w-full">
+                        <div class="w-full">
+                            <!-- TABLA JORNADA DE MAÑANA -->
+                            <div id="table_jm" class="relative max-h-[80vh] overflow-x-auto bg-neutral-primary-soft shadow-xs rounded-base border border-default border-slate-300 dark:border-slate-800 rounded-lg">
+                                <table class="min-w-full text-sm text-left rtl:text-right text-body">
+                                    <thead class="text-sm text-left text-slate-700 dark:text-white bg-slate-200 dark:bg-[#10141f] text-body bg-neutral-secondary-soft border-b rounded-base border-default dark:border-slate-800">
+                                        <tr>
+                                            <th scope="col" class="flex gap-2 px-4 min-w-36 py-3 font-bold whitespace-nowrap md:whitespace-normal">
+                                                <p>Horas</p> 
+                                                <p class="text-orange-500 text-xs bg-orange-600/20 text-center px-2 py-0.5 rounded">
+                                                    JM
+                                                </p>
+                                            </th>
+                                        </tr>
+                                    </thead>
+
+                                    <tbody class="dark:text-[#a8b2d2] text-slate-500">
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="flex justify-end flex-row gap-2 my-8 w-full">              
+                <a href="{% url 'cargashorarias' %}" class="flex items-center text-sm gap-2 border-2 font-semibold border-slate-300 dark:border-slate-700 dark:bg-[#141826] dark:hover:bg-[#1d2236] dark:text-[#a8b2d2] dark:hover:text-white text-slate-500 hover:bg-gray-100 hover:text-slate-700 text-center hover:transition transition hover:duration-300 duration-300 rounded-lg px-4 py-3">
+                    Volver atrás
+                </a>
+                <button type="submit" class="flex items-center gap-2 text-white text-sm font-semibold bg-blue-600 hover:bg-blue-800 text-center hover:transition transition hover:duration-300 duration-300 rounded-lg px-4 py-3 ">
+                    Crear carga horaria
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
