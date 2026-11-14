@@ -32,14 +32,34 @@ class Usuario(AbstractUser):
         return f'{self.name} {self.last_name}'
 
 class NombresAsignatura(models.Model):
-    nombre = models.CharField(max_length=80, unique=True)
+    nombre = models.CharField(max_length=80, unique=True,
+        error_messages = {
+            'unique': 'Este nombre ya está registrado.'
+        }                      
+    )
+    is_active = models.BooleanField(default=True, blank=True)
+
+    def delete(self, *args, **kwargs):
+        # para mantener dependencias en cargas/horarios
+        self.is_active = False
+        self.save()
 
     def __str__(self):
         return self.nombre
 
 class AreasPlanesDiferenciales(models.Model):
-    nombre = models.CharField(max_length=60, unique=True)
-    
+    nombre = models.CharField(max_length=60, unique=True,
+        error_messages = {
+            'unique': 'Este nombre ya está registrado.'
+        }                      
+    )
+    is_active = models.BooleanField(default=True, blank=True)
+
+    def delete(self, *args, **kwargs):
+        # para mantener dependencias en cargas/horarios
+        self.is_active = False
+        self.save()
+
     def __str__(self):
         return self.nombre
 
@@ -47,7 +67,7 @@ class Asignatura(models.Model):
     ident = models.CharField(
         max_length=10, unique=True,
         error_messages = {
-            'unique': 'Ya existe una asignatura con este identificador'
+            'unique': 'Ya existe una asignatura con este identificador.'
         }
         )
     descripcion = models.TextField()

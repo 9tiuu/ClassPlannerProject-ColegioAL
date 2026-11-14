@@ -2,8 +2,10 @@ from django.urls import path
 from . import views
 from .views import (
     CreateUsuario, ListUsuario, UpdateUsuario, DeleteUsuario,
-    ListRegistros,
+    ListRegistros, ListLogins,
     ListRol, UpdateRol, DeleteRol, CreateRol,
+    ListNombresAsignatura, CreateNombresAsignatura, UpdateNombresAsignatura, DeleteNombresAsignatura,
+    ListAreasPlanesDiferenciales, CreateAreasPlanesDiferenciales, UpdateAreasPlanesDiferenciales, DeleteAreasPlanesDiferenciales,
     ListAula, CreateAula, UpdateAula, DeleteAula,
     ListCursos, CreateCurso, UpdateCurso, DeleteCurso,
     ListEstudiantes, CreateEstudiante, UpdateEstudiante, DeleteEstudiante,
@@ -19,11 +21,11 @@ urlpatterns = [
     path('home/', views.Home, name='home'),
 
     # ROLES
-    path('createrol/', CreateRol.as_view(), name='createrol'),
-    path('listrol/', ListRol.as_view(), name='listrol'),
-    path('updaterol/<int:pk>/', UpdateRol.as_view(), name='updaterol'),
-    path('deleterol/<int:pk>/', DeleteRol.as_view(), name='deleterol'),
-    path('findrol/', views.FindRol, name='findrol'),
+    path('sistema/createrol/', CreateRol.as_view(), name='createrol'),
+    path('sistema/listrol/', ListRol.as_view(), name='listrol'),
+    path('sistema/updaterol/<int:pk>/', UpdateRol.as_view(), name='updaterol'),
+    path('sistema/deleterol/<int:pk>/', DeleteRol.as_view(), name='deleterol'),
+    path('sistema/findrol/', views.FindRol, name='findrol'),
 
     # USUARIOS
     path('usercreate/', CreateUsuario.as_view(), name='usercreate'),
@@ -31,8 +33,25 @@ urlpatterns = [
     path('userupdate/<int:pk>/', UpdateUsuario.as_view(), name='userupdate'),
     path('userdelete/<int:pk>/', DeleteUsuario.as_view(), name='userdelete'),
 
+    # NOMBRES DE ASIGNATURA
+    path('sistema/nombresasignatura/', ListNombresAsignatura.as_view(), name='nombresasignatura'),
+    path('sistema/nombresasignaturacreate/', CreateNombresAsignatura.as_view(), name='nombresasignaturacreate'),
+    path('sistema/nombresasignaturaupdate/<int:pk>/', UpdateNombresAsignatura.as_view(), name='nombresasignaturaupdate'),
+    path('sistema/nombresasignaturadelete/<int:pk>/', DeleteNombresAsignatura.as_view(), name='nombresasignaturadelete'),
+    path('sistema/nombresasignaturaactivate/<int:pk>/', views.ActivateNombresAsignatura, name='nombresasignaturaactivate'),
+
+    # NOMBRES DE PLANES DIFERENCIALES
+    path('sistema/nombresplanes/', ListAreasPlanesDiferenciales.as_view(), name='nombresplanesdiferenciales'),
+    path('sistema/nombresplanescreate/', CreateAreasPlanesDiferenciales.as_view(), name='nombresplanesdiferencialescreate'),
+    path('sistema/nombresplanesupdate/<int:pk>/', UpdateAreasPlanesDiferenciales.as_view(), name='nombresplanesdiferencialesupdate'),
+    path('sistema/nombresplanesdelete/<int:pk>/', DeleteAreasPlanesDiferenciales.as_view(), name='nombresplanesdiferencialesdelete'),
+    path('sistema/nombresplanesactivate/<int:pk>/', views.ActivateAreasPlanesDiferenciales, name='nombresplanesdiferencialesactivate'),
+
     # REGISTROS
-    path('registros/', ListRegistros.as_view(), name='registros'),
+    path('sistema/registros/', ListRegistros.as_view(), name='registros'),
+
+    # LOGINS
+    path('sistema/login/', ListLogins.as_view(), name='logins'),
 
     # AULAS
     path('aulas/', ListAula.as_view(), name='aulas'),

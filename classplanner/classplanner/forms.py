@@ -1,6 +1,6 @@
 from django import forms
 from phonenumber_field.formfields import PhoneNumberField
-from .models import Curso, PlanDeEstudio, Usuario, Rol, Asignatura, Estudiante, Aula, PromedioAsignatura
+from .models import Curso, PlanDeEstudio, Usuario, Rol, NombresAsignatura, AreasPlanesDiferenciales, Asignatura, Estudiante, Aula, PromedioAsignatura
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 # from django.contrib.auth.forms import AuthenticationForm
 
@@ -371,3 +371,13 @@ class AsignaturaUpdateForm(forms.ModelForm):
             'nombres_asignatura_id': forms.Select(attrs={'class': 'w-full rounded border my-2 px-2 py-2 bg-white dark:bg-[#141826] text-sm focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 focus:transition focus:duration-300 rounded-lg invalid:border-red-400 focus:outline-none dark:bg-slate-800 dark:text-white'}),
             'areas_planes_diferenciales_id': forms.Select(attrs={'class': 'w-full rounded border my-2 px-2 py-2 bg-white dark:bg-[#141826] text-sm focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 focus:transition focus:duration-300 rounded-lg invalid:border-red-400 focus:outline-none dark:bg-slate-800 dark:text-white'}),
         }
+
+class NombresAsignaturaForm(forms.ModelForm):
+    class Meta:
+        model = NombresAsignatura
+        fields = ['nombre']
+
+class AreasPlanesDiferencialesForm(forms.ModelForm):
+    class Meta:
+        model = AreasPlanesDiferenciales
+        fields = ['nombre']

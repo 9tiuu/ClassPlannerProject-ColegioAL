@@ -11,14 +11,16 @@ from django.contrib import messages
 from django.db.models.deletion import RestrictedError
 from django.db.models import Case, F, IntegerField, OuterRef, Subquery, When
 from datetime import datetime
+import json
 import re
 from math import floor
 
-from easyaudit.models import CRUDEvent
-from .models import Rol, Usuario, Asignatura, PlanDeEstudio, Curso, Estudiante, Aula, PromedioAsignatura, CargaHoraria, Bloque, BloqueDeClase, Horario
+from easyaudit.models import CRUDEvent, LoginEvent
+from .models import Rol, Usuario, NombresAsignatura, AreasPlanesDiferenciales, Asignatura, PlanDeEstudio, Curso, Estudiante, Aula, PromedioAsignatura, CargaHoraria, Bloque, BloqueDeClase, Horario
 from .forms import (
     RolForm, UsuarioForm, UserUpdateForm,
     PlanDeEstudioCreateForm, PlanDeEstudioUpdateForm,
+    NombresAsignaturaForm, AreasPlanesDiferencialesForm,
     CursoForm, AsignaturasCreateForm, AsignaturaUpdateForm,
     AulaCreateForm, AulaUpdateForm,
     EstudiantesCreateForm, EstudiantesUpdateForm,
@@ -41,6 +43,7 @@ from .static.classplanner.py.exportar_cargas_horarios import exportar_cargas, ex
 from datetime import time, datetime, date
 from collections import Counter
 from django.db.models import Count
+from django.db.utils import IntegrityError
 from django.http import JsonResponse
 from django.utils import timezone
 
@@ -56,6 +59,17 @@ def validar_rut(rut):
     if not match:
         raise ValidationError("El RUT tiene un formato incorrecto")
     return True
+
+def texto_titulo(nombre):
+    return re.sub(
+        r'\S+',
+        lambda match: (
+            match.group(0).title()
+            if len(match.group(0)) > 3
+            else match.group(0).lower()
+        ),
+        nombre,
+    )
 
 def roles_required(*roles_permitidos):
     def decorator(view_func):
@@ -175,7 +189,7 @@ def datos_dashboard_admin():
 class CreateRol(CreateView):
     model = Rol
     form_class = RolForm
-    template_name = 'classplanner/roles/roluser_create.html'
+    template_name = 'classplanner/sistema/roles/roluser_create.html'
     success_url = reverse_lazy('listrol')
 
     def form_valid(self, form):
@@ -186,7 +200,7 @@ class CreateRol(CreateView):
 @method_decorator(roles_required('root'), name='dispatch') 
 class ListRol(ListView):
     model = Rol
-    template_name = 'classplanner/roles/roluser_list.html'
+    template_name = 'classplanner/sistema/roles/roluser_list.html'
     context_object_name = 'rol'
 
 def FindRol(request):
@@ -195,14 +209,14 @@ def FindRol(request):
         roluser = Rol.objects.filter(name__icontains = response)
     else:
         roluser = Rol.objects.all()   
-    return render(request, 'classplanner/roles/rolser_find.html', {'rol':roluser, 'response':response})
+    return render(request, 'classplanner/sistema/roles/rolser_find.html', {'rol':roluser, 'response':response})
 
 @method_decorator(login_required, name='dispatch')
 @method_decorator(roles_required('root'), name='dispatch')
 class UpdateRol(UpdateView):
     model = Rol
     form_class = RolForm
-    template_name = 'classplanner/roles/roluser_update.html'
+    template_name = 'classplanner/sistema/roles/roluser_update.html'
     success_url = reverse_lazy('listrol')
 
     def form_valid(self, form):
@@ -213,7 +227,7 @@ class UpdateRol(UpdateView):
 @method_decorator(roles_required('root'), name='dispatch')
 class DeleteRol(DeleteView):
     model = Rol
-    template_name = 'classplanner/roles/roluser_delete.html'
+    template_name = 'classplanner/sistema/roles/roluser_delete.html'
     context_object_name = 'rol'
     success_url = reverse_lazy('listrol')
 
@@ -363,11 +377,24 @@ class DeleteUsuario(DeleteView):
 
 # ----------------------------------- # REGISTROS
 
+def _parse_changed_fields(changed_fields):
+    if not changed_fields or not changed_fields.strip():
+        return {}, ''
+
+    try:
+        parsed_fields = json.loads(changed_fields)
+    except json.JSONDecodeError:
+        return {}, changed_fields
+
+    if isinstance(parsed_fields, dict):
+        return parsed_fields, ''
+    return {}, changed_fields
+
 @method_decorator(login_required, name='dispatch')
 @method_decorator(roles_required('root', 'Administrador'), name='dispatch')
 class ListRegistros(ListView):
     model = CRUDEvent
-    template_name = 'classplanner/registros/registroslist.html'
+    template_name = 'classplanner/sistema/registros/registroslist.html'
     context_object_name = 'registros'
 
     def get_queryset(self):
@@ -405,6 +432,12 @@ class ListRegistros(ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
+        for registro in context["registros"]:
+            (
+                registro.changed_fields_dict,
+                registro.changed_fields_text,
+            ) = _parse_changed_fields(registro.changed_fields)
+
         # Módulos utilizados en los registros de auditoría
         context["modulos"] = (
             ContentType.objects
@@ -423,6 +456,225 @@ class ListRegistros(ListView):
         context["modulo_seleccionado"] = self.request.GET.get("modulo", "")
 
         return context
+
+@method_decorator(login_required, name='dispatch')
+@method_decorator(roles_required('root'), name='dispatch')
+class ListLogins(ListView):
+    model = LoginEvent
+    template_name = 'classplanner/sistema/login/loginlist.html'
+    context_object_name = 'logins'
+
+    def get_queryset(self):
+        queryset = (
+            LoginEvent.objects
+            .select_related("user")
+            .order_by("-datetime")
+        )
+
+        fecha_desde = self.request.GET.get("fecha_desde")
+        if fecha_desde:
+            queryset = queryset.filter(datetime__date__gte=fecha_desde)
+
+        fecha_hasta = self.request.GET.get("fecha_hasta")
+        if fecha_hasta:
+            queryset = queryset.filter(datetime__date__lte=fecha_hasta)
+
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["fecha_desde"] = self.request.GET.get("fecha_desde", "")
+        context["fecha_hasta"] = self.request.GET.get("fecha_hasta", "")
+        return context
+
+# ----------------------------------- # NOMBRES ASIGNATURAS
+
+@method_decorator(login_required, name='dispatch')
+@method_decorator(roles_required('root', 'Administrador'), name='dispatch')
+class ListNombresAsignatura(ListView):
+    model = NombresAsignatura
+    template_name = 'classplanner/sistema/nombresasignatura/nomasignaturalist.html'
+    context_object_name = 'asignaturas'
+    def get_queryset(self):
+        is_admin = self.request.user.rol.name == 'root' or self.request.user.rol.name == 'Administrador'
+        if is_admin:
+            mostrar_desactivados = self.request.GET.get('change_state') == '1'
+            queryset = NombresAsignatura.objects.filter(is_active=not mostrar_desactivados)
+        else:
+            queryset = NombresAsignatura.objects.filter(is_active=True)
+
+        return queryset.order_by('nombre')
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['mostrar_desactivados'] = (
+            self.request.GET.get('change_state') == '1'
+        )
+        return context
+
+@method_decorator(login_required, name='dispatch')
+@method_decorator(roles_required('root', 'Administrador'), name='dispatch')
+class CreateNombresAsignatura(CreateView):
+    model = NombresAsignatura
+    form_class = NombresAsignaturaForm
+    template_name = 'classplanner/sistema/nombresasignatura/nomasignaturacreate.html'
+    success_url = reverse_lazy('nombresasignatura')
+
+    def form_valid(self, form):
+        nombre = form.cleaned_data.get('nombre')
+        if not re.match(r'^[A-Za-záéíóúÁÉÍÓÚ\s]+$', nombre):
+            form.add_error('nombre', 'El nombre solo puede contener letras y espacios.')
+            return self.form_invalid(form)
+        
+        form.instance.nombre = texto_titulo(nombre)
+        messages.success(self.request, '¡Nombre agregado con éxito!')
+        return super().form_valid(form)
+
+@method_decorator(login_required, name='dispatch')
+@method_decorator(roles_required('root', 'Administrador'), name='dispatch')
+class UpdateNombresAsignatura(UpdateView):
+    model = NombresAsignatura
+    form_class = NombresAsignaturaForm
+    template_name = 'classplanner/sistema/nombresasignatura/nomasignaturaupdate.html'
+    success_url = reverse_lazy('nombresasignatura')
+    context_object_name = 'asignaturas'
+
+    def form_valid(self, form):
+        nombre = form.cleaned_data.get('nombre')
+        if not re.match(r'^[A-Za-záéíóúÁÉÍÓÚ\s]+$', nombre):
+            form.add_error('nombre', 'El nombre solo puede contener letras y espacios.')
+            return self.form_invalid(form)
+        
+        form.instance.nombre = texto_titulo(nombre)
+        try:
+            response = super().form_valid(form)
+            messages.success(self.request, '¡Nombre actualizado con éxito!')
+            return response
+        except IntegrityError:
+            form.add_error('nombre', 'Este nombre ya está registrado.')
+            return self.form_invalid(form)
+
+@method_decorator(login_required, name='dispatch')
+@method_decorator(roles_required('root', 'Administrador'), name='dispatch')
+class DeleteNombresAsignatura(DeleteView):
+    model = NombresAsignatura
+    template_name = 'classplanner/sistema/nombresasignatura/nomasignaturadelete.html'
+    context_object_name = 'asignaturas'
+    success_url = reverse_lazy('nombresasignatura')
+
+    def form_valid(self, form):
+        try: 
+            response = super().form_valid(form)
+            messages.success(self.request, '¡Nombre eliminado con éxito!')
+            return response
+        except RestrictedError:
+            raise PermissionDenied('Existen asignaturas con este nombre asignado, un nombre no se puede eliminar si tiene una o más asignaturas asignadas')
+
+@login_required
+@roles_required('root', 'Administrador')
+def ActivateNombresAsignatura(request, pk):
+    if request.method != 'POST':
+        return HttpResponse(status=405)
+
+    nombre = get_object_or_404(NombresAsignatura, pk=pk)
+    nombre.is_active = True
+    nombre.save(update_fields=['is_active'])
+    messages.success(request, '¡Nombre activado con éxito!')
+    return redirect('nombresasignatura')
+
+# ----------------------------------- # NOMBRES PLANES DIFERENCIALES
+
+@method_decorator(login_required, name='dispatch')
+@method_decorator(roles_required('root', 'Administrador'), name='dispatch')
+class ListAreasPlanesDiferenciales(ListView):
+    model = AreasPlanesDiferenciales
+    template_name = 'classplanner/sistema/areasplanesdiferenciales/nomplaneslist.html'
+    context_object_name = 'planesdiferenciales'
+
+    def get_queryset(self):
+        is_admin = self.request.user.rol.name == 'root' or self.request.user.rol.name == 'Administrador'
+        if is_admin:
+            mostrar_desactivados = self.request.GET.get('change_state') == '1'
+            queryset = AreasPlanesDiferenciales.objects.filter(is_active=not mostrar_desactivados)
+        else:
+            queryset = AreasPlanesDiferenciales.objects.filter(is_active=True)
+
+        return queryset.order_by('nombre')
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['mostrar_desactivados'] = (
+            self.request.GET.get('change_state') == '1'
+        )
+        return context
+
+
+@method_decorator(login_required, name='dispatch')
+@method_decorator(roles_required('root', 'Administrador'), name='dispatch')
+class CreateAreasPlanesDiferenciales(CreateView):
+    model = AreasPlanesDiferenciales
+    form_class = AreasPlanesDiferencialesForm
+    template_name = 'classplanner/sistema/areasplanesdiferenciales/nomplanescreate.html'
+    success_url = reverse_lazy('nombresplanesdiferenciales')
+
+    def form_valid(self, form):
+        nombre = form.cleaned_data.get('nombre')
+        if not re.match(r'^[A-Za-záéíóúÁÉÍÓÚ\s]+$', nombre):
+            form.add_error('nombre', 'El nombre solo puede contener letras y espacios.')
+            return self.form_invalid(form)
+        
+        form.instance.nombre = texto_titulo(nombre)
+        messages.success(self.request, '¡Nombre agregado con éxito!')
+        return super().form_valid(form)
+
+@method_decorator(login_required, name='dispatch')
+@method_decorator(roles_required('root', 'Administrador'), name='dispatch')
+class UpdateAreasPlanesDiferenciales(UpdateView):
+    model = AreasPlanesDiferenciales
+    form_class = AreasPlanesDiferencialesForm
+    template_name = 'classplanner/sistema/areasplanesdiferenciales/nomplanesupdate.html'
+    success_url = reverse_lazy('nombresplanesdiferenciales')
+    context_object_name = 'planesdiferenciales'
+
+    def form_valid(self, form):
+        nombre = form.cleaned_data.get('nombre')
+        if not re.match(r'^[A-Za-záéíóúÁÉÍÓÚ\s]+$', nombre):
+            form.add_error('nombre', 'El nombre solo puede contener letras y espacios.')
+            return self.form_invalid(form)
+        
+        form.instance.nombre = texto_titulo(nombre)
+        try:
+            response = super().form_valid(form)
+            messages.success(self.request, '¡Nombre actualizado con éxito!')
+            return response
+        except IntegrityError:
+            form.add_error('nombre', 'Este nombre ya está registrado.')
+            return self.form_invalid(form)
+
+@method_decorator(login_required, name='dispatch')
+@method_decorator(roles_required('root', 'Administrador'), name='dispatch')
+class DeleteAreasPlanesDiferenciales(DeleteView):
+    model = AreasPlanesDiferenciales
+    template_name = 'classplanner/sistema/areasplanesdiferenciales/nomplanesdelete.html'
+    context_object_name = 'planesdiferenciales'
+    success_url = reverse_lazy('nombresplanesdiferenciales')
+
+    def form_valid(self, form):
+        try: 
+            response = super().form_valid(form)
+            messages.success(self.request, '¡Nombre eliminado con éxito!')
+            return response
+        except RestrictedError:
+            raise PermissionDenied('Existen asignaturas con este nombre de plan diferencial asignado, un nombre de plan diferencial no se puede eliminar si tiene una o más asignaturas asignadas')
+
+@login_required
+@roles_required('root', 'Administrador')
+def ActivateAreasPlanesDiferenciales(request, pk):
+    plan_diferencial = get_object_or_404(AreasPlanesDiferenciales, pk=pk)
+    plan_diferencial.is_active = True
+    plan_diferencial.save(update_fields=['is_active'])
+    messages.success(request, '¡Nombre activado con éxito!')
+    return redirect('nombresplanesdiferenciales')
 
 # ----------------------------------- # CURSOS
 
@@ -930,8 +1182,9 @@ class DeleteAsignatura(DeleteView):
 
     def form_valid(self, form):
         try: 
-            super().form_valid(form)
-            return messages.success(self.request, '¡Asignatura eliminada con éxito!')
+            response = super().form_valid(form)
+            messages.success(self.request, '¡Asignatura eliminada con éxito!')
+            return response
         except RestrictedError:
             raise PermissionDenied(
                 'Esta asignatura está asignada en uno o más planes de estudio. ' \
