@@ -104,3 +104,37 @@
 .dark .asignatura-select2-dropdown .select2-results__option[aria-selected="true"] {
     background-color: #1d2236;
 }
+
+/* Scrollbar de contenedores: overflow */
+.overflow-y-auto::-webkit-scrollbar, .overflow-x-auto::-webkit-scrollbar,
+.overflow-y-scroll::-webkit-scrollbar, .overflow-x-scroll::-webkit-scrollbar {
+    width: 6px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-track, .overflow-x-auto::-webkit-scrollbar-track,
+.overflow-y-scroll::-webkit-scrollbar-track, .overflow-x-scroll::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb, .overflow-x-auto::-webkit-scrollbar-thumb,
+.overflow-y-scroll::-webkit-scrollbar-thumb, .overflow-x-scroll::-webkit-scrollbar-thumb {
+    background-color: #c4cfdb;
+    border-radius: 10px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb:hover, .overflow-x-auto::-webkit-scrollbar-thumb:hover,
+.overflow-y-scroll::-webkit-scrollbar-thumb:hover, .overflow-x-scroll::-webkit-scrollbar-thumb:hover {
+    background-color: #9eaec5;
+    border-radius: 10px;
+}
+
+/* Modo oscuro */
+.dark .overflow-y-auto::-webkit-scrollbar-thumb, .dark .overflow-x-auto::-webkit-scrollbar-thumb,
+.dark .overflow-y-scroll::-webkit-scrollbar-thumb, .dark .overflow-x-scroll::-webkit-scrollbar-thumb {
+    background-color: #283548;
+}
+
+.dark .overflow-y-auto::-webkit-scrollbar-thumb:hover, .dark .overflow-x-auto ::-webkit-scrollbar-thumb:hover,
+.dark .overflow-y-scroll::-webkit-scrollbar-thumb:hover, .dark .overflow-x-scroll ::-webkit-scrollbar-thumb:hover {
+    background-color: #40536d;
+}

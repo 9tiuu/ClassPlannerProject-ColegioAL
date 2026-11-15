@@ -5,7 +5,7 @@
     hx-swap="innerHTML"
     hx-on::after-request="if (event.detail.successful && event.detail.xhr.getResponseHeader('X-Planes-Guardados') === 'true') this.remove()"
     hx-trigger="click from:#submit-all"
-    class="w-full px-2 py-2 gap-2 lg:w-sm relative max-h-[60vh] min-w-[20vh] bg-white p-3 shadow-sm dark:border-slate-800 dark:bg-[#141826] b-white overflow-x-auto bg-neutral-primary-soft shadow-xs rounded-base border border-default border-slate-300 dark:border-slate-800 rounded-lg">
+    class="w-full px-2 py-2 gap-2 lg:w-sm relative max-h-[60vh] min-w-[20vh] bg-white p-3 shadow-sm dark:border-slate-800 dark:bg-[#141826] b-white overflow-y-auto overflow-x-auto bg-neutral-primary-soft shadow-xs rounded-base border border-default border-slate-300 dark:border-slate-800 rounded-lg">
     {% csrf_token %}
     <div name="pde-form-curso" class="flex p-3 gap-1 items-center">
         <div class="flex gap-1 w-full text-sm font-medium text-slate-700 dark:text-[#a8b2d2]">
