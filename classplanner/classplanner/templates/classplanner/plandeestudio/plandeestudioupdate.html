@@ -25,7 +25,7 @@
                             type="checkbox"
                             id="asignatura-{{ a.id }}"
                             value="{{ a.id }}"
-                            data-nombre="{{ a }}"
+                            data-nombre="{{ a.nombre }}"
                             onchange="window.ipt_asignatura(this)"
                             class="h-5 w-5 shrink-0 cursor-pointer accent-blue-600 focus-visible:ring-2 focus-visible:ring-blue-600">
                         <span class="min-w-0">
@@ -37,7 +37,7 @@
                 </div>
             </div>
             <div class="min-w-0 flex-1">
-                <div class="my-3 overflow-x-auto" style="display: flex; flex-direction: column; align-content: center;">
+                <div class="my-3 overflow-y-auto overflow-x-auto" style="display: flex; flex-direction: column; align-content: center;">
                     <!-- hx-vals envía parámetro del total de formularios en pantalla, por url -->
 
                     <div id="plan-form" style="display: flex;" class="mb-3 gap-2">
