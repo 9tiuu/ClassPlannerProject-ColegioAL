@@ -55,8 +55,8 @@ def _build_grade_table_data(notas, promedio_general, asistencia):
     asignaturas_ordenadas = sorted(
         asignaturas.values(),
         key=lambda item: (
-            item['asignatura'].plan_diferencial is not None,
-            str(item['asignatura'].nombre).casefold(),
+            item['asignatura'].areas_planes_diferenciales_id is not None,
+            str(item['asignatura'].nombres_asignatura_id).casefold(),
         ),
     )
     cantidad_notas = min(
@@ -82,7 +82,7 @@ def _build_grade_table_data(notas, promedio_general, asistencia):
         ]
         notas_visibles.extend([''] * (cantidad_notas - len(notas_visibles)))
         table_data.append(
-            [item['asignatura'].nombre] + notas_visibles + [promedio]
+            [item['asignatura'].nombres_asignatura_id] + notas_visibles + [promedio]
         )
 
     table_data.append(
@@ -364,5 +364,5 @@ def _exportar_notas_pdf(
         onLaterPages=dibujar_pie,
     )
     response = HttpResponse(pdf_buffer.getvalue(), content_type='application/pdf')
-    response['Content-Disposition'] = f'attachment; filename=InformeDeNotas_{estudiante_nombre}.pdf'
+    response['Content-Disposition'] = f'attachment; filename=InformeDeNotas_{str(estudiante_nombre).replace(" ", "")}.pdf'
     return response

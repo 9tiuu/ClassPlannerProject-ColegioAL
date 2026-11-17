@@ -28,10 +28,11 @@ urlpatterns = [
     path('sistema/findrol/', views.FindRol, name='findrol'),
 
     # USUARIOS
-    path('usercreate/', CreateUsuario.as_view(), name='usercreate'),
-    path('userlist/', ListUsuario.as_view(), name='userlist'),
-    path('userupdate/<int:pk>/', UpdateUsuario.as_view(), name='userupdate'),
-    path('userdelete/<int:pk>/', DeleteUsuario.as_view(), name='userdelete'),
+    path('sistema/usercreate/', CreateUsuario.as_view(), name='usercreate'),
+    path('sistema/userlist/', ListUsuario.as_view(), name='userlist'),
+    path('sistema/userupdate/<int:pk>/', UpdateUsuario.as_view(), name='userupdate'),
+    path('sistema/userdelete/<int:pk>/', DeleteUsuario.as_view(), name='userdelete'),
+    path('sistema/useractivate/<int:pk>/', views.ActivateUsuario, name='useractivate'),
 
     # NOMBRES DE ASIGNATURA
     path('sistema/nombresasignatura/', ListNombresAsignatura.as_view(), name='nombresasignatura'),
@@ -70,6 +71,7 @@ urlpatterns = [
     path('estudiantecreate/', CreateEstudiante.as_view(), name='estudiantecreate'),
     path('estudianteupdate/<str:rut>/<int:curso_id>/', UpdateEstudiante.as_view(), name='estudianteupdate'),
     path('estudiantedelete/<str:rut>/<int:curso_id>/', DeleteEstudiante.as_view(), name='estudiantedelete'),
+    path('estudianteactivate/<str:rut>/', views.ActivateEstudiante, name='estudianteactivate'),
 
     # PROMEDIOS
     path('promedioasignatura/estudiante/<str:rut>/<int:curso_id>/', ListPromedioAsignatura.as_view(), name='promedioasignatura'),
@@ -83,6 +85,7 @@ urlpatterns = [
     path('asignaturacreate/', CreateAsignatura.as_view(), name='asignaturacreate'),
     path('asignaturaupdate/<int:pk>/', UpdateAsignatura.as_view(), name='asignaturaupdate'),
     path('asignaturadelete/<int:pk>/', DeleteAsignatura.as_view(), name='asignaturadelete'),
+    path('asignaturaactivate/<int:pk>/', views.ActivateAsignatura, name='asignaturaactivate'),
 
     # PLAN DE ESTUDIOS
     path('plandeestudios/', views.ListPlanDeEstudio, name='plandeestudio'),

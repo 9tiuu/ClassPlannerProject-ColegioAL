@@ -584,7 +584,7 @@ def _build_horario_table_data(bloques, clases, jornada):
 
 def _colores_asignaturas(clases):
     asignaturas = {
-        clase.asignatura_id_id: str(clase.asignatura_id.nombre).encode()
+        clase.asignatura_id_id: str(clase.asignatura_id.nombres_asignatura_id).encode()
         for clase in clases
     }
     ordenadas = sorted(asignaturas.items(), key=lambda item: (item[1], item[0]))
@@ -902,7 +902,7 @@ def exportar_horarios(cursos, cargas: QuerySet, bloques: QuerySet):
         ).order_by(
             'bloque_id__hora_inicio',
             'bloque_id__dia',
-            'asignatura_id__nombre',
+            'asignatura_id__nombres_asignatura_id',
         )
     )
     bloques_disponibles = list(_cargar_bloques())

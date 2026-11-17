@@ -1,17 +1,12 @@
 {% extends "classplanner/base.html" %}
 {% block title %}
-<title>Eliminar Estudiante | ClassPlanner</title>
+<title>Desactivar Estudiante | ClassPlanner</title>
 {% endblock %}
 {% block content %}
-{% comment %} <div class="p-4 min-h-[6vh] mt-2 rounded-lg">
-    <p class="mb-3 text-slate-500"><a class="hover:underline" href="{% url 'home' %}">Gestión</a> / <a class="hover:underline" href="{% url 'estudiantes' %}">Estudiantes</a> / Eliminar</p>
-    <h2 class="text-4xl font-semibold text-[#234FA8] dark:text-blue-500 mb-1">Eliminar estudiante</h2>
-    <p class="text-slate-500 dark:text-[#a8b2d2] mb-3 text-sm">Revise los datos antes de confirmar la eliminación.</p>
-</div> {% endcomment %}
 <div class="p-4 min-h-[10vh] mt-4 rounded-lg">
     <p class="mb-2 text-slate-500 text-sm dark:text-slate-400"><a class="hover:underline" href="{% url 'home' %}">Gestión</a> / <a class="hover:underline dark:text-slate-400" href="{% url 'estudiantes' %}">Estudiantes</a> / <a class="hover:underline font-semibold text-slate-700 dark:text-slate-200" href="#">Eliminar</a></p>
-    <h2 class="mb-2 text-4xl font-semibold text-[#234FA8] dark:text-blue-400 sm:text-3xl">Eliminar Estudiante</h2>
-    <p class="text-sm text-slate-500 dark:text-slate-400 sm:text-base">Revise los datos antes de confirmar la eliminación.</p>
+    <h2 class="mb-2 text-4xl font-semibold text-[#234FA8] dark:text-blue-400 sm:text-3xl">Desactivar Estudiante</h2>
+    <p class="text-sm text-slate-500 dark:text-slate-400 sm:text-base">Revise los datos antes de confirmar esta acción.</p>
 </div>
 
 <div class="grid grid-cols-1 lg:grid-cols-5 border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden bg-white dark:bg-[#141826] shadow-sm">
@@ -27,7 +22,7 @@
         </div>
 
         <p class="text-center text-slate-500 dark:text-[#a8b2d2] mt-8 max-w-xs">
-            Esta acción es permanente y no se puede deshacer.
+            El estudiante será desactivado.
         </p>
     </div>
 
@@ -37,8 +32,8 @@
                 <i class="bi bi-exclamation-lg text-2xl"></i>
             </div>
             <div>
-                <h3 class="font-bold text-red-700 dark:text-red-400 text-lg">¿Eliminar estudiante?</h3>
-                <p class="text-sm text-red-600 dark:text-red-300 mt-1">Asegúrese de que realmente desea eliminar el estudiante.</p>
+                <h3 class="font-bold text-red-700 dark:text-red-400 text-lg">¿Desactivar estudiante?</h3>
+                <p class="text-sm text-red-600 dark:text-red-300 mt-1">Esta acción desactivará el estudiante como opción en otros menús y módulos. Asegúrese de que realmente desea desactivar este estudiante.</p>
             </div>
         </div>
 
@@ -74,7 +69,7 @@
                 Volver atrás
             </a>
             <button type="submit" class="flex items-center justify-center gap-2 text-white text-sm font-semibold bg-red-600 hover:bg-red-700 active:bg-red-800 transition duration-300 rounded-lg px-5 py-3 shadow-sm shadow-red-600/20">
-                Eliminar estudiante
+                Desactivar
             </button>
         </form>
     </div>

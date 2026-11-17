@@ -60,7 +60,7 @@
                 </div>
 
                 <div class="flex flex-col w-full">
-                    <label for="id_rut" class="mb-1 text-base font-semibold text-slate-600 dark:text-white">RUN <b class="text-red-600">*</b></label>
+                    <label for="id_rut" class="mb-1 text-base font-semibold text-slate-600 dark:text-white">RUT <b class="text-red-600">*</b></label>
                     <input type="text" name="rut" id="id_rut" value="{{ form.rut.value|default:'' }}" class="bg-white dark:bg-[#141826] text-sm focus:outline-none focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 focus:transition focus:duration-300 rounded-lg h-12 border-2 p-3 border-slate-300 dark:border-slate-700 dark:placeholder:text-[#a8b2d2] dark:text-white" maxlength="10" placeholder="Ej: 12345678-9" required>
 
                     {% if form.rut.errors %}

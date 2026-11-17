@@ -6,9 +6,13 @@
 <!--editar por curso, traer sus asignaturas para cambiar las horas + checkbox asignaturas de /plandeestudiocreate.html-->
 {% block content %}
 <div class="p-4 min-h-[4vh] mt-2 rounded-lg">
-    <p class="mb-3 text-slate-500"><button class="hover:underline" id="home-link" data-url="{% url 'home' %}" onclick="window.exitConfirm(this)">Gestión</button> / <button class="hover:underline" id="plandeestudio-link" data-url="{% url 'plandeestudio' %}" onclick="window.exitConfirm(this)">Planes de Estudio</button> / Actualizar</p>
-    <h2 class="text-4xl font-semibold text-[#234FA8] dark:text-blue-500 mb-1">Actualizar Plan de Estudio</h2>
-    <p class="text-slate-500 dark:text-[#a8b2d2] mb-3 text-sm">Modifique el plan de estudio del curso seleccionado:</p>
+    <p class="mb-3 text-sm text-slate-500 dark:text-slate-400">
+        <button class="hover:underline" id="home-link" data-url="{% url 'home' %}" onclick="window.exitConfirm(this)">Gestión</button> /
+        <button class="hover:underline" id="plandeestudio-link" data-url="{% url 'plandeestudio' %}" onclick="window.exitConfirm(this)">Planes de Estudio</button> /
+        <span class="font-semibold text-slate-700 dark:text-slate-200">Actualizar</span>
+    </p>
+    <h2 class="mb-2 text-4xl font-semibold text-[#234FA8] dark:text-blue-400 sm:text-3xl">Actualizar Plan de Estudio</h2>
+    <p class="text-sm text-slate-500 dark:text-slate-400 dark:text-[#a8b2d2] mb-3 sm:text-base">Modifique el plan de estudio del curso seleccionado:</p>
 </div>
 <div class="justify-center flex flex-col grid grid-cols-1 bg-white p-4 border-slate-300 dark:border-slate-800 dark:bg-[#141826] border-default border mt-7 rounded-lg">
     <div id="user-list-content">
@@ -25,11 +29,11 @@
                             type="checkbox"
                             id="asignatura-{{ a.id }}"
                             value="{{ a.id }}"
-                            data-nombre="{{ a.nombre }}"
+                            data-nombre="{{ a.nombres_asignatura_id }}"
                             onchange="window.ipt_asignatura(this)"
                             class="h-5 w-5 shrink-0 cursor-pointer accent-blue-600 focus-visible:ring-2 focus-visible:ring-blue-600">
                         <span class="min-w-0">
-                            <span class="block font-semibold text-slate-800 dark:text-white">{{ a.nombre }}</span>
+                            <span class="block font-semibold text-slate-800 dark:text-white">{{ a.nombres_asignatura_id }}</span>
                             <span class="block text-xs text-slate-500 dark:text-[#a8b2d2]">{{ a.ident }}</span>
                         </span>
                     </label>

@@ -4,9 +4,12 @@
 {% endblock %}
 {% block content %}
 <div class="p-4 min-h-[10vh] mt-4 rounded-lg">
-    <p class="mb-2 text-slate-500 text-sm dark:text-slate-400"><a class="hover:underline" href="{% url 'home' %}">Gestión</a> / <a class="hover:underline" href="{% url 'asignaturas' %}">Asignaturas</a> / <a class="hover:underline font-semibold text-slate-700 dark:text-slate-200" href="#">Eliminar</a></p>
-    <h2 class="mb-2 text-4xl font-semibold text-[#234FA8] dark:text-blue-400 sm:text-3xl">Eliminar Asignatura</h2>
-    <p class="text-sm text-slate-500 dark:text-slate-400 sm:text-base">Revise los datos antes de confirmar la eliminación.</p>
+    <p class="mb-2 text-slate-500 text-sm dark:text-slate-400"><a class="hover:underline" href="{% url 'home' %}">Gestión</a> /
+        <a class="hover:underline" href="{% url 'asignaturas' %}">Asignaturas</a> /
+        <a class="hover:underline font-semibold text-slate-700 dark:text-slate-200" href="#">Desactivar</a>
+    </p>
+    <h2 class="mb-2 text-4xl font-semibold text-[#234FA8] dark:text-blue-400 sm:text-3xl">Desactivar Asignatura</h2>
+    <p class="text-sm text-slate-500 dark:text-slate-400 sm:text-base">Revise los datos antes de confirmar esta acción.</p>
 </div>
 
 <div class="grid grid-cols-1 lg:grid-cols-5 border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden bg-white dark:bg-[#141826] shadow-sm">
@@ -21,7 +24,7 @@
         </div>
 
         <p class="text-center text-slate-500 dark:text-[#a8b2d2] mt-8 max-w-xs">
-            Esta acción es permanente y no se puede deshacer.
+            La asignatura será desactivada.
         </p>
     </div>
 
@@ -31,8 +34,8 @@
                 <i class="bi bi-exclamation-lg text-2xl"></i>
             </div>
             <div>
-                <h3 class="font-bold text-red-700 dark:text-red-400 text-lg">¿Eliminar asignatura?</h3>
-                <p class="text-sm text-red-600 dark:text-red-300 mt-1">Asegúrese de que realmente desea eliminar esta asignatura.</p>
+                <h3 class="font-bold text-red-700 dark:text-red-400 text-lg">¿Desactivar?</h3>
+                <p class="text-sm text-red-600 dark:text-red-300 mt-1">Esta acción desactivará la asignatura como opción en otros menús y módulos. Asegúrese de que realmente desea desactivar esta asignatura.</p>
             </div>
         </div>
 
@@ -82,7 +85,7 @@
                 Volver atrás
             </a>
             <button type="submit" class="flex items-center justify-center gap-2 text-white text-sm font-semibold bg-red-600 hover:bg-red-700 active:bg-red-800 transition duration-300 rounded-lg px-5 py-3 shadow-sm shadow-red-600/20">
-                Eliminar asignatura
+                Desactivar
             </button>
         </form>
     </div>
