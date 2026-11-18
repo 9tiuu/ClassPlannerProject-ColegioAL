@@ -48,20 +48,6 @@ urlpatterns = [
     path('sistema/nombresplanesdelete/<int:pk>/', DeleteAreasPlanesDiferenciales.as_view(), name='nombresplanesdiferencialesdelete'),
     path('sistema/nombresplanesactivate/<int:pk>/', views.ActivateAreasPlanesDiferenciales, name='nombresplanesdiferencialesactivate'),
 
-    # NOMBRES DE ASIGNATURA
-    path('sistema/nombresasignatura/', ListNombresAsignatura.as_view(), name='nombresasignatura'),
-    path('sistema/nombresasignaturacreate/', CreateNombresAsignatura.as_view(), name='nombresasignaturacreate'),
-    path('sistema/nombresasignaturaupdate/<int:pk>/', UpdateNombresAsignatura.as_view(), name='nombresasignaturaupdate'),
-    path('sistema/nombresasignaturadelete/<int:pk>/', DeleteNombresAsignatura.as_view(), name='nombresasignaturadelete'),
-    path('sistema/nombresasignaturaactivate/<int:pk>/', views.ActivateNombresAsignatura, name='nombresasignaturaactivate'),
-
-    # NOMBRES DE PLANES DIFERENCIALES
-    path('sistema/nombresplanes/', ListAreasPlanesDiferenciales.as_view(), name='nombresplanesdiferenciales'),
-    path('sistema/nombresplanescreate/', CreateAreasPlanesDiferenciales.as_view(), name='nombresplanesdiferencialescreate'),
-    path('sistema/nombresplanesupdate/<int:pk>/', UpdateAreasPlanesDiferenciales.as_view(), name='nombresplanesdiferencialesupdate'),
-    path('sistema/nombresplanesdelete/<int:pk>/', DeleteAreasPlanesDiferenciales.as_view(), name='nombresplanesdiferencialesdelete'),
-    path('sistema/nombresplanesactivate/<int:pk>/', views.ActivateAreasPlanesDiferenciales, name='nombresplanesdiferencialesactivate'),
-
     # REGISTROS
     path('sistema/registros/', ListRegistros.as_view(), name='registros'),
 
