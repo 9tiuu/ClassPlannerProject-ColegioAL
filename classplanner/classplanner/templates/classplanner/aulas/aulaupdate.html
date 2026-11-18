@@ -19,7 +19,7 @@
             {% if form.non_field_errors %}
             <div class="mb-5">
                 {% for error in form.non_field_errors %}
-                <p class="bg-red-100 dark:bg-red-900 p-4 my-3 text-sm text-red-700 rounded-lg dark:text-red-300 transition duration-200">{{ error }}</p>
+                <p class="bg-red-100 dark:bg-red-900/40 p-4 my-3 text-sm text-red-700 rounded-lg dark:text-red-300 transition duration-200">{{ error }}</p>
                 {% endfor %}
             </div>
             {% endif %}
@@ -33,7 +33,7 @@
                 {% if form.nombre.errors %}
                 <div class="mb-2">
                     {% for error in form.nombre.errors %}
-                    <p class="bg-red-100 dark:bg-red-900 p-4 my-3 text-sm text-red-700 rounded-lg dark:text-red-300 transition duration-200">{{ error }}</p>
+                    <p class="bg-red-100 dark:bg-red-900/40 p-4 my-3 text-sm text-red-700 rounded-lg dark:text-red-300 transition duration-200">{{ error }}</p>
                     {% endfor %}
                 </div>
                 {% endif %}
@@ -48,7 +48,7 @@
                 {% if form.cupos.errors %}
                 <div class="mb-2">
                     {% for error in form.cupos.errors %}
-                    <p class="bg-red-100 dark:bg-red-900 p-4 my-3 text-sm text-red-700 rounded-lg dark:text-red-300 transition duration-200">{{ error }}</p>
+                    <p class="bg-red-100 dark:bg-red-900/40 p-4 my-3 text-sm text-red-700 rounded-lg dark:text-red-300 transition duration-200">{{ error }}</p>
                     {% endfor %}
                 </div>
                 {% endif %}
@@ -70,7 +70,7 @@
                 {% if form.curso_id.errors %}
                 <div class="mb-2">
                     {% for error in form.curso_id.errors %}
-                    <p class="bg-red-100 dark:bg-red-900 p-4 my-3 text-sm text-red-700 rounded-lg dark:text-red-300 transition duration-200">{{ error }}</p>
+                    <p class="bg-red-100 dark:bg-red-900/40 p-4 my-3 text-sm text-red-700 rounded-lg dark:text-red-300 transition duration-200">{{ error }}</p>
                     {% endfor %}
                 </div>
                 {% endif %}

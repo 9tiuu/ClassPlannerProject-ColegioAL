@@ -3,6 +3,8 @@ from phonenumber_field.formfields import PhoneNumberField
 from .models import Curso, PlanDeEstudio, Usuario, Rol, NombresAsignatura, AreasPlanesDiferenciales, Asignatura, Estudiante, Aula, PromedioAsignatura
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 # from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
 
 class UniqueDirectorRoleFormMixin:
     def clean_rol(self):
@@ -35,11 +37,45 @@ class RolForm(forms.ModelForm):
         fields = ['name', 'description']
 
 class UserUpdateForm(UniqueDirectorRoleFormMixin, UserChangeForm):
+    password_nueva = forms.CharField(required=False, strip=False, widget=forms.PasswordInput)
+    password_confirmacion = forms.CharField(required=False, strip=False, widget=forms.PasswordInput)
     telefono = PhoneNumberField()
 
     class Meta:
         model = Usuario
         fields = ['username', 'name', 'last_name', 'rut', 'email', 'telefono', 'rol', 'avatar']
+
+    def clean(self):
+        cleaned = super().clean()
+        nueva = cleaned.get('password_nueva')
+        confirmacion = cleaned.get('password_confirmacion')
+    
+        if not (nueva or confirmacion):
+            return cleaned  # no quiere cambiar la contraseña
+    
+        if not nueva:
+            self.add_error('password_nueva', 'Debe ingresar una nueva contraseña.')
+        else:
+            try:
+                validate_password(nueva, user=self.instance)
+            except ValidationError as e:
+                self.add_error('password_nueva', e)
+    
+            if nueva != confirmacion:
+                self.add_error('password_confirmacion', 'Las nuevas contraseñas no coinciden.')
+        return cleaned
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        nueva = self.cleaned_data.get('password_nueva')
+
+        if nueva:
+            user.set_password(nueva)
+            
+        if commit:
+            user.save()
+            self.save_m2m()
+        return user
 
 class CursoForm(forms.ModelForm):
     class Meta:

@@ -115,13 +115,18 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        'NAME': 'classplanner.validators.MinimumLengthValidator',
+        "OPTIONS": {"min_length": 8},
     },
     {
         'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
     },
     {
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+    },
+    {
+        "NAME": "classplanner.validators.ConsecutiveSequenceValidator",
+        "OPTIONS": {"max_sequence": 4, "max_repeat": 4},
     },
 ]
 
