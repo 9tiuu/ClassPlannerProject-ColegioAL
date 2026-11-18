@@ -12,6 +12,7 @@
     <p class="mb-2 text-slate-500 text-sm dark:text-slate-400"><button class="hover:underline" id="home-link" data-url="{% url 'home' %}" onclick="window.exitConfirm(this)">Gestión</button> / <button class="hover:underline" id="userlist-link" data-url="{% url 'userlist' %}" onclick="window.exitConfirm(this)">Usuarios</button> / <a class="hover:underline font-semibold text-slate-700 dark:text-slate-200" href="#">Crear</a></p>
     <h2 class="mb-2 text-4xl font-semibold text-[#234FA8] dark:text-blue-400 sm:text-3xl">Actualizar Usuario</h2>
     <p class="text-sm text-slate-500 dark:text-slate-400 sm:text-base">Actualice los datos del usuario completando los siguientes campos:</p>
+    <p class="text-amber-600 dark:text-amber-500 font-semibold text-sm sm:text-base">Dejar en blanco los campos de contraseña si NO se desea modificar:</p>
     {% else %}
     <p class="mb-2 text-slate-500 text-sm dark:text-slate-400"><button class="hover:underline" id="home-link" data-url="{% url 'home' %}" onclick="window.exitConfirm(this)">Gestión</button> / <button class="hover:underline" id="userlist-link" data-url="{% url 'userlist' %}" onclick="window.exitConfirm(this)">Profesores</button> / <a class="hover:underline font-semibold text-slate-700 dark:text-slate-200" href="#">Crear</a></p>
     <h2 class="mb-2 text-4xl font-semibold text-[#234FA8] dark:text-blue-400 sm:text-3xl">Actualizar Profesor</h2>
@@ -31,7 +32,7 @@
                 {% if form.username.errors %}
                 <div class="errors mb-2">
                     {% for error in form.username.errors %}
-                    <p class="bg-red-100 dark:bg-red-900 p-4 my-3 text-sm text-red-700 rounded-lg dark:text-red-300 transition duration-200">{{ error }}</p>
+                    <p class="bg-red-100 dark:bg-red-900/40 p-4 my-3 text-sm text-red-700 rounded-lg dark:text-red-300 transition duration-200">{{ error }}</p>
                     {% endfor %}
                 </div>
                 {% endif %}
@@ -44,7 +45,7 @@
                     {% if form.name.errors %}
                     <div class="errors mb-2">
                         {% for error in form.name.errors %}
-                        <p class="bg-red-100 dark:bg-red-900 p-4 my-3 text-sm text-red-700 rounded-lg dark:text-red-300 transition duration-200">{{ error }}</p>
+                        <p class="bg-red-100 dark:bg-red-900/40 p-4 my-3 text-sm text-red-700 rounded-lg dark:text-red-300 transition duration-200">{{ error }}</p>
                         {% endfor %}
                     </div>
                     {% endif %}
@@ -56,7 +57,7 @@
                     {% if form.last_name.errors %}
                     <div class="errors mb-2">
                         {% for error in form.last_name.errors %}
-                        <p class="bg-red-100 dark:bg-red-900 p-4 my-3 text-sm text-red-700 rounded-lg dark:text-red-300 transition duration-200">{{ error }}</p>
+                        <p class="bg-red-100 dark:bg-red-900/40 p-4 my-3 text-sm text-red-700 rounded-lg dark:text-red-300 transition duration-200">{{ error }}</p>
                         {% endfor %}
                     </div>
                     {% endif %}
@@ -69,7 +70,7 @@
                 {% if form.email.errors %}
                     <div class="errors mb-2">
                         {% for error in form.email.errors %}
-                        <p class="bg-red-100 dark:bg-red-900 p-4 my-3 text-sm text-red-700 rounded-lg dark:text-red-300 transition duration-200">{{ error }}</p>
+                        <p class="bg-red-100 dark:bg-red-900/40 p-4 my-3 text-sm text-red-700 rounded-lg dark:text-red-300 transition duration-200">{{ error }}</p>
                         {% endfor %}
                     </div>
                 {% endif %}
@@ -82,7 +83,7 @@
                     {% if form.rut.errors %}
                     <div class="errors mb-2">
                         {% for error in form.rut.errors %}
-                        <p class="bg-red-100 dark:bg-red-900 p-4 my-3 text-sm text-red-700 rounded-lg dark:text-red-300 transition duration-200">{{ error }}</p>
+                        <p class="bg-red-100 dark:bg-red-900/40 p-4 my-3 text-sm text-red-700 rounded-lg dark:text-red-300 transition duration-200">{{ error }}</p>
                         {% endfor %}
                     </div>
                     {% endif %}
@@ -94,7 +95,7 @@
                     {% if form.telefono.errors %}
                     <div class="errors mb-2">
                         {% for error in form.telefono.errors %}
-                        <p class="bg-red-100 dark:bg-red-900 p-4 my-3 text-sm text-red-700 rounded-lg dark:text-red-300 transition duration-200">{{ error }}</p>
+                        <p class="bg-red-100 dark:bg-red-900/40 p-4 my-3 text-sm text-red-700 rounded-lg dark:text-red-300 transition duration-200">{{ error }}</p>
                         {% endfor %}
                     </div>
                     {% endif %}
@@ -113,12 +114,41 @@
                     {% if form.rol.errors %}
                     <div class="errors mb-2">
                         {% for error in form.rol.errors %}
-                        <p class="bg-red-100 dark:bg-red-900 p-4 my-3 text-sm text-red-700 rounded-lg dark:text-red-300 transition duration-200">{{ error }}</p>
+                        <p class="bg-red-100 dark:bg-red-900/40 p-4 my-3 text-sm text-red-700 rounded-lg dark:text-red-300 transition duration-200">{{ error }}</p>
                         {% endfor %}
                     </div>
                     {% endif %}
                 </div>
             </div>
+            {% if request.user.rol.name != 'Director' or request.user.rol.name != 'Administrador' %}
+            <div class="flex md:flex-row flex-col w-full gap-5 mb-5">
+                <div class="flex flex-col w-full">
+                    <label for="id_password_nueva" class="mb-1 text-base font-semibold text-slate-600 dark:text-white">Contraseña <b class="text-red-600">*</b></label>
+                    <input type="password" name="password_nueva" id="id_password_nueva" class="bg-white dark:bg-[#141826] text-sm focus:outline-none focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 focus:transition focus:duration-300 rounded-lg h-12 border-2 p-3 border-slate-300 dark:border-slate-700 dark:placeholder:text-[#a8b2d2] dark:text-white" placeholder="**********">
+                </div>
+
+                <div class="flex flex-col w-full">
+                    <label for="id_password_confirmacion" class="mb-1 text-base font-semibold text-slate-600 dark:text-white">Confirmar contraseña <b class="text-red-600">*</b></label>
+                    <input type="password" name="password_confirmacion" id="id_password_confirmacion" class="bg-white dark:bg-[#141826] text-sm focus:outline-none focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 focus:transition focus:duration-300 rounded-lg h-12 border-2 p-3 border-slate-300 dark:border-slate-700 dark:placeholder:text-[#a8b2d2] dark:text-white" placeholder="**********">
+                </div>
+            </div>
+            <div>
+                {% if form.password_nueva.errors %}
+                    <div class="errors">
+                        {% for error in form.password_nueva.errors %}
+                        <p class="bg-red-100 dark:bg-red-900/40 p-4 my-3 text-sm text-red-700 rounded-lg dark:text-red-300 transition duration-200">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                {% if form.password_confirmacion.errors %}
+                    <div class="errors mb-2">
+                        {% for error in form.password_confirmacion.errors %}
+                        <p class="bg-red-100 dark:bg-red-900/40 p-4 my-3 text-sm text-red-700 rounded-lg dark:text-red-300 transition duration-200">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+            {% endif %}
 
             <div class="flex justify-end flex-row gap-2 my-8 w-full">              
                 <button type="button" id="users-back" data-url="{% url 'userlist' %}" onclick="window.exitConfirm(this)" class="flex items-center text-sm gap-2 border-2 font-semibold border-slate-300 dark:border-slate-700 dark:bg-[#141826] dark:hover:bg-[#1d2236] dark:text-[#a8b2d2] dark:hover:text-white text-slate-500 hover:bg-gray-100 hover:text-slate-700 text-center hover:transition transition hover:duration-300 duration-300 rounded-lg px-4 py-3">

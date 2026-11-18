@@ -53,6 +53,7 @@ from django.db.models import Count
 from django.db.utils import IntegrityError
 from django.http import JsonResponse
 from django.utils import timezone
+from django.contrib.auth import update_session_auth_hash
 
 # Create your views here.
 
@@ -327,6 +328,10 @@ class UpdateUsuario(UpdateView):
             form.fields['rol'].queryset = Rol.objects.filter(
                 name__in=('Docente', 'Administrador')
             ).order_by('name')
+
+        if self.request.user.rol.name != 'root':
+            form.fields.pop('password_nueva', None)
+            form.fields.pop('password_confirmacion', None)  
         return form
 
     def get_object(self, queryset=None):
@@ -364,7 +369,12 @@ class UpdateUsuario(UpdateView):
         form.instance.name = name.title()
         form.instance.last_name = last_name.capitalize()
         messages.success(self.request, '¡Usuario actualizado con éxito!')
-        return super().form_valid(form)
+
+        # si como root se cambia la password se mantiene la sesion
+        response = super().form_valid(form)
+        if form.cleaned_data.get('password_nueva') and form.instance == self.request.user:
+            update_session_auth_hash(self.request, form.instance)
+        return response
 
 @method_decorator(login_required, name='dispatch')    
 @method_decorator(roles_required('root'), name='dispatch')

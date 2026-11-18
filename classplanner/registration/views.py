@@ -20,6 +20,8 @@ from django.urls import reverse
 from django.contrib.auth import update_session_auth_hash
 from django.shortcuts import redirect
 from django.contrib.auth.views import LoginView
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
 
 
 def loginView(request):
@@ -137,54 +139,14 @@ class ProfileUpdateView(UpdateView):
         return super().post(request, *args, **kwargs)
 
     def form_valid(self, form):
-        username = form.cleaned_data.get('username')
-        if not re.match(r'^[A-Za-záéíóúÁÉÍÓÚ\s]+$', username):
-            form.add_error('username', 'El nombre de usuario solo puede contener letras y espacios.')
-            return self.form_invalid(form)
-
-        rut = form.cleaned_data.get('rut')
-        try:
-            validar_rut(rut)
-        except ValidationError as e:
-            form.add_error('rut', str(e))
-            return self.form_invalid(form)
-
-        name = form.cleaned_data.get('name')
-        if not re.match(r'^[A-Za-záéíóúÁÉÍÓÚ\s]+$', name):
-            form.add_error('name', 'El nombre solo puede contener letras y espacios.')
-            return self.form_invalid(form)
+        nueva = form.cleaned_data.get('password_nueva')
         
-        last_name = form.cleaned_data.get('last_name')
-        if not re.match(r'^[A-Za-záéíóúÁÉÍÓÚ\s]+$', last_name):
-            form.add_error('last_name', 'El apellido solo puede contener letras y espacios.')
-            return self.form_invalid(form)
+        if nueva:
+            form.instance.set_password(nueva)
+        response = super().form_valid(form)
 
-        # validar numero telefonico
-
-        password_actual = self.request.POST.get('password_actual', '').strip()
-        password_nueva = self.request.POST.get('password_nueva', '').strip()
-        password_confirmacion = self.request.POST.get('password_confirmacion', '').strip()
-        usuario = self.get_object()
-
-        if not password_actual and not password_nueva and not password_confirmacion:
-            pass
-
-        else:
-            if not usuario.check_password(password_actual):
-                form.add_error(None, 'La contraseña actual es incorrecta.')
-                return self.form_invalid(form)
-
-            if not password_nueva:
-                form.add_error(None, 'Debe ingresar una nueva contraseña.')
-                return self.form_invalid(form)
-
-            if password_nueva != password_confirmacion:
-                form.add_error(None, 'Las nuevas contraseñas no coinciden.')
-                return self.form_invalid(form)
-
-            usuario.set_password(password_nueva)
-            usuario.save()
-            update_session_auth_hash(self.request, usuario)
+        if nueva:
+            update_session_auth_hash(self.request, form.instance)
 
         messages.success(self.request, '¡Perfil de Usuario Actualizado!')
-        return super().form_valid(form)
+        return response
