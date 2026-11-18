@@ -314,6 +314,10 @@
         {% block content %}
             {% if request.user.rol.name == 'root' or request.user.rol.name == 'Administrador' or request.user.rol.name == 'Director' %}
                 {% include 'classplanner/dashboards/dashboard_admin.html' %}
+                
+            {% elif request.user.rol.name == 'Docente' %}
+                {% include 'classplanner/dashboards/dashboard_docente.html' %}
+            
             {% else %} 
                 <div class="min-h-screen -translate-y-1 -m-4">
                     <div class="bg-blue-700 w-full h-56 relative">
