@@ -45,12 +45,7 @@
             <div class="flex md:flex-row flex-col w-full gap-5 mb-5">
                 <div class="flex flex-col w-full">
                     <label for="id_letra" class="mb-1 text-base font-semibold text-slate-600 dark:text-white">Letra del curso <b class="text-red-600">*</b></label>
-                    <select name="letra" id="id_letra" class="w-full bg-white dark:bg-[#141826] text-sm focus:outline-none focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 rounded-lg h-12 border-2 p-3 border-slate-300 dark:border-slate-700 dark:text-white" required>
-                        <option value="">Por seleccionar...</option>
-                        {% for value, label in form.letra.field.choices %}
-                        <option value="{{ value }}" {% if form.letra.value|stringformat:"s" == value|stringformat:"s" %}selected{% endif %}>{{ label }}</option>
-                        {% endfor %}
-                    </select>
+                    <input type="text" name="letra" id="id_letra" value="{{ form.letra.value|default:'' }}" class="w-full bg-white dark:bg-[#141826] text-sm focus:outline-none focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 rounded-lg h-12 border-2 p-3 border-slate-300 dark:border-slate-700 dark:placeholder:text-[#a8b2d2] dark:text-white" placeholder="Ej: A" maxlength="1" required>
 
                     {% if form.letra.errors %}
                     <div class="mb-2">
@@ -95,9 +90,9 @@
             </div>
 
             <div class="flex justify-end flex-col-reverse sm:flex-row gap-2 my-8 w-full">
-                <a href="{% url 'cursos' %}" class="flex items-center justify-center text-sm gap-2 border-2 font-semibold border-slate-300 dark:border-slate-700 dark:bg-[#141826] dark:hover:bg-[#1d2236] dark:text-[#a8b2d2] dark:hover:text-white text-slate-500 hover:bg-gray-100 hover:text-slate-700 text-center transition duration-300 rounded-lg px-4 py-3">
+                <button type="button" id="cursos-link" data-url="{% url 'cursos' %}" onclick="window.exitConfirm(this)" class="flex items-center justify-center text-sm gap-2 border-2 font-semibold border-slate-300 dark:border-slate-700 dark:bg-[#141826] dark:hover:bg-[#1d2236] dark:text-[#a8b2d2] dark:hover:text-white text-slate-500 hover:bg-gray-100 hover:text-slate-700 text-center transition duration-300 rounded-lg px-4 py-3">
                     Volver atrás
-                </a>
+                </button>
                 <button type="submit" class="flex items-center justify-center gap-2 text-white text-sm font-semibold bg-blue-600 hover:bg-blue-800 text-center transition duration-300 rounded-lg px-4 py-3">
                     Guardar cambios
                 </button>

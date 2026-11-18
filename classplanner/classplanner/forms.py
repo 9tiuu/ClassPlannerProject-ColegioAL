@@ -11,7 +11,8 @@ class UniqueDirectorRoleFormMixin:
             return rol
 
         usuarios_directores = Usuario.objects.filter(
-            rol__name__iexact='director'
+            rol__name__iexact='director',
+            is_active=True
         )
         if self.instance.pk:
             usuarios_directores = usuarios_directores.exclude(
@@ -19,7 +20,7 @@ class UniqueDirectorRoleFormMixin:
             )
         if usuarios_directores.exists():
             raise forms.ValidationError(
-                'Ya existe un usuario con el rol Director.'
+                'Ya existe un usuario activo con el rol Director.'
             )
         return rol
 
@@ -41,17 +42,6 @@ class UserUpdateForm(UniqueDirectorRoleFormMixin, UserChangeForm):
         fields = ['username', 'name', 'last_name', 'rut', 'email', 'telefono', 'rol', 'avatar']
 
 class CursoForm(forms.ModelForm):
-    letra = forms.ChoiceField(
-        choices=[
-            ('A', 'A'),
-            ('B', 'B'),
-        ],
-        label='Letra del Curso',
-        widget=forms.Select(attrs={
-            'class': 'form-control form-crud',
-            'required': ''
-        })
-    )
     class Meta:
         model = Curso
         fields = ['nivel', 'letra', 'horas_plan_total', 'usuario_id']
@@ -189,7 +179,7 @@ class EstudiantesCreateForm(forms.ModelForm):
             'nombre': 'Nombre',
             'apellido_m': 'Apellido Materno',
             'apellido_p': 'Apellido Paterno',
-            'rut': 'RUN',
+            'rut': 'RUT',
             'curso_id': 'Curso',
         }
         widgets = {
@@ -234,6 +224,9 @@ class PromedioAsignaturaCreateForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.estudiante = estudiante
         self.instance.estudiante_id_id = estudiante.rut
+        self.fields['asignatura_id'].queryset = Asignatura.objects.filter(
+            is_active=True
+        )
 
     def clean_nota(self):
         valor = (self.cleaned_data.get('nota') or '').strip().replace(',', '.')
@@ -283,6 +276,9 @@ class PromedioAsignaturaUpdateForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.estudiante = estudiante
         self.instance.estudiante_id_id = estudiante.rut
+        self.fields['asignatura_id'].queryset = Asignatura.objects.filter(
+            is_active=True
+        )
 
     def clean_nota(self):
         valor = (self.cleaned_data.get('nota') or '').strip().replace(',', '.')
@@ -336,8 +332,14 @@ class PlanDeEstudioCreateForm(forms.ModelForm):
         }
         widgets = {
             'curso_id': CursoSelect(attrs={'class': 'w-full rounded border my-2 px-2 py-2 invalid:border-red-400 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-300 dark:bg-slate-800 dark:text-white dark:border-slate-600 dark:focus:ring-blue-300 dark:focus:border-blue-300', 'required': 'true'}),
-            'hrs_asignatura': forms.NumberInput(attrs={'class': 'form-control form-crud', 'min': 0, 'max': 8, 'step': 0.5, 'required': 'true'})
+            'hrs_asignatura': forms.NumberInput(attrs={'class': 'form-control form-crud', 'min': 1, 'max': 8, 'step': 0.5, 'required': 'true'})
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['asignatura_id'].queryset = Asignatura.objects.filter(
+            is_active=True
+        )
 
 class PlanDeEstudioUpdateForm(forms.ModelForm):
     error_class = "bg-red-100 dark:bg-red-900 p-4 mb-4 text-sm text-red-700 rounded-lg dark:text-red-300 transition duration-200"
@@ -351,8 +353,14 @@ class PlanDeEstudioUpdateForm(forms.ModelForm):
         }
         widgets = { # sin curso_id required
             'curso_id': CursoSelect(attrs={'class': 'w-full rounded border my-2 px-2 py-2 invalid:border-red-400 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-300 dark:bg-slate-800 dark:text-white dark:border-slate-600 dark:focus:ring-blue-300 dark:focus:border-blue-300'}),
-            'hrs_asignatura': forms.NumberInput(attrs={'class': 'form-control form-crud', 'min': 0, 'max': 8, 'step': 0.5, 'required': 'true'})
+            'hrs_asignatura': forms.NumberInput(attrs={'class': 'form-control form-crud', 'min': 1, 'max': 8, 'step': 0.5, 'required': 'true'})
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['asignatura_id'].queryset = Asignatura.objects.filter(
+            is_active=True
+        )
 
 class AsignaturasCreateForm(forms.ModelForm):
     class Meta:
@@ -362,6 +370,17 @@ class AsignaturasCreateForm(forms.ModelForm):
             'nombres_asignatura_id': forms.Select(attrs={'class': 'w-full rounded border my-2 px-2 py-2 bg-white dark:bg-[#141826] text-sm focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 focus:transition focus:duration-300 rounded-lg invalid:border-red-400 focus:outline-none dark:bg-slate-800 dark:text-white'}),
             'areas_planes_diferenciales_id': forms.Select(attrs={'class': 'w-full rounded border my-2 px-2 py-2 bg-white dark:bg-[#141826] text-sm focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 focus:transition focus:duration-300 rounded-lg invalid:border-red-400 focus:outline-none dark:bg-slate-800 dark:text-white'}),
         }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['nombres_asignatura_id'].queryset = NombresAsignatura.objects.filter(
+            is_active=True
+        )
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['areas_planes_diferenciales_id'].queryset = AreasPlanesDiferenciales.objects.filter(
+            is_active=True
+        )
 
 class AsignaturaUpdateForm(forms.ModelForm):
     class Meta:
@@ -371,6 +390,17 @@ class AsignaturaUpdateForm(forms.ModelForm):
             'nombres_asignatura_id': forms.Select(attrs={'class': 'w-full rounded border my-2 px-2 py-2 bg-white dark:bg-[#141826] text-sm focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 focus:transition focus:duration-300 rounded-lg invalid:border-red-400 focus:outline-none dark:bg-slate-800 dark:text-white'}),
             'areas_planes_diferenciales_id': forms.Select(attrs={'class': 'w-full rounded border my-2 px-2 py-2 bg-white dark:bg-[#141826] text-sm focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 focus:transition focus:duration-300 rounded-lg invalid:border-red-400 focus:outline-none dark:bg-slate-800 dark:text-white'}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['nombres_asignatura_id'].queryset = NombresAsignatura.objects.filter(
+            is_active=True
+        )
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['areas_planes_diferenciales_id'].queryset = AreasPlanesDiferenciales.objects.filter(
+            is_active=True
+        )
 
 class NombresAsignaturaForm(forms.ModelForm):
     class Meta:

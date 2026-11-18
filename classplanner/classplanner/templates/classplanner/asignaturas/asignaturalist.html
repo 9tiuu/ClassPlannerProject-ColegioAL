@@ -48,10 +48,17 @@
                 </div>
             </div>
 
-            <a href="{% url 'asignaturacreate' %}" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-800 text-center hover:transition transition hover:duration-300 duration-300 rounded-lg px-8 py-3">
-                <p class="w-full text-white font-semibold">+ Nueva asignatura</p>
-            </a>
-
+            <div class="flex gap-4">
+                <form method="get" action="{% url 'asignaturas' %}">
+                    <label for="change_state" class="flex cursor-pointer items-center justify-center dark:text-[#a8b2d2] text-slate-500 gap-2 pr-3 w-auto border p-1 bg-white dark:bg-[#141826] border-slate-300 dark:border-slate-800 rounded-lg">
+                        <input type="checkbox" name="change_state" id="change_state" value="1" onchange="this.form.submit()" {% if mostrar_desactivados %}checked{% endif %} class="h-4 w-4 p-3 m-3 cursor-pointer rounded border-slate-300 accent-blue-600 focus:ring-2 focus:ring-blue-600 dark:border-slate-700 dark:accent-blue-500">
+                        Mostrar desactivados
+                    </label>
+                </form>                
+                <a href="{% url 'asignaturacreate' %}" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-800 text-center hover:transition transition hover:duration-300 duration-300 rounded-lg px-8 py-3">
+                    <p class="w-full text-white font-semibold">+ Nueva asignatura</p>
+                </a>
+            </div>
         </div>
 
         {% if asignatura %}
@@ -95,7 +102,7 @@
 
                             <div class="flex items-center gap-1">
                                 <h3 id="nombre-{{ a.ident }}" class="text-lg font-bold text-slate-700 dark:text-white truncate">
-                                    {{ a.nombre }}
+                                    {{ a.nombres_asignatura_id }}
                                 </h3>
                                 <p id="ident-{{ a.ident }}" class="text-sm text-slate-500 dark:text-[#a8b2d2] font-bold">
                                     #{{ a.ident }}
@@ -117,6 +124,7 @@
                         </p>
 
                         <div class="flex gap-2">
+                            {% if a.is_active %}
                             <a href="{% url 'asignaturaupdate' a.id %}" class="bg-sky-600 hover:bg-sky-700 text-white w-9 h-9 flex items-center justify-center text-center hover:transition transition hover:duration-300 duration-300 rounded-lg">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-edit">
                                     <path stroke="none" d="M0 0h24v24H0z" fill="none" />
@@ -131,6 +139,17 @@
                                     <path d="M14 2a2 2 0 0 1 2 2a1 1 0 0 1 -1.993 .117l-.007 -.117h-4l-.007 .117a1 1 0 0 1 -1.993 -.117a2 2 0 0 1 1.85 -1.995l.15 -.005z" />
                                 </svg>
                             </a>
+                            {% else %}
+                            <form method="post" action="{% url 'asignaturaactivate' a.id %}">
+                                {% csrf_token %}
+                                <button title="Activar" type="button" onclick="activar(this)" class="bg-sky-600 hover:bg-sky-700 text-white w-9 h-9 flex items-center justify-center text-center hover:transition transition hover:duration-300 duration-300 rounded-lg">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 16 16" fill="currentColor" class="bi bi-check-circle">
+                                        <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/>
+                                        <path d="m10.97 4.97-.02.022-3.473 4.425-2.093-2.094a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05"/>
+                                    </svg>
+                                </button>
+                            </form>
+                            {% endif %}                            
                         </div>
 
                     </div>
@@ -199,7 +218,7 @@
                         <td class="px-6 py-4 whitespace-nowrap md:whitespace-normal">
 
                             <div class="flex gap-2">
-
+                                {% if a.is_active %}
                                 <a href="{% url 'asignaturaupdate' a.id %}" class="bg-sky-600 hover:bg-sky-700 text-white w-9 h-9 flex items-center justify-center text-center hover:transition transition hover:duration-300 duration-300 rounded-lg">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-edit">
                                         <path stroke="none" d="M0 0h24v24H0z" fill="none" />
@@ -214,7 +233,17 @@
                                         <path d="M14 2a2 2 0 0 1 2 2a1 1 0 0 1 -1.993 .117l-.007 -.117h-4l-.007 .117a1 1 0 0 1 -1.993 -.117a2 2 0 0 1 1.85 -1.995l.15 -.005z" />
                                     </svg>
                                 </a>
-
+                                {% else %}
+                                <form method="post" action="{% url 'asignaturaactivate' a.id %}">
+                                    {% csrf_token %}
+                                    <button title="Activar" type="button" onclick="activar(this)" class="bg-sky-600 hover:bg-sky-700 text-white w-9 h-9 flex items-center justify-center text-center hover:transition transition hover:duration-300 duration-300 rounded-lg">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 16 16" fill="currentColor" class="bi bi-check-circle">
+                                            <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/>
+                                            <path d="m10.97 4.97-.02.022-3.473 4.425-2.093-2.094a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05"/>
+                                        </svg>
+                                    </button>
+                                </form>
+                                {% endif %}
                             </div>
 
                         </td>
@@ -239,6 +268,26 @@
 </div>
 
 <script>
+    function activar(button) {
+        const form = button.closest('form');
+
+        Swal.fire({
+            title: "¿Desea activar esta asignatura?",
+            text: "La asignatura aparecerá nuevamente en el listado, y estará disponible en otros menús y módulos nuevamente.",
+            icon: "info",
+            showCancelButton: true,
+            confirmButtonText: "Activar",
+            cancelButtonText: "Cancelar",
+            confirmButtonColor: "#0d6efd",
+            cancelButtonColor: "#6c757d",
+            focusConfirm: false,
+        }).then((result) => {
+            if (result.isConfirmed) {
+                form.submit();
+            }
+        });
+    }
+
     const asigicon = document.getElementById('asigicon');
     const asigtable = document.getElementById('asigtable');
     const btntable = document.getElementById('btntable');

@@ -502,7 +502,9 @@ class CreateUsuario(CreateView):
         if not re.match(r'^[A-Za-záéíóúÁÉÍÓÚ\s]+$', last_name):
             form.add_error('last_name', 'El apellido solo puede contener letras y espacios.')
             return self.form_invalid(form)
-        
+
+        form.instance.name = form.cleaned_data['name'].title()
+        form.instance.last_name = form.cleaned_data['last_name'].capitalize()
         messages.success(self.request, '¡Usuario Registrado con éxito!')
         return super().form_valid(form)
     
@@ -586,7 +588,9 @@ class UpdateUsuario(UpdateView):
         if not re.match(r'^[A-Za-záéíóúÁÉÍÓÚ\s]+$', last_name):
             form.add_error('last_name', 'El apellido solo puede contener letras y espacios.')
             return self.form_invalid(form)
-        
+
+        form.instance.name = name.title()
+        form.instance.last_name = last_name.capitalize()
         messages.success(self.request, '¡Usuario actualizado con éxito!')
         return super().form_valid(form)
 
@@ -601,14 +605,26 @@ class DeleteUsuario(DeleteView):
     def get_object(self, queryset=None):
         obj = super().get_object(queryset)
         if self.request.user.pk == obj.pk:
-            raise PermissionDenied("No puede eliminar su propio usuario")
+            raise PermissionDenied("No puede desactivar su propio usuario")
         if not obj.is_active:
-            raise Http404('Este usuario está desactivado')
+            raise Http404('Este usuario ya está desactivado')
         return obj
     
     def form_valid(self, form):
-        messages.success(self.request, '¡Usuario eliminado con éxito!')
+        messages.success(self.request, '¡Usuario desactivado con éxito!')
         return super().form_valid(form)
+
+@login_required
+@roles_required('root')
+def ActivateUsuario(request, pk):
+    if request.method != 'POST':
+        return HttpResponse(status=405)
+
+    user = get_object_or_404(Usuario, pk=pk)
+    user.is_active = True
+    user.save(update_fields=['is_active'])
+    messages.success(request, '¡Usuario activado con éxito!')
+    return redirect('userlist')
 
 # ----------------------------------- # REGISTROS
 
@@ -843,7 +859,6 @@ class ListAreasPlanesDiferenciales(ListView):
         )
         return context
 
-
 @method_decorator(login_required, name='dispatch')
 @method_decorator(roles_required('root', 'Administrador'), name='dispatch')
 class CreateAreasPlanesDiferenciales(CreateView):
@@ -1070,7 +1085,7 @@ class ListEstudiantes(ListView):
     context_object_name = 'estudiantes'
 
     def get_queryset(self):
-        is_root = self.request.user.rol.name == 'root'
+        is_root = self.request.user.rol.name == 'root' or self.request.user.rol.name == 'Administrador'
         if is_root:
             mostrar_desactivados = self.request.GET.get('change_state') == '1'
             queryset = Estudiante.objects.filter(is_active=not mostrar_desactivados)
@@ -1199,6 +1214,18 @@ class DeleteEstudiante(DeleteView):
         messages.success(self.request, '¡Estudiante eliminado con éxito!')
         return super().form_valid(form)
 
+@login_required
+@roles_required('root')
+def ActivateEstudiante(request, rut):
+    if request.method != 'POST':
+        return HttpResponse(status=405)
+
+    nombre = get_object_or_404(Estudiante, rut=rut)
+    nombre.is_active = True
+    nombre.save(update_fields=['is_active'])
+    messages.success(request, '¡Estudiante activado con éxito!')
+    return redirect('estudiantes')
+
 # ----------------------------------- # PROMEDIOS
 
 MIN_NOTAS_PROMEDIO = 1
@@ -1324,6 +1351,11 @@ class CreatePromedioAsignatura(PromedioAsignaturaMixin, CreateView):
             raise Http404('No se pueden editar las notas de un estudiante desactivado')
         return kwargs
 
+    def get_form(self, form_class=None):
+        form_class = self.get_form_class()
+        form_class
+        return form_class(**self.get_form_kwargs())
+
     def form_valid(self, form):
         response = super().form_valid(form)
         actualizar_promedio_estudiante(self.object.estudiante_id_id)
@@ -1371,6 +1403,23 @@ class ListAsignatura(ListView):
     model = Asignatura
     template_name = 'classplanner/asignaturas/asignaturalist.html'
     context_object_name = 'asignatura'
+
+    def get_queryset(self):
+        is_admin = self.request.user.rol.name == 'root' or self.request.user.rol.name == 'Administrador'
+        if is_admin:
+            mostrar_desactivados = self.request.GET.get('change_state') == '1'
+            queryset = Asignatura.objects.filter(is_active=not mostrar_desactivados)
+        else:
+            queryset = Asignatura.objects.filter(is_active=True)
+
+        return queryset.order_by('nombres_asignatura_id')
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['mostrar_desactivados'] = (
+            self.request.GET.get('change_state') == '1'
+        )
+        return context
 
 @method_decorator(login_required, name='dispatch')
 @method_decorator(roles_required('root', 'Administrador'), name='dispatch')
@@ -1424,7 +1473,19 @@ class DeleteAsignatura(DeleteView):
             raise PermissionDenied(
                 'Esta asignatura está asignada en uno o más planes de estudio. ' \
                 'Procure reorganizar las horas de los planes de estudio antes de continuar con la eliminación')
-    
+
+@login_required
+@roles_required('root', 'Administrador')
+def ActivateAsignatura(request, pk):
+    if request.method != 'POST':
+        return HttpResponse(status=405)
+
+    nombre = get_object_or_404(Asignatura, pk=pk)
+    nombre.is_active = True
+    nombre.save(update_fields=['is_active'])
+    messages.success(request, '¡Asignatura activada con éxito!')
+    return redirect('asignaturas')
+
 # ----------------------------------- # PLAN DE ESTUDIO
 
 @login_required
@@ -1507,7 +1568,7 @@ def ListPlanDeEstudio(request):
 @roles_required('root', 'Administrador', 'Director')
 @periodo_planificacion_required()
 def CreatePlanDeEstudio(request):
-    asignaturas = Asignatura.objects.all()
+    asignaturas = Asignatura.objects.filter(is_active=True)
     cursos = Curso.objects.all()
     context = {'form': PlanDeEstudioCreateForm(), 'asignaturas': asignaturas, 'cursos': cursos}
 
@@ -1539,7 +1600,7 @@ def CreatePlanDeEstudioForm(request): # hacer validacion hrs plan curso >= total
                     'classplanner/plandeestudio/plandeestudioformerror.html',
                     {'form': form},
                 )
-        print(f"curso_ids: {curso_ids}\ncurso_ids[:-1]: {curso_ids[:-1]}\nplanes: {planes}")
+        #print(f"curso_ids: {curso_ids}\ncurso_ids[:-1]: {curso_ids[:-1]}\nplanes: {planes}")
 
         if not horas or len(horas) != len(asignaturas):
             form.add_error(None, 'Por favor, complete todos los campos')
@@ -1549,14 +1610,14 @@ def CreatePlanDeEstudioForm(request): # hacer validacion hrs plan curso >= total
                 {'form': form},
             )
         else:
-            print("campos completos")
+            #print("campos completos")
             curso_repetido = int(curso_id) in curso_ids[:-1] # probar con mas de 1 form
             curso_ids_validos = [curso_id for curso_id in curso_ids if isinstance(curso_id, int)]
             cursos_existentes = set(
                 Curso.objects.filter(pk__in=curso_ids_validos).values_list('pk', flat=True)
             )
             cursos_invalidos = [curso_id for curso_id in curso_ids_validos if curso_id not in cursos_existentes]
-            print(f"curso actual: {curso_id}\ncurso repetido: {curso_repetido}\ncursos_invalidos: {cursos_invalidos}")
+            #print(f"curso actual: {curso_id}\ncurso repetido: {curso_repetido}\ncursos_invalidos: {cursos_invalidos}")
 
             for hrs, asignatura_id in zip(horas, asignaturas):
                 item_form = PlanDeEstudioCreateForm({
@@ -1578,7 +1639,7 @@ def CreatePlanDeEstudioForm(request): # hacer validacion hrs plan curso >= total
                     )
 
                 if item_form.is_valid():
-                    print(hrs)
+                    #print(hrs)
                     if int(hrs) > 0:
                         planes.append(item_form.cleaned_data)
                 else:
@@ -1621,7 +1682,7 @@ def CreatePlanDeEstudioForm(request): # hacer validacion hrs plan curso >= total
         form = PlanDeEstudioCreateForm()
 
     for i in horas:
-        print(i)
+        #print(i)
         if int(i) > 8:
             form = PlanDeEstudioCreateForm(request.POST)
             form.add_error(None, 'Selecciona una asignatura e indica sus horas.')
@@ -1631,6 +1692,11 @@ def CreatePlanDeEstudioForm(request): # hacer validacion hrs plan curso >= total
             request,
             'classplanner/plandeestudio/plandeestudioformerror.html',
             {'form': form},
+        )
+    elif request.method == 'POST':
+        return render(
+            request,
+            'classplanner/plandeestudio/plandeestudiolist.html',
         )
 
     return render(request, 'classplanner/plandeestudio/plandeestudioform.html', {'form': form})
@@ -1642,7 +1708,7 @@ def UpdatePlanDeEstudio(request, pk=None):
     curso = Curso.objects.get(pk=pk)
     horasCurso = int(curso.horas_plan_total)
     pdeModel = PlanDeEstudio.objects.all()
-    asignaturasModel = Asignatura.objects.all()
+    asignaturasModel = Asignatura.objects.filter(is_active=True)
     asignaturasSelected = list(pdeModel.filter(curso_id=curso.id).values_list('asignatura_id__ident','hrs_asignatura'))
     pdes = list(pdeModel.filter(curso_id=curso.id).values_list('pk', 'asignatura_id__ident'))
     print("pdes: ",pdes)
@@ -2116,7 +2182,7 @@ def datos_para_horario():
             str(curso.pk), {'curso': str(curso), 'asignaturas': []}
         )
         entrada['asignaturas'].append(
-            {'id': p.asignatura_id.pk, 'nombre': p.asignatura_id.nombre}
+            {'id': p.asignatura_id.pk, 'nombre': p.asignatura_id.nombres_asignatura_id.nombre}
         )
 
     cursos = list(Curso.objects.filter(pk__in=[int(k) for k in planes_data]))

@@ -104,7 +104,7 @@ def _exportar_planes_pdf(planes):
         grupo = cursos_por_grupo.setdefault(sheet_title, {'courses': {}})
         grupo['courses'].setdefault(curso_id, str(plan.curso_id))
 
-        key = (str(plan.asignatura_id.nombre).lower(), curso_id)
+        key = (str(plan.asignatura_id.nombres_asignatura_id).lower(), curso_id)
         horas_por_asignatura_y_curso[key] = (
             horas_por_asignatura_y_curso.get(key, 0) + plan.hrs_asignatura
         )
@@ -329,7 +329,7 @@ def exportar_planes(planes=QuerySet, export_to=str):
             )
             grupo['courses'].setdefault(curso_id, str(plan.curso_id))
 
-            key = (str(plan.asignatura_id.nombre).lower(), curso_id)
+            key = (str(plan.asignatura_id.nombres_asignatura_id).lower(), curso_id)
             horas_por_asignatura_y_curso[key] = (
                 horas_por_asignatura_y_curso.get(key, 0) + plan.hrs_asignatura
             )

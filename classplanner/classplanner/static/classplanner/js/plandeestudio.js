@@ -65,7 +65,6 @@ function updateAsignaturas() {
             asignaturaInput.value = checkbox.value
             
             if (typeof pdeidArray !== 'undefined') {
-                console.log("pdeidArray existe")
                 pdeInput.type = "hidden"
                 pdeInput.name = "pde_id"
                 pdeInput.className = asignaturaInput.value
@@ -79,7 +78,7 @@ function updateAsignaturas() {
             input.id = `hrs-${formIndex}-${checkbox.value}`
             input.type = "number"
             input.name = "hrs_asignatura"
-            input.min = "0"
+            input.min = "1"
             input.max = "8"
             input.step = "1"
             input.required = true
