@@ -1,5 +1,5 @@
 from django.forms import ValidationError
-from django.http import request, Http404, HttpResponse
+from django.http import request, FileResponse, Http404, HttpResponse
 from django.core.exceptions import PermissionDenied, BadRequest
 from django.shortcuts import render, get_object_or_404
 from django.urls import reverse, reverse_lazy
@@ -7,13 +7,16 @@ from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django.views.generic.list import ListView
 from django.views.generic.detail import DetailView
 from django.views import View
+from django.views.decorators.http import require_POST
 from django.contrib import messages
 from django.db.models.deletion import RestrictedError
 from django.db.models import Case, F, IntegerField, OuterRef, Subquery, When
 from datetime import datetime
+from django.conf import settings
 import json
 import re
 from math import floor
+from pathlib import Path
 
 from easyaudit.models import CRUDEvent, LoginEvent
 from .models import Rol, Usuario, NombresAsignatura, AreasPlanesDiferenciales, Asignatura, PlanDeEstudio, Curso, Estudiante, Aula, PromedioAsignatura, CargaHoraria, Bloque, BloqueDeClase, Horario
@@ -39,7 +42,11 @@ from django.db.models.query import QuerySet
 from functools import wraps
 from .static.classplanner.py.exportar_planes import exportar_planes
 from .static.classplanner.py.exportar_notas import _exportar_notas_pdf
-from .static.classplanner.py.exportar_cargas_horarios import exportar_cargas, exportar_horarios
+from .static.classplanner.py.exportar_cargas_horarios import (
+    DescargaHorariosHistoricos,
+    exportar_cargas,
+    exportar_horarios,
+)
 from datetime import time, datetime, date
 from collections import Counter
 from django.db.models import Count
@@ -483,7 +490,6 @@ class ListLogins(ListView):
     def get_queryset(self):
         queryset = (
             LoginEvent.objects
-            .select_related("user")
             .order_by("-datetime")
         )
 
@@ -1830,7 +1836,113 @@ def ExportarCargaHoraria(request):
 # ----------------------------------- # HORARIOS
 
 @login_required
-@roles_required('root', 'Administrador', 'Director')
+def ListHorariosHistoricos(request):
+    fecha_desde = request.GET.get('fecha_desde', '')
+    fecha_hasta = request.GET.get('fecha_hasta', '')
+    try:
+        anio_desde = int(fecha_desde) if fecha_desde else None
+    except ValueError:
+        anio_desde = None
+    try:
+        anio_hasta = int(fecha_hasta) if fecha_hasta else None
+    except ValueError:
+        anio_hasta = None
+
+    p = Path(settings.MEDIA_ROOT) / 'horarios'
+    anios = []
+    exportados = {}
+    if p.is_dir():
+        for archivo in p.iterdir():
+            if (
+                not archivo.is_file()
+                or not archivo.name.startswith('Horarios_')
+                or archivo.suffix.lower() != '.pdf'
+            ):
+                continue
+            try:
+                curso, anio_texto = (
+                    archivo.stem.removeprefix('Horarios_').rsplit('_', 1)
+                )
+                anio = int(anio_texto)
+            except ValueError:
+                continue
+
+            anios.append(anio)
+            if anio_desde is not None and anio < anio_desde:
+                continue
+            if anio_hasta is not None and anio > anio_hasta:
+                continue
+
+            if curso == 'ExportacionCompleta':
+                curso = 'Exportación Completa'
+            else:
+                nvl = curso[0:3]
+                ltr = curso[3]
+                curso = f'{nvl} "{ltr}"'
+            exportados[archivo.name] = [curso, anio]
+
+    return render(request, 'classplanner/horarios/horarioshistorico.html', {
+        'exportados': exportados,
+        'ult_anio': max(anios)+1 if anios else '',
+        'fecha_desde': fecha_desde,
+        'fecha_hasta': fecha_hasta,
+    })
+
+@login_required
+def PrevisualizarHorario(request, filename):
+    nombre = Path(filename)
+    if (
+        nombre.name != filename
+        or '/' in filename
+        or '\\' in filename
+        or nombre.suffix.lower() != '.pdf'
+    ):
+        raise Http404
+
+    directorio_exportaciones = (Path(settings.MEDIA_ROOT) / 'horarios').resolve()
+    ruta_pdf = (directorio_exportaciones / nombre).resolve()
+    if directorio_exportaciones not in ruta_pdf.parents or not ruta_pdf.is_file():
+        raise Http404
+
+    return FileResponse(
+        ruta_pdf.open('rb'),
+        content_type='application/pdf',
+        as_attachment=False,
+        filename=nombre.name,
+    )
+
+@login_required
+@require_POST
+def DescargarHorariosHistoricos(request):
+    return DescargaHorariosHistoricos(request.POST.getlist('export_checkbox'))
+
+@login_required
+def DescargarHorario(request, filename):
+    if request.method == 'POST':
+        print('DescargarHorario POST',filename)
+        
+    nombre = Path(filename)
+    if (
+        nombre.name != filename
+        or '/' in filename
+        or '\\' in filename
+        or nombre.suffix.lower() != '.pdf'
+    ):
+        raise Http404
+
+    directorio_exportaciones = (Path(settings.MEDIA_ROOT) / 'horarios').resolve()
+    ruta_pdf = (directorio_exportaciones / nombre).resolve()
+    if directorio_exportaciones not in ruta_pdf.parents or not ruta_pdf.is_file():
+        raise Http404
+
+    return FileResponse(
+        ruta_pdf.open('rb'),
+        content_type='application/pdf',
+        as_attachment=True,
+        filename=nombre.name,
+    )
+
+@login_required
 def ListHorarios(request):
     horarios = Horario.objects.select_related('plan_de_estudio_id__curso_id', 'aula_id')
 
@@ -2396,8 +2508,7 @@ def UpdateHorario(request, pk): # Pendiente: validar asignaturas asignadas en bl
     })
 
 @login_required
-@roles_required('root', 'Administrador', 'Director')
-def ExportarHorario(request): # Pendiente: exportar históricos, botón adicional en list para mostrar otra lista de horarios creados en años anteriores + exportar esos
+def ExportarHorario(request):
     if request.method != 'POST':
         raise BadRequest('Solicitud de exportación inválida')
 

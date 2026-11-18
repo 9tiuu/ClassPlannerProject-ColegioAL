@@ -49,12 +49,14 @@
             </div>
 
             <div class="flex gap-4">
+                {% if request.user.rol.name != 'Director' and request.user.rol.name != 'Docente' %}
                 <form method="get" action="{% url 'asignaturas' %}">
                     <label for="change_state" class="flex cursor-pointer items-center justify-center dark:text-[#a8b2d2] text-slate-500 gap-2 pr-3 w-auto border p-1 bg-white dark:bg-[#141826] border-slate-300 dark:border-slate-800 rounded-lg">
                         <input type="checkbox" name="change_state" id="change_state" value="1" onchange="this.form.submit()" {% if mostrar_desactivados %}checked{% endif %} class="h-4 w-4 p-3 m-3 cursor-pointer rounded border-slate-300 accent-blue-600 focus:ring-2 focus:ring-blue-600 dark:border-slate-700 dark:accent-blue-500">
                         Mostrar desactivados
                     </label>
-                </form>                
+                </form> 
+                {% endif %}              
                 <a href="{% url 'asignaturacreate' %}" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-800 text-center hover:transition transition hover:duration-300 duration-300 rounded-lg px-8 py-3">
                     <p class="w-full text-white font-semibold">+ Nueva asignatura</p>
                 </a>
@@ -140,6 +142,7 @@
                                 </svg>
                             </a>
                             {% else %}
+                            {% if request.user.rol.name != 'Director' and request.user.rol.name != 'Docente' %}
                             <form method="post" action="{% url 'asignaturaactivate' a.id %}">
                                 {% csrf_token %}
                                 <button title="Activar" type="button" onclick="activar(this)" class="bg-sky-600 hover:bg-sky-700 text-white w-9 h-9 flex items-center justify-center text-center hover:transition transition hover:duration-300 duration-300 rounded-lg">
@@ -149,6 +152,7 @@
                                     </svg>
                                 </button>
                             </form>
+                            {% endif %} 
                             {% endif %}                            
                         </div>
 
@@ -234,6 +238,7 @@
                                     </svg>
                                 </a>
                                 {% else %}
+                                {% if request.user.rol.name != 'Director' and request.user.rol.name != 'Docente' %}
                                 <form method="post" action="{% url 'asignaturaactivate' a.id %}">
                                     {% csrf_token %}
                                     <button title="Activar" type="button" onclick="activar(this)" class="bg-sky-600 hover:bg-sky-700 text-white w-9 h-9 flex items-center justify-center text-center hover:transition transition hover:duration-300 duration-300 rounded-lg">
@@ -243,6 +248,7 @@
                                         </svg>
                                     </button>
                                 </form>
+                                {% endif %}
                                 {% endif %}
                             </div>
 
