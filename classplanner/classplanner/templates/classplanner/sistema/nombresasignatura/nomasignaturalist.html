@@ -1,0 +1,124 @@
+{% extends "classplanner/base.html" %}
+{% block title %}
+<title>Asignaturas | Nombres | ClassPlanner</title>
+{% endblock %}
+{% block content %}
+<div class="p-4 min-h-[10vh] mt-4 rounded-lg">
+    <p class="mb-2 text-slate-500 text-sm dark:text-slate-400"><a class="hover:underline" href="{% url 'home' %}">Gestión</a> / <a class="hover:underline font-semibold text-slate-700 dark:text-slate-200" href="#">Asignaturas</a></p>
+    <h2 class="mb-2 text-4xl font-semibold text-[#234FA8] dark:text-blue-400 sm:text-3xl">Asignaturas - Nombres</h2>
+    <p class="text-sm text-slate-500 dark:text-slate-400 sm:text-base">Listado de todos los nombres de asignaturas dictados por MINEDUC.</p>
+</div>
+
+<div class="p-4 border-slate-300 dark:border-slate-700 min-h-[70vh] border-default border mt-10 rounded-lg">
+    <div class="user-list-content">
+        <div class="mb-5 w-full gap-4 md:gap-0 flex flex-col md:flex-row md:justify-between justify-center">
+            <div class="flex items-center relative">
+                <input type="text" class="bg-white dark:bg-[#141826] text-sm focus:outline-none focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 focus:transition focus:duration-300 rounded-lg h-12 w-96 border p-3 border-slate-300 dark:border-slate-800 dark:placeholder:text-[#a8b2d2] dark:text-white" placeholder="Buscar" maxlength="40" id="search-input">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-search text-gray-400 dark:text-slate-300 absolute right-0 -translate-x-4">
+                    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                    <path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" />
+                    <path d="M21 21l-6 -6" />
+                </svg>
+            </div>
+            <div class="flex gap-4">
+                <form method="get" action="{% url 'nombresasignatura' %}">
+                    <label for="change_state" class="flex cursor-pointer items-center justify-center dark:text-[#a8b2d2] text-slate-500 gap-2 pr-3 w-auto border p-1 bg-white dark:bg-[#141826] border-slate-300 dark:border-slate-800 rounded-lg">
+                        <input type="checkbox" name="change_state" id="change_state" value="1" onchange="this.form.submit()" {% if mostrar_desactivados %}checked{% endif %} class="h-4 w-4 p-3 m-3 cursor-pointer rounded border-slate-300 accent-blue-600 focus:ring-2 focus:ring-blue-600 dark:border-slate-700 dark:accent-blue-500">
+                        Mostrar desactivados
+                    </label>
+                </form>
+                <a href="{% url 'nombresasignaturacreate' %}" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-800 text-center hover:transition transition hover:duration-300 duration-300 rounded-lg px-8 py-3">
+                    <p class="w-full text-white font-semibold">+ Nuevo Nombre</p>
+                </a>
+            </div>
+        </div>
+
+        {% if asignaturas %}
+        <div class="relative max-h-[60vh] b-white overflow-y-auto overflow-x-auto bg-neutral-primary-soft shadow-xs rounded-base border border-default border-slate-300 dark:border-slate-800 rounded-lg">
+            <table id="data-table" class="w-full text-sm text-left rtl:text-right text-body">
+                <thead class="sticky top-0 z-10 text-sm text-left text-slate-700 dark:text-white bg-slate-200 dark:bg-[#10141f] text-body bg-neutral-secondary-soft border-b rounded-base border-default dark:border-slate-800">
+                    <tr>
+                        <th scope="col" class="px-6 py-3 font-bold whitespace-nowrap md:whitespace-normal">
+                            Asignatura
+                        </th>
+                        <th scope="col" class="px-6 py-3 font-bold whitespace-nowrap md:whitespace-normal">
+                            Acción
+                        </th>
+                    </tr>
+                </thead>
+                <tbody class="dark:text-[#a8b2d2] text-slate-500">
+                    {% for obj in asignaturas %}
+                    <tr class="border-b border-default bg-white dark:bg-[#171c2b] dark:border-b-slate-800">
+                        <td name="search" class="px-6 py-4 whitespace-nowrap md:whitespace-normal">{{ obj.nombre }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap md:whitespace-normal flex gap-2 ">
+                            {% if request.user.rol.name != 'root' and request.user.rol.name != 'Administrador' %}
+                                <a title="No tiene permisos para realizar esta acción" class="opacity-60 bg-blue-600 hover:bg-blue-800 text-white w-9 h-9 flex items-center justify-center text-center hover:transition transition hover:duration-300 duration-300 rounded-lg">
+                                    <i class="bi bi-pencil-square"></i>
+                                </a>
+                                <a title="No tiene permisos para realizar esta acción" class="opacity-60 bg-red-600 hover:bg-red-800 text-white w-9 h-9 flex items-center justify-center text-center hover:transition transition hover:duration-300 duration-300 rounded-lg">
+                                    <i class="bi bi-trash-fill"></i>
+                                </a>
+                            {% else %}
+                                {% if obj.is_active %}
+                                <a href="{% url 'nombresasignaturaupdate' obj.id %}" class="bg-sky-600 hover:bg-sky-700 text-white w-9 h-9 flex items-center justify-center text-center hover:transition transition hover:duration-300 duration-300 rounded-lg">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-edit">
+                                        <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                                        <path d="M8 7a1 1 0 0 1 -1 1h-1a1 1 0 0 0 -1 1v9a1 1 0 0 0 1 1h9a1 1 0 0 0 1 -1v-1a1 1 0 0 1 2 0v1a3 3 0 0 1 -3 3h-9a3 3 0 0 1 -3 -3v-9a3 3 0 0 1 3 -3h1a1 1 0 0 1 1 1" />
+                                        <path d="M14.596 5.011l4.392 4.392l-6.28 6.303a1 1 0 0 1 -.708 .294h-3a1 1 0 0 1 -1 -1v-3a1 1 0 0 1 .294 -.708zm6.496 -2.103a3.097 3.097 0 0 1 .165 4.203l-.164 .18l-.693 .694l-4.387 -4.387l.695 -.69a3.1 3.1 0 0 1 4.384 0" />
+                                    </svg>
+                                </a>
+                                <a href="{% url 'nombresasignaturadelete' obj.id %}" class="bg-red-500 hover:bg-red-600 text-white w-9 h-9 flex items-center justify-center text-center hover:transition transition hover:duration-300 duration-300 rounded-lg">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-trash">
+                                        <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                                        <path d="M20 6a1 1 0 0 1 .117 1.993l-.117 .007h-.081l-.919 11a3 3 0 0 1 -2.824 2.995l-.176 .005h-8c-1.598 0 -2.904 -1.249 -2.992 -2.75l-.005 -.167l-.923 -11.083h-.08a1 1 0 0 1 -.117 -1.993l.117 -.007zm-10 4a1 1 0 0 0 -1 1v6a1 1 0 0 0 2 0v-6a1 1 0 0 0 -1 -1m4 0a1 1 0 0 0 -1 1v6a1 1 0 0 0 2 0v-6a1 1 0 0 0 -1 -1" />
+                                        <path d="M14 2a2 2 0 0 1 2 2a1 1 0 0 1 -1.993 .117l-.007 -.117h-4l-.007 .117a1 1 0 0 1 -1.993 -.117a2 2 0 0 1 1.85 -1.995l.15 -.005z" />
+                                    </svg>
+                                </a>
+                                {% else %}
+                                <form method="post" action="{% url 'nombresasignaturaactivate' obj.id %}">
+                                    {% csrf_token %}
+                                    <button title="Activar" type="button" onclick="activar(this)" class="bg-sky-600 hover:bg-sky-700 text-white w-9 h-9 flex items-center justify-center text-center hover:transition transition hover:duration-300 duration-300 rounded-lg">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 16 16" fill="currentColor" class="bi bi-check-circle">
+                                            <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/>
+                                            <path d="m10.97 4.97-.02.022-3.473 4.425-2.093-2.094a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05"/>
+                                        </svg>
+                                    </button>
+                                </form>
+                                {% endif %}
+                            {% endif %}
+                        </td>
+                    <tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% else %}
+        {% include 'classplanner/sin_registros.html' %}
+        {% endif %}
+    </div>
+    
+</div>
+<script>
+    function activar(button) {
+        const form = button.closest('form');
+
+        Swal.fire({
+            title: "¿Desea activar el nombre?",
+            text: "Este nombre aparecerá nuevamente en las opciones de asignatura.",
+            icon: "info",
+            showCancelButton: true,
+            confirmButtonText: "Activar",
+            cancelButtonText: "Cancelar",
+            confirmButtonColor: "#0d6efd",
+            cancelButtonColor: "#6c757d",
+            focusConfirm: false,
+        }).then((result) => {
+            if (result.isConfirmed) {
+                form.submit();
+            }
+        });
+    }
+</script>
+{% endblock  %}
+

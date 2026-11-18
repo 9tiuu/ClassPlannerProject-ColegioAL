@@ -35,7 +35,7 @@
                 {% if request.user.rol.name == 'root' %}
                     <form method="get" action="{% url 'userlist' %}">
                         <label for="change_state" class="flex cursor-pointer items-center justify-center dark:text-[#a8b2d2] text-slate-500 gap-2 pr-3 w-auto border p-1 bg-white dark:bg-[#141826] border-slate-300 dark:border-slate-800 rounded-lg">
-                            <input type="checkbox" name="change_state" id="change_state" value="1" onchange="this.form.submit()" {% if mostrar_desactivados %}checked{% endif %} class="h-4 w-4 p-3 m-3 rounded border-slate-300 accent-blue-600 focus:ring-2 focus:ring-blue-600 dark:border-slate-700 dark:accent-blue-500">
+                            <input type="checkbox" name="change_state" id="change_state" value="1" onchange="this.form.submit()" {% if mostrar_desactivados %}checked{% endif %} class="h-4 w-4 p-3 m-3 cursor-pointer rounded border-slate-300 accent-blue-600 focus:ring-2 focus:ring-blue-600 dark:border-slate-700 dark:accent-blue-500">
                             Mostrar desactivados
                         </label>
                     </form>
@@ -49,7 +49,7 @@
         </div>
 
         {% if usersys %}
-        <div class="relative max-h-[70vh] b-white overflow-x-auto bg-neutral-primary-soft shadow-xs rounded-base border border-default border-slate-300 dark:border-slate-800 rounded-lg">
+        <div class="relative max-h-[70vh] b-white overflow-y-auto overflow-x-auto bg-neutral-primary-soft shadow-xs rounded-base border border-default border-slate-300 dark:border-slate-800 rounded-lg">
             <table id="data-table" class="w-full text-sm text-left rtl:text-right text-body">
                 <thead name="search" class="sticky top-0 z-10 text-sm text-left text-slate-700 dark:text-white bg-slate-200 dark:bg-[#10141f] text-body bg-neutral-secondary-soft border-b rounded-base border-default dark:border-slate-800">
                     <tr>

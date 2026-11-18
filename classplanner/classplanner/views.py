@@ -11,14 +11,16 @@ from django.contrib import messages
 from django.db.models.deletion import RestrictedError
 from django.db.models import Case, F, IntegerField, OuterRef, Subquery, When
 from datetime import datetime
+import json
 import re
 from math import floor
 
-from easyaudit.models import CRUDEvent
-from .models import Rol, Usuario, Asignatura, PlanDeEstudio, Curso, Estudiante, Aula, PromedioAsignatura, CargaHoraria, Bloque, BloqueDeClase, Horario
+from easyaudit.models import CRUDEvent, LoginEvent
+from .models import Rol, Usuario, NombresAsignatura, AreasPlanesDiferenciales, Asignatura, PlanDeEstudio, Curso, Estudiante, Aula, PromedioAsignatura, CargaHoraria, Bloque, BloqueDeClase, Horario
 from .forms import (
     RolForm, UsuarioForm, UserUpdateForm,
     PlanDeEstudioCreateForm, PlanDeEstudioUpdateForm,
+    NombresAsignaturaForm, AreasPlanesDiferencialesForm,
     CursoForm, AsignaturasCreateForm, AsignaturaUpdateForm,
     AulaCreateForm, AulaUpdateForm,
     EstudiantesCreateForm, EstudiantesUpdateForm,
@@ -41,8 +43,10 @@ from .static.classplanner.py.exportar_cargas_horarios import exportar_cargas, ex
 from datetime import time, datetime, date
 from collections import Counter
 from django.db.models import Count
+from django.db.utils import IntegrityError
 from django.http import JsonResponse
 from django.utils import timezone
+from django.template.loader import render_to_string
 
 # Create your views here.
 
@@ -56,6 +60,17 @@ def validar_rut(rut):
     if not match:
         raise ValidationError("El RUT tiene un formato incorrecto")
     return True
+
+def texto_titulo(nombre):
+    return re.sub(
+        r'\S+',
+        lambda match: (
+            match.group(0).title()
+            if len(match.group(0)) > 3
+            else match.group(0).lower()
+        ),
+        nombre,
+    )
 
 def roles_required(*roles_permitidos):
     def decorator(view_func):
@@ -101,35 +116,108 @@ def periodo_planificacion_required():
     return decorator
 
 # ----------------------------------- # HOME / DASHBOARD
+DIAS_SEMANA = [(1, 'Lunes'), (2, 'Martes'), (3, 'Miércoles'), (4, 'Jueves'), (5, 'Viernes')]
+
+def obtener_anios_dashboard():
+    anios = set(
+        CargaHoraria.objects
+        .exclude(anio_planificacion__isnull=True)
+        .values_list('anio_planificacion', flat=True)
+    )
+    anios.update(
+        Horario.objects
+        .exclude(anio_planificacion__isnull=True)
+        .values_list('anio_planificacion', flat=True)
+    )
+    anios.update((timezone.now().year, anio_de_planificacion()))
+    return sorted(anios, reverse=True)
+
+def seleccionar_anio(anio, anios):
+    anio_actual = timezone.now().year
+
+    if anio in anios:
+        return anio
+
+    proximos = [a for a in anios if a >= anio_actual]
+
+    if anio_actual in anios:
+        return anio_actual
+
+    return min(proximos) if proximos else max(anios)
 
 @login_required
 def Home(request):
     context = {}
-    if request.user.rol.name in ('root', 'Administrador', 'Director'):
-        datos = datos_dashboard_admin()
-        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+    rol = request.user.rol.name if request.user.rol else None
+    es_ajax = request.headers.get('x-requested-with') == 'XMLHttpRequest'
+    anio = a_int(request.GET.get('anio'))
+
+    if rol in ('root', 'Administrador', 'Director'):
+        datos = datos_dashboard_admin(anio)
+        if es_ajax:
             return JsonResponse(datos)
         context.update(datos)
+
+    elif rol == 'Docente':
+        datos = datos_dashboard_docente(request.user, anio)
+        jornadas = horario_docente(request.user, datos['anio'])
+
+        if es_ajax:
+            datos['horario_html'] = render_to_string(
+                'classplanner/dashboards/horario_docente_tabla.html',
+                {'jornadas': jornadas, 'dias': DIAS_SEMANA, 'anio': datos['anio']},
+                request=request,
+            )
+            return JsonResponse(datos)
+
+        context.update(datos)
+        context['jornadas'] = jornadas
+        context['dias'] = DIAS_SEMANA
+
     return render(request, 'classplanner/base.html', context)
 
 @login_required
 @roles_required('root', 'Administrador', 'Director')
 def dashboard_admin_data(request):
-    return JsonResponse(datos_dashboard_admin())
+    return JsonResponse(datos_dashboard_admin(a_int(request.GET.get('anio'))))
 
-def datos_dashboard_admin():
-    anio = timezone.now().year
+def datos_dashboard_admin(anio=None):
+    anio_actual = timezone.now().year
 
+    con_datos = set(
+        CargaHoraria.objects.exclude(anio_planificacion__isnull=True)
+        .values_list('anio_planificacion', flat=True)
+    ) | set(
+        Horario.objects.exclude(anio_planificacion__isnull=True)
+        .values_list('anio_planificacion', flat=True)
+    )
+    anios = sorted(con_datos | {anio_actual, anio_de_planificacion()}, reverse=True)
+
+    if anio not in anios:
+        proximos = [a for a in con_datos if a >= anio_actual]
+        if anio_actual in con_datos or not con_datos:
+            anio = anio_actual
+        else:
+            anio = min(proximos) if proximos else max(con_datos)
+
+    cargas_anio = CargaHoraria.objects.filter( # La carga horaria sí depende del año seleccionado
+        anio_planificacion=anio,
+        usuario_id__rol__name='Docente',
+    )
     cargas = (
-        CargaHoraria.objects
-        .filter(
-            anio_planificacion=anio,
-            usuario_id__rol__name='Docente',
-            usuario_id__is_active=True,
-        )
+        cargas_anio
         .select_related('usuario_id')
         .order_by('-hrs_contrato')[:5]
     )
+
+    total_docentes = Usuario.objects.filter( # Los datos generales se obtienen directamente de la DB
+        rol__name='Docente',
+        is_active=True,
+    ).count()
+
+    total_asignaturas = Asignatura.objects.count()
+    total_estudiantes = Estudiante.objects.filter(is_active=True).count()
+    total_cursos = Curso.objects.count()
 
     totales = {
         fila['curso_id']: fila['total']
@@ -153,10 +241,12 @@ def datos_dashboard_admin():
     orden = sorted(por_nivel, key=lambda nivel: (not nivel.endswith('B'), nivel))
 
     return {
-        'total_docentes': Usuario.objects.filter(rol__name='Docente', is_active=True).count(),
-        'total_asignaturas': Asignatura.objects.count(),
-        'total_estudiantes': Estudiante.objects.filter(is_active=True).count(),
-        'total_cursos': Curso.objects.count(),
+        'anio': anio,
+        'anios': anios,
+        'total_docentes': total_docentes,
+        'total_asignaturas': total_asignaturas,
+        'total_estudiantes': total_estudiantes,
+        'total_cursos': total_cursos,
         'docentes_carga': {
             'labels': [f'{c.usuario_id.name} {c.usuario_id.last_name}' for c in cargas],
             'values': [c.hrs_contrato for c in cargas],
@@ -168,6 +258,165 @@ def datos_dashboard_admin():
         },
     }
 
+def nombre_asignatura(asignatura):
+    nombre = asignatura.nombres_asignatura_id
+    return nombre.nombre if nombre else asignatura.ident
+
+def datos_dashboard_docente(usuario, anio=None):
+    anio_actual = timezone.now().year
+
+    anios_carga = set(
+        CargaHoraria.objects
+        .filter(usuario_id=usuario)
+        .exclude(anio_planificacion__isnull=True)
+        .values_list('anio_planificacion', flat=True)
+    )
+
+    anios_horario = set(
+        BloqueDeClase.objects
+        .filter(usuario_id=usuario)
+        .exclude(horario_id__anio_planificacion__isnull=True)
+        .values_list('horario_id__anio_planificacion', flat=True)
+    )
+
+    anios = sorted(anios_carga | anios_horario | {anio_actual}, reverse=True)
+
+    if anio not in anios:
+        anio = anio_actual
+
+    filtro_anio = Q(horario_id__anio_planificacion=anio)
+
+    # Los horarios antiguos sin año se consideran parte del año actual.
+    if anio == anio_actual:
+        filtro_anio |= Q(horario_id__anio_planificacion__isnull=True)
+
+    clases = (
+        BloqueDeClase.objects
+        .filter(usuario_id=usuario)
+        .filter(filtro_anio)
+        .select_related(
+            'asignatura_id__nombres_asignatura_id',
+            'curso_id',
+        )
+    )
+
+    asignaturas = {}
+    cursos = {}
+    pares = set()
+
+    for c in clases:
+        asignaturas[c.asignatura_id_id] = nombre_asignatura(c.asignatura_id)
+        cursos[c.curso_id_id] = c.curso_id
+        pares.add((c.curso_id_id, c.asignatura_id_id))
+
+    cursos_ordenados = sorted(
+        cursos.values(),
+        key=lambda curso: (not curso.nivel.endswith('B'), curso.nivel, curso.letra),
+    )
+    asignaturas_ordenadas = sorted(asignaturas.items(), key=lambda item: item[1])
+
+    curso_de = dict(
+        Estudiante.objects
+        .filter(is_active=True, curso_id__in=list(cursos))
+        .values_list('rut', 'curso_id')
+    )
+
+    notas_por = {}
+    filas_notas = (
+        PromedioAsignatura.objects
+        .filter(
+            estudiante_id__in=list(curso_de),
+            asignatura_id__in=list(asignaturas),
+            nota__isnull=False,
+        )
+        .values_list('estudiante_id', 'asignatura_id', 'nota')
+    )
+
+    for rut, asignatura_id, nota in filas_notas:
+        notas_por.setdefault((rut, asignatura_id), []).append(nota)
+
+    riesgo = {pk: 0 for pk in asignaturas}
+
+    for (rut, asignatura_id), valores in notas_por.items():
+        if len(valores) < MIN_NOTAS_PROMEDIO:
+            continue
+        if (curso_de[rut], asignatura_id) not in pares:
+            continue
+        if sum(valores) / len(valores) < 4:
+            riesgo[asignatura_id] += 1
+
+    carga = CargaHoraria.objects.filter(
+        usuario_id=usuario,
+        anio_planificacion=anio,
+    ).first()
+
+    return {
+        'anio': anio,
+        'anios': anios,
+        'total_asignaturas': len(asignaturas),
+        'total_cursos': len(cursos),
+        'total_bloques': clases.count(),
+        'hrs_pedagogicas': carga.hrs_contrato if carga else 0,
+        'carga_registrada': carga is not None,
+        'detalle_asignaturas': ', '.join(nombre for _, nombre in asignaturas_ordenadas),
+        'detalle_cursos': ', '.join(str(curso) for curso in cursos_ordenados),
+        'riesgo_asignaturas': {
+            'labels': [f'{nombre} ({riesgo[pk]})' for pk, nombre in asignaturas_ordenadas],
+            'values': [riesgo[pk] for pk, _ in asignaturas_ordenadas],
+        },
+    }
+
+def horario_docente(usuario, anio):
+    filtro_anio = Q(horario_id__anio_planificacion=anio)
+
+    if anio == timezone.now().year:
+        filtro_anio |= Q(horario_id__anio_planificacion__isnull=True)
+
+    clases = (
+        BloqueDeClase.objects
+        .filter(usuario_id=usuario)
+        .filter(filtro_anio)
+        .select_related(
+            'bloque_id',
+            'asignatura_id__nombres_asignatura_id',
+            'curso_id',
+        )
+    )
+
+    ocupadas = {
+        (c.bloque_id.dia, c.bloque_id.hora_inicio, c.bloque_id.hora_termino): c
+        for c in clases
+    }
+
+    bloques_por_jornada = obtener_bloques_por_jornada()
+    jornadas = []
+
+    for codigo, nombre in (('JM', 'Jornada de mañana'), ('JT', 'Jornada de tarde')):
+        filas, tiene_clases, numero = [], False, 0
+
+        for b in bloques_por_jornada[codigo]:
+            celdas = [
+                ocupadas.get((DIAS_CODIGO[n], b['hora_inicio'], b['hora_termino']))
+                for n in sorted(DIAS_CODIGO)
+            ]
+
+            if any(celdas):
+                tiene_clases = True
+
+            if not b['es_recreo']:
+                numero += 1
+
+            filas.append({**b, 'numero': numero, 'celdas': celdas})
+
+        if tiene_clases:
+            jornadas.append({
+                'codigo': codigo,
+                'nombre': nombre,
+                'filas': filas,
+            })
+
+    return jornadas
+
 # ----------------------------------- # ROLES
 
 @method_decorator(login_required, name='dispatch')
@@ -175,7 +424,7 @@ def datos_dashboard_admin():
 class CreateRol(CreateView):
     model = Rol
     form_class = RolForm
-    template_name = 'classplanner/roles/roluser_create.html'
+    template_name = 'classplanner/sistema/roles/roluser_create.html'
     success_url = reverse_lazy('listrol')
 
     def form_valid(self, form):
@@ -186,7 +435,7 @@ class CreateRol(CreateView):
 @method_decorator(roles_required('root'), name='dispatch') 
 class ListRol(ListView):
     model = Rol
-    template_name = 'classplanner/roles/roluser_list.html'
+    template_name = 'classplanner/sistema/roles/roluser_list.html'
     context_object_name = 'rol'
 
 def FindRol(request):
@@ -195,14 +444,14 @@ def FindRol(request):
         roluser = Rol.objects.filter(name__icontains = response)
     else:
         roluser = Rol.objects.all()   
-    return render(request, 'classplanner/roles/rolser_find.html', {'rol':roluser, 'response':response})
+    return render(request, 'classplanner/sistema/roles/rolser_find.html', {'rol':roluser, 'response':response})
 
 @method_decorator(login_required, name='dispatch')
 @method_decorator(roles_required('root'), name='dispatch')
 class UpdateRol(UpdateView):
     model = Rol
     form_class = RolForm
-    template_name = 'classplanner/roles/roluser_update.html'
+    template_name = 'classplanner/sistema/roles/roluser_update.html'
     success_url = reverse_lazy('listrol')
 
     def form_valid(self, form):
@@ -213,7 +462,7 @@ class UpdateRol(UpdateView):
 @method_decorator(roles_required('root'), name='dispatch')
 class DeleteRol(DeleteView):
     model = Rol
-    template_name = 'classplanner/roles/roluser_delete.html'
+    template_name = 'classplanner/sistema/roles/roluser_delete.html'
     context_object_name = 'rol'
     success_url = reverse_lazy('listrol')
 
@@ -363,11 +612,24 @@ class DeleteUsuario(DeleteView):
 
 # ----------------------------------- # REGISTROS
 
+def _parse_changed_fields(changed_fields):
+    if not changed_fields or not changed_fields.strip():
+        return {}, ''
+
+    try:
+        parsed_fields = json.loads(changed_fields)
+    except json.JSONDecodeError:
+        return {}, changed_fields
+
+    if isinstance(parsed_fields, dict):
+        return parsed_fields, ''
+    return {}, changed_fields
+
 @method_decorator(login_required, name='dispatch')
 @method_decorator(roles_required('root', 'Administrador'), name='dispatch')
 class ListRegistros(ListView):
     model = CRUDEvent
-    template_name = 'classplanner/registros/registroslist.html'
+    template_name = 'classplanner/sistema/registros/registroslist.html'
     context_object_name = 'registros'
 
     def get_queryset(self):
@@ -405,6 +667,12 @@ class ListRegistros(ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
+        for registro in context["registros"]:
+            (
+                registro.changed_fields_dict,
+                registro.changed_fields_text,
+            ) = _parse_changed_fields(registro.changed_fields)
+
         # Módulos utilizados en los registros de auditoría
         context["modulos"] = (
             ContentType.objects
@@ -423,6 +691,225 @@ class ListRegistros(ListView):
         context["modulo_seleccionado"] = self.request.GET.get("modulo", "")
 
         return context
+
+@method_decorator(login_required, name='dispatch')
+@method_decorator(roles_required('root'), name='dispatch')
+class ListLogins(ListView):
+    model = LoginEvent
+    template_name = 'classplanner/sistema/login/loginlist.html'
+    context_object_name = 'logins'
+
+    def get_queryset(self):
+        queryset = (
+            LoginEvent.objects
+            .select_related("user")
+            .order_by("-datetime")
+        )
+
+        fecha_desde = self.request.GET.get("fecha_desde")
+        if fecha_desde:
+            queryset = queryset.filter(datetime__date__gte=fecha_desde)
+
+        fecha_hasta = self.request.GET.get("fecha_hasta")
+        if fecha_hasta:
+            queryset = queryset.filter(datetime__date__lte=fecha_hasta)
+
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["fecha_desde"] = self.request.GET.get("fecha_desde", "")
+        context["fecha_hasta"] = self.request.GET.get("fecha_hasta", "")
+        return context
+
+# ----------------------------------- # NOMBRES ASIGNATURAS
+
+@method_decorator(login_required, name='dispatch')
+@method_decorator(roles_required('root', 'Administrador'), name='dispatch')
+class ListNombresAsignatura(ListView):
+    model = NombresAsignatura
+    template_name = 'classplanner/sistema/nombresasignatura/nomasignaturalist.html'
+    context_object_name = 'asignaturas'
+    def get_queryset(self):
+        is_admin = self.request.user.rol.name == 'root' or self.request.user.rol.name == 'Administrador'
+        if is_admin:
+            mostrar_desactivados = self.request.GET.get('change_state') == '1'
+            queryset = NombresAsignatura.objects.filter(is_active=not mostrar_desactivados)
+        else:
+            queryset = NombresAsignatura.objects.filter(is_active=True)
+
+        return queryset.order_by('nombre')
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['mostrar_desactivados'] = (
+            self.request.GET.get('change_state') == '1'
+        )
+        return context
+
+@method_decorator(login_required, name='dispatch')
+@method_decorator(roles_required('root', 'Administrador'), name='dispatch')
+class CreateNombresAsignatura(CreateView):
+    model = NombresAsignatura
+    form_class = NombresAsignaturaForm
+    template_name = 'classplanner/sistema/nombresasignatura/nomasignaturacreate.html'
+    success_url = reverse_lazy('nombresasignatura')
+
+    def form_valid(self, form):
+        nombre = form.cleaned_data.get('nombre')
+        if not re.match(r'^[A-Za-záéíóúÁÉÍÓÚ\s]+$', nombre):
+            form.add_error('nombre', 'El nombre solo puede contener letras y espacios.')
+            return self.form_invalid(form)
+        
+        form.instance.nombre = texto_titulo(nombre)
+        messages.success(self.request, '¡Nombre agregado con éxito!')
+        return super().form_valid(form)
+
+@method_decorator(login_required, name='dispatch')
+@method_decorator(roles_required('root', 'Administrador'), name='dispatch')
+class UpdateNombresAsignatura(UpdateView):
+    model = NombresAsignatura
+    form_class = NombresAsignaturaForm
+    template_name = 'classplanner/sistema/nombresasignatura/nomasignaturaupdate.html'
+    success_url = reverse_lazy('nombresasignatura')
+    context_object_name = 'asignaturas'
+
+    def form_valid(self, form):
+        nombre = form.cleaned_data.get('nombre')
+        if not re.match(r'^[A-Za-záéíóúÁÉÍÓÚ\s]+$', nombre):
+            form.add_error('nombre', 'El nombre solo puede contener letras y espacios.')
+            return self.form_invalid(form)
+        
+        form.instance.nombre = texto_titulo(nombre)
+        try:
+            response = super().form_valid(form)
+            messages.success(self.request, '¡Nombre actualizado con éxito!')
+            return response
+        except IntegrityError:
+            form.add_error('nombre', 'Este nombre ya está registrado.')
+            return self.form_invalid(form)
+
+@method_decorator(login_required, name='dispatch')
+@method_decorator(roles_required('root', 'Administrador'), name='dispatch')
+class DeleteNombresAsignatura(DeleteView):
+    model = NombresAsignatura
+    template_name = 'classplanner/sistema/nombresasignatura/nomasignaturadelete.html'
+    context_object_name = 'asignaturas'
+    success_url = reverse_lazy('nombresasignatura')
+
+    def form_valid(self, form):
+        try: 
+            response = super().form_valid(form)
+            messages.success(self.request, '¡Nombre eliminado con éxito!')
+            return response
+        except RestrictedError:
+            raise PermissionDenied('Existen asignaturas con este nombre asignado, un nombre no se puede eliminar si tiene una o más asignaturas asignadas')
+
+@login_required
+@roles_required('root', 'Administrador')
+def ActivateNombresAsignatura(request, pk):
+    if request.method != 'POST':
+        return HttpResponse(status=405)
+
+    nombre = get_object_or_404(NombresAsignatura, pk=pk)
+    nombre.is_active = True
+    nombre.save(update_fields=['is_active'])
+    messages.success(request, '¡Nombre activado con éxito!')
+    return redirect('nombresasignatura')
+
+# ----------------------------------- # NOMBRES PLANES DIFERENCIALES
+
+@method_decorator(login_required, name='dispatch')
+@method_decorator(roles_required('root', 'Administrador'), name='dispatch')
+class ListAreasPlanesDiferenciales(ListView):
+    model = AreasPlanesDiferenciales
+    template_name = 'classplanner/sistema/areasplanesdiferenciales/nomplaneslist.html'
+    context_object_name = 'planesdiferenciales'
+
+    def get_queryset(self):
+        is_admin = self.request.user.rol.name == 'root' or self.request.user.rol.name == 'Administrador'
+        if is_admin:
+            mostrar_desactivados = self.request.GET.get('change_state') == '1'
+            queryset = AreasPlanesDiferenciales.objects.filter(is_active=not mostrar_desactivados)
+        else:
+            queryset = AreasPlanesDiferenciales.objects.filter(is_active=True)
+
+        return queryset.order_by('nombre')
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['mostrar_desactivados'] = (
+            self.request.GET.get('change_state') == '1'
+        )
+        return context
+
+
+@method_decorator(login_required, name='dispatch')
+@method_decorator(roles_required('root', 'Administrador'), name='dispatch')
+class CreateAreasPlanesDiferenciales(CreateView):
+    model = AreasPlanesDiferenciales
+    form_class = AreasPlanesDiferencialesForm
+    template_name = 'classplanner/sistema/areasplanesdiferenciales/nomplanescreate.html'
+    success_url = reverse_lazy('nombresplanesdiferenciales')
+
+    def form_valid(self, form):
+        nombre = form.cleaned_data.get('nombre')
+        if not re.match(r'^[A-Za-záéíóúÁÉÍÓÚ\s]+$', nombre):
+            form.add_error('nombre', 'El nombre solo puede contener letras y espacios.')
+            return self.form_invalid(form)
+        
+        form.instance.nombre = texto_titulo(nombre)
+        messages.success(self.request, '¡Nombre agregado con éxito!')
+        return super().form_valid(form)
+
+@method_decorator(login_required, name='dispatch')
+@method_decorator(roles_required('root', 'Administrador'), name='dispatch')
+class UpdateAreasPlanesDiferenciales(UpdateView):
+    model = AreasPlanesDiferenciales
+    form_class = AreasPlanesDiferencialesForm
+    template_name = 'classplanner/sistema/areasplanesdiferenciales/nomplanesupdate.html'
+    success_url = reverse_lazy('nombresplanesdiferenciales')
+    context_object_name = 'planesdiferenciales'
+
+    def form_valid(self, form):
+        nombre = form.cleaned_data.get('nombre')
+        if not re.match(r'^[A-Za-záéíóúÁÉÍÓÚ\s]+$', nombre):
+            form.add_error('nombre', 'El nombre solo puede contener letras y espacios.')
+            return self.form_invalid(form)
+        
+        form.instance.nombre = texto_titulo(nombre)
+        try:
+            response = super().form_valid(form)
+            messages.success(self.request, '¡Nombre actualizado con éxito!')
+            return response
+        except IntegrityError:
+            form.add_error('nombre', 'Este nombre ya está registrado.')
+            return self.form_invalid(form)
+
+@method_decorator(login_required, name='dispatch')
+@method_decorator(roles_required('root', 'Administrador'), name='dispatch')
+class DeleteAreasPlanesDiferenciales(DeleteView):
+    model = AreasPlanesDiferenciales
+    template_name = 'classplanner/sistema/areasplanesdiferenciales/nomplanesdelete.html'
+    context_object_name = 'planesdiferenciales'
+    success_url = reverse_lazy('nombresplanesdiferenciales')
+
+    def form_valid(self, form):
+        try: 
+            response = super().form_valid(form)
+            messages.success(self.request, '¡Nombre eliminado con éxito!')
+            return response
+        except RestrictedError:
+            raise PermissionDenied('Existen asignaturas con este nombre de plan diferencial asignado, un nombre de plan diferencial no se puede eliminar si tiene una o más asignaturas asignadas')
+
+@login_required
+@roles_required('root', 'Administrador')
+def ActivateAreasPlanesDiferenciales(request, pk):
+    plan_diferencial = get_object_or_404(AreasPlanesDiferenciales, pk=pk)
+    plan_diferencial.is_active = True
+    plan_diferencial.save(update_fields=['is_active'])
+    messages.success(request, '¡Nombre activado con éxito!')
+    return redirect('nombresplanesdiferenciales')
 
 # ----------------------------------- # CURSOS
 
@@ -714,7 +1201,7 @@ class DeleteEstudiante(DeleteView):
 
 # ----------------------------------- # PROMEDIOS
 
-MIN_NOTAS_PROMEDIO = 2
+MIN_NOTAS_PROMEDIO = 1
 
 def calcular_promedios(notas):
     por_asignatura = {}
@@ -930,8 +1417,9 @@ class DeleteAsignatura(DeleteView):
 
     def form_valid(self, form):
         try: 
-            super().form_valid(form)
-            return messages.success(self.request, '¡Asignatura eliminada con éxito!')
+            response = super().form_valid(form)
+            messages.success(self.request, '¡Asignatura eliminada con éxito!')
+            return response
         except RestrictedError:
             raise PermissionDenied(
                 'Esta asignatura está asignada en uno o más planes de estudio. ' \
@@ -1006,7 +1494,7 @@ def ListPlanDeEstudio(request):
         curso_update = str(cursosModel.filter(id=c).first())
         curso_update_id = cursosModel.filter(id=c).first().id
         asignaturas_update = list(
-            plandeestudio.filter(curso_id=c).values_list('asignatura_id__nombre','hrs_asignatura')
+            plandeestudio.filter(curso_id=c).values_list('asignatura_id__nombres_asignatura_id__nombre','hrs_asignatura')
         )
         horas = sum(plandeestudio.filter(curso_id=c).values_list('hrs_asignatura', flat=True))
         planes.update({f"{c}": [curso_update, asignaturas_update, horas, curso_update_id]})

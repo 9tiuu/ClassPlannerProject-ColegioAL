@@ -1,12 +1,12 @@
 {% extends "classplanner/base.html" %}
 {% block title %}
-<title>Registros | ClassPlanner</title>
+<title>Sesiones | ClassPlanner</title>
 {% endblock %}
 {% block content %}
 <div class="p-4 min-h-[10vh] mt-4 rounded-lg">
     <p class="mb-2 text-slate-500 text-sm dark:text-slate-400"><a class="hover:underline" href="{% url 'home' %}">Gestión</a> / <a class="hover:underline font-semibold text-slate-700 dark:text-slate-200" href="#">Registros</a></p>
-    <h2 class="mb-2 text-4xl font-semibold text-[#234FA8] dark:text-blue-400 sm:text-3xl">Registros</h2>
-    <p class="text-sm text-slate-500 dark:text-slate-400 sm:text-base">Listado de todos los registros y eventos del sistema.</p>
+    <h2 class="mb-2 text-4xl font-semibold text-[#234FA8] dark:text-blue-400 sm:text-3xl">Sesiones</h2>
+    <p class="text-sm text-slate-500 dark:text-slate-400 sm:text-base">Listado de todos los registros de sesiones del sistema.</p>
 </div>
 
 <div class="p-4 border-slate-300 dark:border-slate-700 min-h-[70vh] border-default border mt-10 rounded-lg">
@@ -60,37 +60,6 @@
                     >
                 </div>
 
-                <div>
-                    <select
-                        name="modulo"
-                        id="modulo"
-                        class="bg-white dark:bg-[#141826]
-                               text-sm
-                               rounded-lg
-                               h-10
-                               w-[160px]
-                               px-3
-                               border border-slate-300 dark:border-slate-800
-                               text-gray-700 dark:text-white
-                               focus:outline-none
-                               focus:ring-2
-                               focus:ring-blue-600"
-                    >
-                        <option value="">Módulos</option>
-
-                        {% for modulo in modulos %}
-                            <option
-                                value="{{ modulo.id }}"
-                                {% if modulo.id|stringformat:'s' == modulo_seleccionado %}
-                                    selected
-                                {% endif %}
-                            >
-                                {{ modulo.model|title }}
-                            </option>
-                        {% endfor %}
-                    </select>
-                </div>
-
                 <button
                     type="submit"
                     class="h-10 px-4 rounded-lg
@@ -101,7 +70,7 @@
                     Filtrar
                 </button>
                 <a
-                    href="{% url 'registros' %}"
+                    href="{% url 'logins' %}"
                     class="h-10 px-4 flex items-center rounded-lg
                            bg-gray-100 hover:bg-gray-200
                            dark:bg-[#1b2233] dark:hover:bg-[#252d40]
@@ -118,8 +87,8 @@
 
 </div>
 
-    {% if registros %}
-    <div class="relative max-h-[58vh] b-white overflow-x-auto overflow-y-auto bg-neutral-primary-soft shadow-xs rounded-base border border-default border-slate-300 dark:border-slate-800 rounded-lg">
+    {% if logins %}
+    <div class="relative max-h-[58vh] b-white overflow-y-auto overflow-x-auto overflow-y-auto bg-neutral-primary-soft shadow-xs rounded-base border border-default border-slate-300 dark:border-slate-800 rounded-lg">
         <table class="w-full text-sm text-left rtl:text-right text-body">
             <thead class="sticky top-0 z-10 text-sm text-left text-slate-700 dark:text-white bg-slate-200 dark:bg-[#10141f] text-body bg-neutral-secondary-soft border-b rounded-base border-default dark:border-slate-800">
                 <tr>
@@ -127,37 +96,37 @@
                         Tipo de evento
                     </th>
                     <th scope="col" class="px-6 py-3 font-bold whitespace-nowrap md:whitespace-normal">
-                        Módulo
-                    </th>
-                    <th scope="col" class="px-6 py-3 font-bold whitespace-nowrap md:whitespace-normal">
-                        Objeto
-                    </th>
-                    <th scope="col" class="px-6 py-3 font-bold whitespace-nowrap md:whitespace-normal">
-                        Autor
-                    </th>
-                    <th scope="col" class="px-6 py-3 font-bold whitespace-nowrap md:whitespace-normal">
                         Fecha
+                    </th>
+                    <th scope="col" class="px-6 py-3 font-bold whitespace-nowrap md:whitespace-normal">
+                        Usuario
+                    </th>
+                    <th scope="col" class="px-6 py-3 font-bold whitespace-nowrap md:whitespace-normal">
+                        Nombre
+                    </th>
+                    <th scope="col" class="px-6 py-3 font-bold whitespace-nowrap md:whitespace-normal">
+                        IP
                     </th>
                 </tr>
             </thead>
             <tbody class="dark:text-[#a8b2d2] text-slate-500">
-                {% for r in registros %}
+                {% for l in logins %}
                 <tr class="border-b border-default bg-white dark:bg-[#171c2b] dark:border-b-slate-800">
-                    <td class="px-6 py-4 whitespace-nowrap md:whitespace-normal"> <!-- {{ r.get_event_type_display }} -->
-                        {% if r.is_create %}
-                            Crear
-                        {% elif r.is_update %}
-                            Actualizar
-                        {% elif r.is_delete %}
-                            Eliminar
+                    <td class="px-6 py-4 whitespace-nowrap md:whitespace-normal">
+                        {% if l.login_type == 0 %}
+                            Inicio de sesión
+                        {% elif l.login_type == 1 %}
+                            Cierre de sesión
+                        {% elif l.login_type == 2 %}
+                            Inicio de sesión fallido
                         {% else %}
-                            Otro
+                            Desconocido
                         {% endif %}
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap md:whitespace-normal capitalize">{{ r.content_type.model }}s</td>
-                    <td class="px-6 py-4 whitespace-nowrap md:whitespace-normal capitalize">{{ r.object_repr }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap md:whitespace-normal capitalize">{{ r.user.get_full_name }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap md:whitespace-normal">{{ r.datetime }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap md:whitespace-normal">{{ l.datetime }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap md:whitespace-normal">{{ l.username }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap md:whitespace-normal capitalize">{{ l.user }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap md:whitespace-normal">{{ l.remote_ip }}</td>
                 </tr>
                 {% endfor %}
             </tbody>

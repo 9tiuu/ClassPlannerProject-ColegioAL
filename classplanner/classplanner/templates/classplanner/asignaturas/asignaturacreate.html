@@ -28,11 +28,11 @@
             </div>
             <div class="flex flex-col w-full gap-5 mb-5">
                 <div class="flex flex-col w-full">
-                    <label for="id_nombre" class="mb-1 text-base font-semibold text-slate-600 dark:text-white">Nombre <b class="text-red-600">*</b></label>
-                    {{ form.nombre }}
-                    {% if form.nombre.errors %}
+                    <label for="id_nombres_asignatura_id" class="mb-1 text-base font-semibold text-slate-600 dark:text-white">Nombre de asignatura <b class="text-red-600">*</b></label>
+                    {{ form.nombres_asignatura_id }}
+                    {% if form.nombres_asignatura_id.errors %}
                     <div class="errors mb-2">
-                        {% for error in form.nombre.errors %}
+                        {% for error in form.nombres_asignatura_id.errors %}
                         <p class="bg-red-100 dark:bg-red-900 p-4 my-4 text-sm text-red-700 rounded-lg dark:text-red-300 transition duration-200">{{ error }}</p>
                         {% endfor %}
                     </div>
@@ -53,11 +53,11 @@
             </div>
             <div class="flex flex-col w-full gap-5 mb-5">
                 <div class="flex flex-col w-full">
-                    <label for="id_plan_diferencial" class="mb-1 text-base font-semibold text-slate-600 dark:text-white">Plan diferencial</label>
-                    {{ form.plan_diferencial }}
-                    {% if form.plan_diferencial.errors %}
+                    <label for="id_areas_planes_diferenciales_id" class="mb-1 text-base font-semibold text-slate-600 dark:text-white">Plan diferencial</label>
+                    {{ form.areas_planes_diferenciales_id }}
+                    {% if form.areas_planes_diferenciales_id.errors %}
                     <div class="errors mb-2">
-                        {% for error in form.plan_diferencial.errors %}
+                        {% for error in form.areas_planes_diferenciales_id.errors %}
                         <p class="bg-red-100 dark:bg-red-900 p-4 my-4 text-sm text-red-700 rounded-lg dark:text-red-300 transition duration-200">{{ error }}</p>
                         {% endfor %}
                     </div>
@@ -78,11 +78,11 @@
 </div>
 <script>
     $(function () {
-        $('#id_nombre').select2({
+        $('#id_nombres_asignatura_id').select2({
             width: '100%',
             dropdownCssClass: 'asignatura-select2-dropdown'
         });
-        $('#id_plan_diferencial').select2({
+        $('#id_areas_planes_diferenciales_id').select2({
             width: '100%',
             dropdownCssClass: 'asignatura-select2-dropdown'
         });

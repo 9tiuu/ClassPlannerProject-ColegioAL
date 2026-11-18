@@ -1,0 +1,297 @@
+<div class="-m-4 min-h-screen">
+    <div class="flex h-60 w-full items-end bg-gradient-to-br from-purple-800 via-indigo-700 to-sky-500 px-6 pb-24">
+        <div class="flex w-full flex-wrap items-end justify-between gap-3">
+            <div class="flex items-center gap-3">
+                <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-600 text-white">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M9 3a2 2 0 0 1 2 2v6a2 2 0 0 1 -2 2h-4a2 2 0 0 1 -2 -2v-6a2 2 0 0 1 2 -2zm0 12a2 2 0 0 1 2 2v2a2 2 0 0 1 -2 2h-4a2 2 0 0 1 -2 -2v-2a2 2 0 0 1 2 -2zm10 -4a2 2 0 0 1 2 2v6a2 2 0 0 1 -2 2h-4a2 2 0 0 1 -2 -2v-6a2 2 0 0 1 2 -2zm0 -8a2 2 0 0 1 2 2v2a2 2 0 0 1 -2 2h-4a2 2 0 0 1 -2 -2v-2a2 2 0 0 1 2 -2z" />
+                    </svg>
+                </div>
+                <div>
+                    <h2 class="text-2xl font-bold text-white">Dashboard Docente</h2>
+                    <p class="text-sm text-white/90">¡Bienvenido/a @{{ request.user.name }}! Aquí tiene un resumen de su jornada laboral.</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <label for="filtro-anio" class="text-xs font-semibold text-white/90">Planificación</label>
+                <select id="filtro-anio" class="h-9 cursor-pointer rounded-lg border border-white/30 bg-white/15 px-3 text-xs font-semibold text-white backdrop-blur focus:outline-none focus-visible:ring-[3px] focus-visible:ring-white/60 [&>option]:text-black">
+                    {% for a in anios %}
+                    <option value="{{ a|stringformat:'d' }}" {% if a == anio %}selected{% endif %}>{{ a|stringformat:"d" }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div class="-mt-20 grid gap-4 px-6 lg:grid-cols-2">
+        <div class="rounded-2xl bg-white p-3 shadow dark:bg-[#141826]">
+            <div class="grid h-full gap-3 sm:grid-cols-2">
+                <div class="rounded-xl border-2 border-slate-300 p-4 dark:border-slate-700">
+                    <div class="flex items-center gap-3">
+                        <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-500 text-white">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M21.5 5.134a1 1 0 0 1 .493 .748l.007 .118v13a1 1 0 0 1 -1.5 .866a8 8 0 0 0 -7.5 -.266v-15.174a10 10 0 0 1 8.5 .708m-10.5 -.707l.001 15.174a8 8 0 0 0 -7.234 .117l-.327 .18l-.103 .044l-.049 .016l-.11 .026l-.061 .01l-.117 .006h-.042l-.11 -.012l-.077 -.014l-.108 -.032l-.126 -.056l-.095 -.056l-.089 -.067l-.06 -.056l-.073 -.082l-.064 -.089l-.022 -.036l-.032 -.06l-.044 -.103l-.016 -.049l-.026 -.11l-.01 -.061l-.004 -.049l-.002 -13.068a1 1 0 0 1 .5 -.866a10 10 0 0 1 8.5 -.707" />
+                            </svg>
+                        </div>
+                        <p class="font-semibold text-slate-700 dark:text-white">Asignaturas</p>
+                    </div>
+                    <p data-contador="total_asignaturas" class="mt-5 text-3xl font-bold text-blue-500">{{ total_asignaturas|default:0 }}</p>
+                    <p data-detalle="detalle_asignaturas" data-vacio="Sin asignaturas asignadas" title="{{ detalle_asignaturas }}" class="line-clamp-2 text-xs text-slate-400">{{ detalle_asignaturas|default:"Sin asignaturas asignadas" }}</p>
+                </div>
+
+                <div class="rounded-xl border-2 border-slate-300 p-4 dark:border-slate-700">
+                    <div class="flex items-center gap-3">
+                        <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-green-500 text-white">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                                <path fill-rule="evenodd" d="M4 3h16a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-16a2 2 0 0 1 -2 -2v-10a2 2 0 0 1 2 -2zM5 6h14v8h-14z" />
+                                <rect x="7" y="8" width="10" height="2" rx="1" />
+                                <rect x="7" y="11" width="6" height="2" rx="1" />
+                                <rect x="11" y="17" width="2" height="3" />
+                                <rect x="7" y="20" width="10" height="2" rx="1" />
+                            </svg>
+                        </div>
+                        <p class="font-semibold text-slate-700 dark:text-white">Cursos asignados</p>
+                    </div>
+                    <p data-contador="total_cursos" class="mt-5 text-3xl font-bold text-green-500">{{ total_cursos|default:0 }}</p>
+                    <p data-detalle="detalle_cursos" data-vacio="Sin cursos asignados" title="{{ detalle_cursos }}" class="line-clamp-2 text-xs text-slate-400">{{ detalle_cursos|default:"Sin cursos asignados" }}</p>
+                </div>
+
+                <div class="rounded-xl border-2 border-slate-300 p-4 dark:border-slate-700">
+                    <div class="flex items-center gap-3">
+                        <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-red-400 text-white">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                                <path fill-rule="evenodd" d="M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2zM5 8h14v2h-14zM7 12h3v3h-3zM14 12h3v3h-3zM7 17h3v3h-3z" />
+                                <rect x="7" y="2" width="2" height="4" rx="1" />
+                                <rect x="15" y="2" width="2" height="4" rx="1" />
+                            </svg>
+                        </div>
+                        <p class="font-semibold text-slate-700 dark:text-white">Bloques de clase</p>
+                    </div>
+                    <p data-contador="total_bloques" class="mt-5 text-3xl font-bold text-red-400">{{ total_bloques|default:0 }}</p>
+                    <p class="text-xs text-slate-400">Bloques semanales asignados</p>
+                </div>
+
+                <div class="rounded-xl border-2 border-slate-300 p-4 dark:border-slate-700">
+                    <div class="flex items-center gap-3">
+                        <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-orange-400 text-white">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M22 13.478v4.522a3 3 0 0 1 -3 3h-14a3 3 0 0 1 -3 -3v-4.522l.553 .277a20.999 20.999 0 0 0 18.897 -.002l.55 -.275zm-8 -11.478a3 3 0 0 1 3 3v1h2a3 3 0 0 1 3 3v2.242l-1.447 .724a19.002 19.002 0 0 1 -16.726 .186l-.647 -.32l-1.18 -.59v-2.242a3 3 0 0 1 3 -3h2v-1a3 3 0 0 1 3 -3h4zm-2 8a1 1 0 0 0 -1 1a1 1 0 1 0 2 .01c0 -.562 -.448 -1.01 -1 -1.01zm2 -6h-4a1 1 0 0 0 -1 1v1h6v-1a1 1 0 0 0 -1 -1z" />
+                            </svg>
+                        </div>
+                        <p class="font-semibold text-slate-700 dark:text-white">Hrs pedagógicas</p>
+                    </div>
+                    <p data-contador="hrs_pedagogicas" class="mt-5 text-3xl font-bold text-orange-400">{{ hrs_pedagogicas|default:0|floatformat:"-1u" }}</p>
+                    <p class="text-xs text-slate-400">Horas de contrato</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex flex-col rounded-2xl bg-white p-5 shadow dark:bg-[#141826]">
+            <h3 class="text-xl font-semibold text-black dark:text-white">Estudiantes con Riesgo de Reprobar</h3>
+            <p class="text-sm text-black dark:text-white">Cantidad de estudiantes con riesgo a reprobar por asignatura.</p>
+            <div class="relative mt-4 min-h-[13rem] flex-1">
+                <canvas id="grafico-riesgo"></canvas>
+                <p id="vacio-riesgo" class="absolute inset-0 hidden items-center justify-center text-sm text-black dark:text-white">Sin asignaturas asignadas este año</p>
+            </div>
+            <p class="mt-3 text-xs text-slate-400">Riesgo: promedio inferior a 4,0.</p>
+        </div>
+    </div>
+
+    <div class="mt-4 px-6 pb-6">
+        <div class="rounded-2xl bg-white p-5 shadow dark:bg-[#141826]">
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                    <h3 class="text-xl font-semibold text-black dark:text-white">Mi Horario de Clases</h3>
+                    <p class="text-sm text-black dark:text-white">Horas de clases durante la jornada</p>
+                </div>
+                <div class="inline-flex self-start rounded-lg bg-slate-100 p-0.5 dark:bg-[#1d2236]">
+                    <button type="button" data-vista="semana" class="rounded-md bg-white px-6 py-1.5 text-xs font-semibold text-slate-800 shadow transition duration-200 dark:bg-[#141826] dark:text-white">Semana</button>
+                    <button type="button" data-vista="hoy" class="rounded-md px-6 py-1.5 text-xs font-semibold text-slate-500 transition duration-200 dark:text-[#a8b2d2]">Hoy</button>
+                </div>
+            </div>
+
+            <p id="sin-clases-hoy" class="mt-4 hidden text-sm text-black dark:text-white">Hoy no hay clases (fin de semana).</p>
+
+            <div id="contenedor-horario">
+                {% include 'classplanner/dashboards/horario_docente_tabla.html' %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{{ riesgo_asignaturas|json_script:"datos-riesgo" }}
+
+<script>
+    (function () {
+        const URL_DATOS = "{% url 'home' %}";
+        const INTERVALO = 15000;
+
+        const leer = (id, respaldo) => {
+            const el = document.getElementById(id);
+            if (!el) return respaldo;
+            try {
+                const valor = JSON.parse(el.textContent);
+                return valor && typeof valor === 'object' ? valor : respaldo;
+            } catch (error) {
+                return respaldo;
+            }
+        };
+
+        const paleta = ['#7ee0a5', '#ff6b6b', '#ffb866', '#7c83fd', '#5aa0ff'];
+
+        const oscuro = () => document.documentElement.classList.contains('dark');
+        const tinta = () => oscuro() ? '#ffffff' : '#000000';
+        const rejilla = () => oscuro() ? 'rgba(148, 163, 184, 0.15)' : 'rgba(148, 163, 184, 0.3)';
+
+        const contadores = document.querySelectorAll('[data-contador]');
+        const detalles = document.querySelectorAll('[data-detalle]');
+        const vacio = document.getElementById('vacio-riesgo');
+        const selectorAnio = document.getElementById('filtro-anio');
+        const contenedorHorario = document.getElementById('contenedor-horario');
+        const sinClases = document.getElementById('sin-clases-hoy');
+        const botonesVista = document.querySelectorAll('[data-vista]');
+
+        const ACTIVO = ['bg-white', 'shadow', 'text-slate-800', 'dark:bg-[#141826]', 'dark:text-white'];
+        const INACTIVO = ['text-slate-500', 'dark:text-[#a8b2d2]'];
+
+        let anioElegido = selectorAnio.value;
+        let vistaActual = 'semana';
+        let ultimoHorario = null;
+
+        const riesgo = new Chart(document.getElementById('grafico-riesgo'), {
+            type: 'bar',
+            data: {
+                labels: [],
+                datasets: [{
+                    data: [],
+                    backgroundColor: paleta,
+                    borderRadius: 8,
+                    maxBarThickness: 16
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        grid: { color: rejilla(), drawBorder: false },
+                        ticks: { color: tinta(), precision: 0, font: { size: 10 } }
+                    },
+                    y: {
+                        grid: { display: false },
+                        ticks: { color: tinta(), font: { size: 10, weight: 'bold' } }
+                    }
+                }
+            }
+        });
+
+        const mostrarVista = vista => {
+            vistaActual = vista;
+            const hoy = new Date().getDay();
+            const soloHoy = vista === 'hoy';
+
+            contenedorHorario.querySelectorAll('[data-dia]').forEach(el => {
+                el.classList.toggle('hidden', soloHoy && Number(el.dataset.dia) !== hoy);
+            });
+
+            sinClases.classList.toggle('hidden', !(soloHoy && (hoy === 0 || hoy === 6)));
+
+            botonesVista.forEach(boton => {
+                const activo = boton.dataset.vista === vista;
+                ACTIVO.forEach(clase => boton.classList.toggle(clase, activo));
+                INACTIVO.forEach(clase => boton.classList.toggle(clase, !activo));
+            });
+            
+        };
+
+        const pintarAnios = (anios, anio) => {
+            const actuales = [...selectorAnio.options].map(o => o.value).join(',');
+            if (actuales !== anios.join(',')) {
+                selectorAnio.replaceChildren(...anios.map(a => new Option(a, a)));
+            }
+            selectorAnio.value = String(anio);
+            anioElegido = String(anio);
+        };
+
+        const aplicar = datos => {
+            contadores.forEach(el => {
+                if (el.dataset.contador in datos) {
+                    el.textContent = datos[el.dataset.contador];
+                }
+            });
+
+            detalles.forEach(el => {
+                if (el.dataset.detalle in datos) {
+                    const texto = datos[el.dataset.detalle];
+                    el.textContent = texto || el.dataset.vacio;
+                    el.title = texto || '';
+                }
+            });
+
+            if (datos.anios && datos.anio) {
+                pintarAnios(datos.anios, datos.anio);
+            }
+
+            const datosRiesgo = datos.riesgo_asignaturas || { labels: [], values: [] };
+            riesgo.data.labels = datosRiesgo.labels;
+            riesgo.data.datasets[0].data = datosRiesgo.values;
+            riesgo.update();
+
+            const sinDatos = datosRiesgo.labels.length === 0;
+            vacio.classList.toggle('hidden', !sinDatos);
+            vacio.classList.toggle('flex', sinDatos);
+
+            if (typeof datos.horario_html === 'string' && datos.horario_html !== ultimoHorario) {
+                contenedorHorario.innerHTML = datos.horario_html;
+                ultimoHorario = datos.horario_html;
+                mostrarVista(vistaActual);
+            }
+        };
+
+        const cargar = (desdeSelector = false) => {
+            const pedido = anioElegido;
+            const url = new URL(URL_DATOS, window.location.origin);
+            url.searchParams.set('anio', pedido);
+
+            fetch(url, {
+                credentials: 'same-origin',
+                cache: 'no-store',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+                .then(respuesta => respuesta.ok ? respuesta.json() : Promise.reject(new Error('HTTP ' + respuesta.status)))
+                .then(datos => {
+                    if (pedido === anioElegido) aplicar(datos);
+                })
+                .catch(error => {
+                    console.error('No se pudo actualizar el dashboard:', error);
+                    if (desdeSelector) {
+                        window.location.search = '?anio=' + encodeURIComponent(pedido);
+                    }
+                });
+        };
+
+        aplicar({ riesgo_asignaturas: leer('datos-riesgo', { labels: [], values: [] }) });
+
+        botonesVista.forEach(boton => boton.addEventListener('click', () => mostrarVista(boton.dataset.vista)));
+        if (window.matchMedia('(max-width: 639px)').matches) mostrarVista('hoy');
+
+        selectorAnio.addEventListener('change', () => {
+            anioElegido = selectorAnio.value;
+            ultimoHorario = null;
+            cargar(true);
+        });
+
+        setInterval(() => { if (!document.hidden) cargar(); }, INTERVALO);
+        document.addEventListener('visibilitychange', () => { if (!document.hidden) cargar(); });
+
+        new MutationObserver(() => {
+            riesgo.options.scales.x.ticks.color = tinta();
+            riesgo.options.scales.x.grid.color = rejilla();
+            riesgo.options.scales.y.ticks.color = tinta();
+            riesgo.update();
+        }).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    })();
+</script>
