@@ -5,7 +5,7 @@
 {% block content %}
 
 <div class="p-4 min-h-[10vh] mt-4 rounded-lg">
-    <p class="mb-2 text-slate-500 text-sm dark:text-slate-400"><a class="hover:underline" href="{% url 'home' %}">Gestión</a> / <a class="hover:underline font-semibold text-slate-700 dark:text-slate-200" href="#">Horarios</a></p>
+    <p class="mb-2 text-slate-500 text-sm dark:text-slate-400"><a class="hover:underline" href="{% url 'home' %}">Colegio</a> / <a class="hover:underline font-semibold text-slate-700 dark:text-slate-200" href="#">Horarios</a></p>
     <h2 class="mb-2 text-2xl font-semibold text-[#234FA8] dark:text-blue-400 sm:text-3xl">Horarios de Clase</h2>
     <p class="text-sm text-slate-500 dark:text-slate-400 sm:text-base">Listado de todos los horarios de clase.</p>
 </div>
@@ -140,13 +140,16 @@
 
 <script>
     window.exportar = function () {
+        const isDarkMode = document.documentElement.classList.contains('dark');
         const selectorCurso = document.getElementById("curso");
         const cursoId = selectorCurso ? selectorCurso.value : "";
         if (!cursoId) {
             Swal.fire({
                 title: "No hay un curso seleccionado",
                 text: "Seleccione un curso con horario antes de exportar.",
-                icon: "warning"
+                icon: "warning",
+                background: isDarkMode ? "#141826" : "#ffffff",
+                color: isDarkMode ? "#f8fafc" : "#0f172a",                
             });
             return;
         }
@@ -155,6 +158,8 @@
             title: "Exportar horarios",
             text: "Elija el curso seleccionado o todos los cursos.",
             icon: "question",
+            background: isDarkMode ? "#141826" : "#ffffff",
+            color: isDarkMode ? "#f8fafc" : "#0f172a",
             showDenyButton: true,
             showCancelButton: true,
             confirmButtonText: "Curso seleccionado",

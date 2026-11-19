@@ -19,3 +19,6 @@ staticfiles/
 # Editor / SO
 .vscode/
 .DS_Store
+
+# Creación datos dummy por Command
+management/

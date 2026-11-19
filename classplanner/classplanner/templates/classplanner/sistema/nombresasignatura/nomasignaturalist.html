@@ -4,7 +4,8 @@
 {% endblock %}
 {% block content %}
 <div class="p-4 min-h-[10vh] mt-4 rounded-lg">
-    <p class="mb-2 text-slate-500 text-sm dark:text-slate-400"><a class="hover:underline" href="{% url 'home' %}">Gestión</a> / <a class="hover:underline font-semibold text-slate-700 dark:text-slate-200" href="#">Asignaturas</a></p>
+    <p class="mb-2 text-slate-500 text-sm dark:text-slate-400"><a class="hover:underline" href="{% url 'home' %}">Sistema</a> / 
+        <a class="hover:underline font-semibold text-slate-700 dark:text-slate-200" href="#">Asignaturas</a></p>
     <h2 class="mb-2 text-4xl font-semibold text-[#234FA8] dark:text-blue-400 sm:text-3xl">Asignaturas - Nombres</h2>
     <p class="text-sm text-slate-500 dark:text-slate-400 sm:text-base">Listado de todos los nombres de asignaturas dictados por MINEDUC.</p>
 </div>
@@ -27,7 +28,7 @@
                         Mostrar desactivados
                     </label>
                 </form>
-                <a href="{% url 'nombresasignaturacreate' %}" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-800 text-center hover:transition transition hover:duration-300 duration-300 rounded-lg px-8 py-3">
+                <a href="{% url 'nombresasignaturacreate' %}" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-800 text-center hover:transition transition hover:duration-300 duration-300 rounded-lg px-6 py-3">
                     <p class="w-full text-white font-semibold">+ Nuevo Nombre</p>
                 </a>
             </div>
@@ -102,11 +103,14 @@
 <script>
     function activar(button) {
         const form = button.closest('form');
+        const isDarkMode = document.documentElement.classList.contains('dark');
 
         Swal.fire({
             title: "¿Desea activar el nombre?",
             text: "Este nombre aparecerá nuevamente en las opciones de asignatura.",
             icon: "info",
+            background: isDarkMode ? "#141826" : "#ffffff",
+            color: isDarkMode ? "#f8fafc" : "#0f172a",
             showCancelButton: true,
             confirmButtonText: "Activar",
             cancelButtonText: "Cancelar",

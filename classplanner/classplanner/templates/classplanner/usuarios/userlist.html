@@ -9,17 +9,17 @@
 {% block content %}
 <div class="p-4 min-h-[10vh] mt-4 rounded-lg">
     {% if request.user.rol.name != 'Director' %}
-    <p class="mb-2 text-slate-500 text-sm dark:text-slate-400"><a class="hover:underline" href="{% url 'home' %}">Gestión</a> / <a class="hover:underline font-semibold text-slate-700 dark:text-slate-200" href="#">Usuarios</a></p>
+    <p class="mb-2 text-slate-500 text-sm dark:text-slate-400"><a class="hover:underline" href="{% url 'home' %}">Sistema</a> / <a class="hover:underline font-semibold text-slate-700 dark:text-slate-200" href="#">Usuarios</a></p>
     <h2 class="mb-2 text-4xl font-semibold text-[#234FA8] dark:text-blue-400 sm:text-3xl">Usuarios</h2>
     <p class="text-sm text-slate-500 dark:text-slate-400 sm:text-base">Listado de todos los usuarios del sistema.</p>
     {% else %}
     <!-- Crear vista individual para no mezclarlo con los de los usuarios -->
-    <p class="mb-2 text-slate-500 text-sm dark:text-slate-400"><a class="hover:underline" href="{% url 'home' %}">Gestión</a> / <a class="hover:underline font-semibold text-slate-700 dark:text-slate-200" href="#}">Profesores</a></p>
+    <p class="mb-2 text-slate-500 text-sm dark:text-slate-400"><a class="hover:underline" href="{% url 'home' %}">Sistema</a> / <a class="hover:underline font-semibold text-slate-700 dark:text-slate-200" href="#">Profesores</a></p>
     <h2 class="mb-2 text-4xl font-semibold text-[#234FA8] dark:text-blue-400 sm:text-3xl">Profesores</h2>
     <p class="text-sm text-slate-500 dark:text-slate-400 sm:text-base">Listado de profesores/docentes del sistema.</p>
     {% endif %}
 </div>
-<div class="p-4 border-slate-300 dark:border-slate-700 min-h-[71vh] border-default border mt-10 rounded-lg">
+<div class="p-4 border-slate-300 dark:border-slate-700 min-h-[70vh] border-default border mt-10 rounded-lg">
     <div class="user-list-content">
 
         <div class="mb-8 w-full gap-4 md:gap-0 flex flex-col md:flex-row md:justify-between justify-center">
@@ -41,7 +41,7 @@
                     </form>
                 {% endif %}
                 {% if request.user.rol.name != 'Director' %}
-                <a href="{% url 'usercreate' %}" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-800 text-center hover:transition transition hover:duration-300 duration-300 rounded-lg px-8 py-3">
+                <a href="{% url 'usercreate' %}" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-800 text-center hover:transition transition hover:duration-300 duration-300 rounded-lg px-6 py-3">
                     <p class="w-full text-white font-semibold text-sm">+ Nuevo usuario</p>
                 </a>
                 {% endif %}
@@ -49,7 +49,7 @@
         </div>
 
         {% if usersys %}
-        <div class="relative max-h-[70vh] b-white overflow-y-auto overflow-x-auto bg-neutral-primary-soft shadow-xs rounded-base border border-default border-slate-300 dark:border-slate-800 rounded-lg">
+        <div class="relative max-h-[58vh] b-white overflow-y-auto overflow-x-auto bg-neutral-primary-soft shadow-xs rounded-base border border-default border-slate-300 dark:border-slate-800 rounded-lg">
             <table id="data-table" class="w-full text-sm text-left rtl:text-right text-body">
                 <thead name="search" class="sticky top-0 z-10 text-sm text-left text-slate-700 dark:text-white bg-slate-200 dark:bg-[#10141f] text-body bg-neutral-secondary-soft border-b rounded-base border-default dark:border-slate-800">
                     <tr>
@@ -187,11 +187,14 @@
 <script>
     function activar(button) {
         const form = button.closest('form');
+        const isDarkMode = document.documentElement.classList.contains('dark');
 
         Swal.fire({
             title: "¿Desea activar este usuario?",
             text: "El usuario aparecerá nuevamente en el listado, y estará disponible en otros módulos nuevamente.",
             icon: "info",
+            background: isDarkMode ? "#141826" : "#ffffff",
+            color: isDarkMode ? "#f8fafc" : "#0f172a",
             showCancelButton: true,
             confirmButtonText: "Activar",
             cancelButtonText: "Cancelar",

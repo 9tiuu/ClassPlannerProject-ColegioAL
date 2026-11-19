@@ -3,10 +3,13 @@
 {% if form %}
 {% if form.non_field_errors %}
         <script>
+            const isDarkMode = document.documentElement.classList.contains('dark');
             Swal.fire({
                 "title": "¡Error!",
                 "text": "{% for error in form.non_field_errors %}{{ error }}{% endfor %}",
                 "icon": "warning",
+                "background": isDarkMode ? "#141826" : "#ffffff",
+                "color": isDarkMode ? "#f8fafc" : "#0f172a",
                 "confirmButtonColor": "#f39c12"
             });
         </script>

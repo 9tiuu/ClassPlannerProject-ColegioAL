@@ -6,7 +6,7 @@
 
 <div class="p-4 min-h-[10vh] mt-4 rounded-lg">
     <p class="mb-2 text-slate-500 text-sm dark:text-slate-400">
-        <a class="hover:underline" href="{% url 'home' %}">Gestión</a> /
+        <a class="hover:underline" href="{% url 'home' %}">Colegio</a> /
         <a class="hover:underline" href="{% url 'horarios' %}">Horarios</a> /
         <a class="hover:underline font-semibold text-slate-700 dark:text-slate-200" href="#">Históricos</a>
     </p>
@@ -102,7 +102,7 @@
 
         {% if exportados %}
 
-        <div id="asigtable" class="relative max-h-[70vh] overflow-y-auto overflow-x-auto bg-neutral-primary-soft shadow-xs rounded-base border border-default border-slate-300 dark:border-slate-800 rounded-lg">
+        <div id="asigtable" class="relative max-h-[60vh] overflow-y-auto overflow-x-auto bg-neutral-primary-soft shadow-xs rounded-base border border-default border-slate-300 dark:border-slate-800 rounded-lg">
             <table id="data-table" class="min-w-full text-sm text-left rtl:text-right text-body">
                 <thead class="text-sm text-left text-slate-700 dark:text-white bg-slate-200 dark:bg-[#10141f] text-body bg-neutral-secondary-soft border-b rounded-base border-default dark:border-slate-800">
                     <tr>

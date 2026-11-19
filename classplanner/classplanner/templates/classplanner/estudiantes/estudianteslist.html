@@ -4,7 +4,7 @@
 {% endblock %}
 {% block content %}
 <div class="p-4 min-h-[10vh] mt-4 rounded-lg">
-    <p class="mb-2 text-slate-500 text-sm dark:text-slate-400"><a class="hover:underline" href="{% url 'home' %}">Gestión</a> / <a class="hover:underline font-semibold text-slate-700 dark:text-slate-200" href="#">Estudiantes</a></p>
+    <p class="mb-2 text-slate-500 text-sm dark:text-slate-400"><a class="hover:underline" href="{% url 'home' %}">Colegio</a> / <a class="hover:underline font-semibold text-slate-700 dark:text-slate-200" href="#">Estudiantes</a></p>
     <h2 class="mb-2 text-4xl font-semibold text-[#234FA8] dark:text-blue-400 sm:text-3xl">Estudiantes</h2>
     <p class="text-sm text-slate-500 dark:text-slate-400 sm:text-base">Listado de estudiantes registrados.</p>
 </div>
@@ -32,14 +32,14 @@
                     </label>
                 </form>
                 {% endif %}
-                <a href="{% url 'estudiantecreate' %}" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-800 text-center hover:transition transition hover:duration-300 duration-300 rounded-lg px-8 py-3">
+                <a href="{% url 'estudiantecreate' %}" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-800 text-center hover:transition transition hover:duration-300 duration-300 rounded-lg px-6 py-3">
                     <p class="w-full text-white font-semibold">+ Nuevo estudiante</p>
                 </a>
             </div>
         </div>
 
         {% if estudiantes %}
-        <div class="relative max-h-[70vh] overflow-x-auto overflow-y-auto bg-neutral-primary-soft shadow-xs rounded-base border border-default border-slate-300 dark:border-slate-800 rounded-lg">
+        <div class="relative max-h-[60vh] overflow-x-auto overflow-y-auto bg-neutral-primary-soft shadow-xs rounded-base border border-default border-slate-300 dark:border-slate-800 rounded-lg">
             <table id="data-table" class="w-full text-sm text-left rtl:text-right text-body">
                 <thead class="sticky top-0 z-10 text-sm text-left text-slate-700 dark:text-white bg-slate-200 dark:bg-[#10141f] text-body bg-neutral-secondary-soft border-b rounded-base border-default dark:border-slate-800">
                     <tr>
@@ -108,12 +108,15 @@
 </div>
 <script>
     function activar(button) {
+        const isDarkMode = document.documentElement.classList.contains('dark');
         const form = button.closest('form');
 
         Swal.fire({
             title: "¿Desea activar este estudiante?",
             text: "El estudiante aparecerá nuevamente en el listado, y se le podrá agregar notas nuevamente.",
             icon: "info",
+            background: isDarkMode ? "#141826" : "#ffffff",
+            color: isDarkMode ? "#f8fafc" : "#0f172a",
             showCancelButton: true,
             confirmButtonText: "Activar",
             cancelButtonText: "Cancelar",

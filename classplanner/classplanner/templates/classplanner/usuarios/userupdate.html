@@ -9,12 +9,12 @@
 {% block content %}
 <div class="p-4 min-h-[10vh] mt-4 rounded-lg">
     {% if request.user.rol.name != 'Director' %}
-    <p class="mb-2 text-slate-500 text-sm dark:text-slate-400"><button class="hover:underline" id="home-link" data-url="{% url 'home' %}" onclick="window.exitConfirm(this)">Gestión</button> / <button class="hover:underline" id="userlist-link" data-url="{% url 'userlist' %}" onclick="window.exitConfirm(this)">Usuarios</button> / <a class="hover:underline font-semibold text-slate-700 dark:text-slate-200" href="#">Crear</a></p>
+    <p class="mb-2 text-slate-500 text-sm dark:text-slate-400"><button class="hover:underline" id="home-link" data-url="{% url 'home' %}" onclick="window.exitConfirm(this)">Sistema</button> / <button class="hover:underline" id="userlist-link" data-url="{% url 'userlist' %}" onclick="window.exitConfirm(this)">Usuarios</button> / <a class="hover:underline font-semibold text-slate-700 dark:text-slate-200" href="#">Crear</a></p>
     <h2 class="mb-2 text-4xl font-semibold text-[#234FA8] dark:text-blue-400 sm:text-3xl">Actualizar Usuario</h2>
     <p class="text-sm text-slate-500 dark:text-slate-400 sm:text-base">Actualice los datos del usuario completando los siguientes campos:</p>
     <p class="text-amber-600 dark:text-amber-500 font-semibold text-sm sm:text-base">Dejar en blanco los campos de contraseña si NO se desea modificar:</p>
     {% else %}
-    <p class="mb-2 text-slate-500 text-sm dark:text-slate-400"><button class="hover:underline" id="home-link" data-url="{% url 'home' %}" onclick="window.exitConfirm(this)">Gestión</button> / <button class="hover:underline" id="userlist-link" data-url="{% url 'userlist' %}" onclick="window.exitConfirm(this)">Profesores</button> / <a class="hover:underline font-semibold text-slate-700 dark:text-slate-200" href="#">Crear</a></p>
+    <p class="mb-2 text-slate-500 text-sm dark:text-slate-400"><button class="hover:underline" id="home-link" data-url="{% url 'home' %}" onclick="window.exitConfirm(this)">Sistema</button> / <button class="hover:underline" id="userlist-link" data-url="{% url 'userlist' %}" onclick="window.exitConfirm(this)">Profesores</button> / <a class="hover:underline font-semibold text-slate-700 dark:text-slate-200" href="#">Crear</a></p>
     <h2 class="mb-2 text-4xl font-semibold text-[#234FA8] dark:text-blue-400 sm:text-3xl">Actualizar Profesor</h2>
     <p class="text-sm text-slate-500 dark:text-slate-400 sm:text-base">Actualice los datos del profesor completando los siguientes campos:</p>
     {% endif %}
