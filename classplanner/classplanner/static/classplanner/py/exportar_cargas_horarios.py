@@ -660,7 +660,7 @@ def _crear_tabla_horario(
                 if carga_docente is not None:
                     docente = carga_docente.usuario_id
                 nombre_docente = str(docente) if docente else ''
-                aula = horario.aula_id.nombre if horario.aula_id else ''
+                aula = clase.aula_id.nombre if clase.aula_id else ''
                 contenidos.append(
                     '<b>{}</b><br/><font size="6.5">'
                     'Prof.: {}<br/>Aula: {}</font>'.format(
@@ -898,9 +898,9 @@ def exportar_horarios(cursos, cargas: QuerySet, bloques: QuerySet):
         bloques.select_related(
             'usuario_id',
             'bloque_id',
-            'asignatura_id',
+            'asignatura_id__nombres_asignatura_id',
             'curso_id',
-            'horario_id__aula_id',
+            'aula_id',
         ).order_by(
             'bloque_id__hora_inicio',
             'bloque_id__dia',

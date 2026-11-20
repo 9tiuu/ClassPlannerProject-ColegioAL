@@ -2619,7 +2619,7 @@ def ExportarHorario(request):
         Horario.objects
         .annotate(_horario_reciente=Subquery(ultimo_horario))
         .filter(pk=F('_horario_reciente'))
-        .select_related('plan_de_estudio_id__curso_id__usuario_id', 'aula_id')
+        .select_related('plan_de_estudio_id__curso_id__usuario_id')
         .order_by(
             orden_nivel,
             'plan_de_estudio_id__curso_id__letra',
@@ -2648,9 +2648,9 @@ def ExportarHorario(request):
         .select_related(
             'usuario_id',
             'bloque_id',
-            'asignatura_id',
+            'asignatura_id__nombres_asignatura_id',
             'curso_id',
-            'horario_id__aula_id',
+            'aula_id',
         )
         .order_by(
             'bloque_id__hora_inicio',
