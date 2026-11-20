@@ -1,14 +1,24 @@
 <div class="-m-4 min-h-screen">
     <div class="flex h-60 w-full items-end bg-gradient-to-br from-purple-800 via-indigo-700 to-sky-500 px-6 pb-24">
-        <div class="flex items-center gap-3">
-            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-cyan-600 text-white">
-                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M9 3a2 2 0 0 1 2 2v6a2 2 0 0 1 -2 2h-4a2 2 0 0 1 -2 -2v-6a2 2 0 0 1 2 -2zm0 12a2 2 0 0 1 2 2v2a2 2 0 0 1 -2 2h-4a2 2 0 0 1 -2 -2v-2a2 2 0 0 1 2 -2zm10 -4a2 2 0 0 1 2 2v6a2 2 0 0 1 -2 2h-4a2 2 0 0 1 -2 -2v-6a2 2 0 0 1 2 -2zm0 -8a2 2 0 0 1 2 2v2a2 2 0 0 1 -2 2h-4a2 2 0 0 1 -2 -2v-2a2 2 0 0 1 2 -2z" />
-                </svg>
+        <div class="flex w-full flex-wrap items-end justify-between gap-3">
+            <div class="flex items-center gap-3">
+                <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-cyan-600 text-white">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M9 3a2 2 0 0 1 2 2v6a2 2 0 0 1 -2 2h-4a2 2 0 0 1 -2 -2v-6a2 2 0 0 1 2 -2zm0 12a2 2 0 0 1 2 2v2a2 2 0 0 1 -2 2h-4a2 2 0 0 1 -2 -2v-2a2 2 0 0 1 2 -2zm10 -4a2 2 0 0 1 2 2v6a2 2 0 0 1 -2 2h-4a2 2 0 0 1 -2 -2v-6a2 2 0 0 1 2 -2zm0 -8a2 2 0 0 1 2 2v2a2 2 0 0 1 -2 2h-4a2 2 0 0 1 -2 -2v-2a2 2 0 0 1 2 -2z" />
+                    </svg>
+                </div>
+                <div>
+                    <h2 class="text-2xl font-bold text-white">Dashboard Administrativo</h2>
+                    <p class="text-sm text-white/90">¡Bienvenido/a @{{ request.user.name }}! Aquí tiene un resumen administrativo de su institución.</p>
+                </div>
             </div>
-            <div>
-                <h2 class="text-2xl font-bold text-white">Dashboard Administrativo</h2>
-                <p class="text-sm text-white/90">¡Bienvenido/a @{{ request.user.name }}! Aquí tiene un resumen administrativo de su institución.</p>
+            <div class="flex items-center gap-2">
+                <label for="filtro-anio" class="text-xs font-semibold text-white/90">Planificación</label>
+                <select id="filtro-anio" class="h-9 cursor-pointer rounded-lg border border-white/30 bg-white/15 px-3 text-xs font-semibold text-white backdrop-blur focus:outline-none focus-visible:ring-[3px] focus-visible:ring-white/60 [&>option]:text-black">
+                    {% for a in anios %}
+                    <option value="{{ a|stringformat:'d' }}" {% if a == anio %}selected{% endif %}>{{ a|stringformat:"d" }}</option>
+                    {% endfor %}
+                </select>
             </div>
         </div>
     </div>
@@ -26,7 +36,7 @@
                 <p class="font-semibold text-slate-700 dark:text-white">Docentes</p>
             </div>
             <p data-contador="total_docentes" class="mt-5 text-3xl font-bold text-blue-500">{{ total_docentes|default:0 }}</p>
-            <p class="text-xs text-slate-400">Total de docentes</p>
+            <p class="text-xs text-slate-400">Docentes con carga horaria</p>
         </div>
 
         <!-- ASIGNATURAS -->
@@ -40,7 +50,7 @@
                 <p class="font-semibold text-slate-700 dark:text-white">Asignaturas</p>
             </div>
             <p data-contador="total_asignaturas" class="mt-5 text-3xl font-bold text-green-500">{{ total_asignaturas|default:0 }}</p>
-            <p class="text-xs text-slate-400">Total de asignaturas</p>
+            <p class="text-xs text-slate-400">Asignaturas dictadas</p>
         </div>
 
         <!-- ESTUDIANTES -->
@@ -56,7 +66,7 @@
                 <p class="font-semibold text-slate-700 dark:text-white">Estudiantes</p>
             </div>
             <p data-contador="total_estudiantes" class="mt-5 text-3xl font-bold text-red-400">{{ total_estudiantes|default:0 }}</p>
-            <p class="text-xs text-slate-400">Total de estudiantes</p>
+            <p class="text-xs text-slate-400">Estudiantes activos (actual)</p>
         </div>
 
         <!-- CURSOS -->
@@ -74,7 +84,7 @@
                 <p class="font-semibold text-slate-700 dark:text-white">Cursos</p>
             </div>
             <p data-contador="total_cursos" class="mt-5 text-3xl font-bold text-orange-400">{{ total_cursos|default:0 }}</p>
-            <p class="text-xs text-slate-400">Total de cursos</p>
+            <p class="text-xs text-slate-400">Cursos con horario</p>
         </div>
 
     </div>
@@ -86,7 +96,7 @@
         <div class="flex flex-col rounded-2xl bg-white p-4 shadow dark:bg-[#141826]">
             <h3 class="text-lg font-semibold text-[#234FA8] dark:text-blue-400">Docentes con más Carga Horaria</h3>
             <p class="text-xs text-slate-500 dark:text-slate-400">
-                Top 5 docentes según horas de contrato del año {% now "Y" %}
+                Top 5 docentes según horas de contrato del año <span id="texto-anio">{{ anio|stringformat:"d" }}</span>
             </p>
 
             <div class="mt-4 flex flex-1 flex-col items-center justify-center gap-4 rounded-xl border-2 border-slate-300 p-3 dark:border-slate-700 sm:flex-row sm:gap-8">
@@ -105,7 +115,7 @@
         <!-- DASHBOARD ESTUDIANTES -->
         <div class="rounded-2xl bg-white p-4 shadow dark:bg-[#141826]">
             <h3 class="text-lg font-semibold text-[#234FA8] dark:text-blue-400">Estudiantes por Curso</h3>
-            <p class="text-xs text-slate-500 dark:text-slate-400">Cantidad total de estudiantes por curso</p>
+            <p class="text-xs text-slate-500 dark:text-slate-400">Cantidad actual de estudiantes por curso</p>
 
             <div class="mt-4 rounded-xl border-2 border-slate-300 p-3 dark:border-slate-700">
                 <div class="relative h-56 w-full">
@@ -147,6 +157,10 @@
         const contadores = document.querySelectorAll('[data-contador]');
         const leyenda = document.getElementById('leyenda-docentes');
         const vacio = document.getElementById('vacio-docentes');
+        const selectorAnio = document.getElementById('filtro-anio');
+        const textoAnio = document.getElementById('texto-anio');
+
+        let anioElegido = selectorAnio.value;
 
         const dona = new Chart(document.getElementById('grafico-docentes'), {
             type: 'doughnut',
@@ -233,12 +247,26 @@
             document.getElementById("graph-d").classList.toggle('hidden', nombres.length <= 0)
         };
 
+        const pintarAnios = (anios, anio) => {
+            const actuales = [...selectorAnio.options].map(o => o.value).join(',');
+            if (actuales !== anios.join(',')) {
+                selectorAnio.replaceChildren(...anios.map(a => new Option(a, a)));
+            }
+            selectorAnio.value = String(anio);
+            textoAnio.textContent = anio;
+            anioElegido = String(anio);
+        };
+
         const aplicar = datos => {
             contadores.forEach(el => {
                 if (el.dataset.contador in datos) {
                     el.textContent = datos[el.dataset.contador];
                 }
             });
+
+            if (datos.anios && datos.anio) {
+                pintarAnios(datos.anios, datos.anio);
+            }
 
             const docentes = datos.docentes_carga || { labels: [], values: [] };
             dona.data.labels = docentes.labels;
@@ -253,20 +281,36 @@
             barras.update();
         };
 
-        const cargar = () => {
-            fetch(URL_DATOS, {
+        const cargar = (desdeSelector = false) => {
+            const pedido = anioElegido;
+            const url = new URL(URL_DATOS, window.location.origin);
+            url.searchParams.set('anio', pedido);
+
+            fetch(url, {
                 credentials: 'same-origin',
                 cache: 'no-store',
                 headers: { 'X-Requested-With': 'XMLHttpRequest' }
             })
-                .then(respuesta => respuesta.ok ? respuesta.json() : Promise.reject())
-                .then(aplicar)
-                .catch(() => {});
+                .then(respuesta => respuesta.ok ? respuesta.json() : Promise.reject(new Error('HTTP ' + respuesta.status)))
+                .then(datos => {
+                    if (pedido === anioElegido) aplicar(datos);
+                })
+                .catch(error => {
+                    console.error('No se pudo cargar el dashboard:', error);
+                    if (desdeSelector) {
+                        window.location.search = '?anio=' + encodeURIComponent(pedido);
+                    }
+                });
         };
 
         aplicar({
             docentes_carga: leer('datos-docentes', { labels: [], values: [] }),
             estudiantes_cursos: leer('datos-cursos', { labels: [], a: [], b: [] })
+        });
+
+        selectorAnio.addEventListener('change', () => {
+            anioElegido = selectorAnio.value;
+            cargar(true);
         });
 
         setInterval(() => { if (!document.hidden) cargar(); }, INTERVALO);

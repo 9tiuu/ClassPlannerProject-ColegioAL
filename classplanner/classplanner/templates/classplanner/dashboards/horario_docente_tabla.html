@@ -1,0 +1,50 @@
+{% for jornada in jornadas %}
+<div class="mt-4 overflow-x-auto rounded-xl border-2 border-slate-300 dark:border-slate-700">
+    <table class="w-full min-w-[50rem] table-fixed text-sm">
+        <thead>
+            <tr class="bg-slate-200 text-left text-black dark:bg-[#10141f] dark:text-white">
+                <th class="w-36 whitespace-nowrap px-4 py-3 font-bold">
+                    Hora
+                    <span class="ml-2 rounded px-2 py-0.5 text-xs font-semibold {% if jornada.codigo == 'JM' %}bg-orange-200 text-orange-600 dark:bg-orange-500/20 dark:text-orange-400{% else %}bg-violet-200 text-violet-700 dark:bg-violet-500/20 dark:text-violet-400{% endif %}">{{ jornada.codigo }}</span>
+                </th>
+                {% for numero, nombre in dias %}
+                <th data-dia="{{ numero }}" class="px-3 py-3 font-bold">{{ nombre }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for fila in jornada.filas %}
+            <tr class="border-b dark:border-b-slate-800 odd:bg-white even:bg-white even:dark:bg-[#171c2b] dark:odd:bg-[#171c2b]">
+                <td class="whitespace-nowrap px-4 py-2 align-middle">
+                    <p class="font-semibold text-black dark:text-white">Hora {{ fila.numero }}</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-300">{{ fila.hora_inicio|time:"H:i" }} - {{ fila.hora_termino|time:"H:i" }}</p>
+                </td>
+                {% if fila.es_recreo %}
+                <td colspan="{{ dias|length }}" class="p-2">
+                    <div class="flex min-h-[3.6rem] items-center justify-center rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-2">
+                        <p class="font-bold text-amber-600 dark:text-amber-400">Recreo</p>
+                    </div>
+                </td>
+                {% else %}
+                {% for celda in fila.celdas %}
+                <td data-dia="{{ forloop.counter }}" class="p-1.5 align-middle">
+                    {% if celda %}
+                    <div class="flex h-16 flex-col justify-center overflow-hidden rounded-lg border border-blue-200 bg-blue-50 px-3 dark:border-blue-900 dark:bg-blue-950/40" title="{{ celda.asignatura_id.nombre }} · {{ celda.curso_id }}">
+                        <p class="line-clamp-2 text-xs font-semibold leading-tight text-blue-600 dark:text-blue-400">{{ celda.asignatura_id.nombres_asignatura_id.nombre }}</p>
+                        <p class="truncate text-xs text-slate-500 dark:text-slate-300">Curso: {{ celda.curso_id }} - Aula: {{ celda.aula_id }}</p>
+                        <p class="truncate text-xs text-slate-500 dark:text-slate-300"></p>
+                    </div>
+                    {% else %}
+                    <div class="flex h-16 items-center justify-center rounded-lg border border-slate-200 bg-slate-100 text-slate-400 dark:border-slate-700 dark:bg-[#1d2236]">—</div>
+                    {% endif %}
+                </td>
+                {% endfor %}
+                {% endif %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% empty %}
+    <p class="mt-4 text-sm text-black dark:text-white">Aún no tiene un horario asignado para el año {{ anio|stringformat:"d" }}.</p>
+{% endfor %}

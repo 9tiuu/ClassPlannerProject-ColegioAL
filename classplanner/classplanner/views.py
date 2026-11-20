@@ -54,6 +54,7 @@ from django.db.utils import IntegrityError
 from django.http import JsonResponse
 from django.utils import timezone
 from django.contrib.auth import update_session_auth_hash
+from django.template.loader import render_to_string
 
 # Create your views here.
 
@@ -124,34 +125,108 @@ def periodo_planificacion_required():
 
 # ----------------------------------- # HOME / DASHBOARD
 
+DIAS_SEMANA = [(1, 'Lunes'), (2, 'Martes'), (3, 'Miércoles'), (4, 'Jueves'), (5, 'Viernes')]
+
+def obtener_anios_dashboard():
+    anios = set(
+        CargaHoraria.objects
+        .exclude(anio_planificacion__isnull=True)
+        .values_list('anio_planificacion', flat=True)
+    )
+    anios.update(
+        Horario.objects
+        .exclude(anio_planificacion__isnull=True)
+        .values_list('anio_planificacion', flat=True)
+    )
+    anios.update((timezone.now().year, anio_de_planificacion()))
+    return sorted(anios, reverse=True)
+
+def seleccionar_anio(anio, anios):
+    anio_actual = timezone.now().year
+
+    if anio in anios:
+        return anio
+
+    proximos = [a for a in anios if a >= anio_actual]
+
+    if anio_actual in anios:
+        return anio_actual
+
+    return min(proximos) if proximos else max(anios)
+
 @login_required
 def Home(request):
     context = {}
-    if request.user.rol.name in ('root', 'Administrador', 'Director'):
-        datos = datos_dashboard_admin()
-        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+    rol = request.user.rol.name if request.user.rol else None
+    es_ajax = request.headers.get('x-requested-with') == 'XMLHttpRequest'
+    anio = a_int(request.GET.get('anio'))
+
+    if rol in ('root', 'Administrador', 'Director'):
+        datos = datos_dashboard_admin(anio)
+        if es_ajax:
             return JsonResponse(datos)
         context.update(datos)
+
+    elif rol == 'Docente':
+        datos = datos_dashboard_docente(request.user, anio)
+        jornadas = horario_docente(request.user, datos['anio'])
+
+        if es_ajax:
+            datos['horario_html'] = render_to_string(
+                'classplanner/dashboards/horario_docente_tabla.html',
+                {'jornadas': jornadas, 'dias': DIAS_SEMANA, 'anio': datos['anio']},
+                request=request,
+            )
+            return JsonResponse(datos)
+
+        context.update(datos)
+        context['jornadas'] = jornadas
+        context['dias'] = DIAS_SEMANA
+
     return render(request, 'classplanner/base.html', context)
 
 @login_required
 @roles_required('root', 'Administrador', 'Director')
 def dashboard_admin_data(request):
-    return JsonResponse(datos_dashboard_admin())
+    return JsonResponse(datos_dashboard_admin(a_int(request.GET.get('anio'))))
 
-def datos_dashboard_admin():
-    anio = timezone.now().year
+def datos_dashboard_admin(anio=None):
+    anio_actual = timezone.now().year
 
+    con_datos = set(
+        CargaHoraria.objects.exclude(anio_planificacion__isnull=True)
+        .values_list('anio_planificacion', flat=True)
+    ) | set(
+        Horario.objects.exclude(anio_planificacion__isnull=True)
+        .values_list('anio_planificacion', flat=True)
+    )
+    anios = sorted(con_datos | {anio_actual, anio_de_planificacion()}, reverse=True)
+
+    if anio not in anios:
+        proximos = [a for a in con_datos if a >= anio_actual]
+        if anio_actual in con_datos or not con_datos:
+            anio = anio_actual
+        else:
+            anio = min(proximos) if proximos else max(con_datos)
+
+    cargas_anio = CargaHoraria.objects.filter( # La carga horaria sí depende del año seleccionado
+        anio_planificacion=anio,
+        usuario_id__rol__name='Docente',
+    )
     cargas = (
-        CargaHoraria.objects
-        .filter(
-            anio_planificacion=anio,
-            usuario_id__rol__name='Docente',
-            usuario_id__is_active=True,
-        )
+        cargas_anio
         .select_related('usuario_id')
         .order_by('-hrs_contrato')[:5]
     )
+
+    total_docentes = Usuario.objects.filter( # Los datos generales se obtienen directamente de la DB
+        rol__name='Docente',
+        is_active=True,
+    ).count()
+
+    total_asignaturas = Asignatura.objects.count()
+    total_estudiantes = Estudiante.objects.filter(is_active=True).count()
+    total_cursos = Curso.objects.count()
 
     totales = {
         fila['curso_id']: fila['total']
@@ -175,10 +250,12 @@ def datos_dashboard_admin():
     orden = sorted(por_nivel, key=lambda nivel: (not nivel.endswith('B'), nivel))
 
     return {
-        'total_docentes': Usuario.objects.filter(rol__name='Docente', is_active=True).count(),
-        'total_asignaturas': Asignatura.objects.count(),
-        'total_estudiantes': Estudiante.objects.filter(is_active=True).count(),
-        'total_cursos': Curso.objects.count(),
+        'anio': anio,
+        'anios': anios,
+        'total_docentes': total_docentes,
+        'total_asignaturas': total_asignaturas,
+        'total_estudiantes': total_estudiantes,
+        'total_cursos': total_cursos,
         'docentes_carga': {
             'labels': [f'{c.usuario_id.name} {c.usuario_id.last_name}' for c in cargas],
             'values': [c.hrs_contrato for c in cargas],
@@ -189,6 +266,165 @@ def datos_dashboard_admin():
             'b': [por_nivel[n]['B'] for n in orden],
         },
     }
+
+def nombre_asignatura(asignatura):
+    nombre = asignatura.nombres_asignatura_id
+    return nombre.nombre if nombre else asignatura.ident
+
+def datos_dashboard_docente(usuario, anio=None):
+    anio_actual = timezone.now().year
+
+    anios_carga = set(
+        CargaHoraria.objects
+        .filter(usuario_id=usuario)
+        .exclude(anio_planificacion__isnull=True)
+        .values_list('anio_planificacion', flat=True)
+    )
+
+    anios_horario = set(
+        BloqueDeClase.objects
+        .filter(usuario_id=usuario)
+        .exclude(horario_id__anio_planificacion__isnull=True)
+        .values_list('horario_id__anio_planificacion', flat=True)
+    )
+
+    anios = sorted(anios_carga | anios_horario | {anio_actual}, reverse=True)
+
+    if anio not in anios:
+        anio = anio_actual
+
+    filtro_anio = Q(horario_id__anio_planificacion=anio)
+
+    # Los horarios antiguos sin año se consideran parte del año actual.
+    if anio == anio_actual:
+        filtro_anio |= Q(horario_id__anio_planificacion__isnull=True)
+
+    clases = (
+        BloqueDeClase.objects
+        .filter(usuario_id=usuario)
+        .filter(filtro_anio)
+        .select_related(
+            'asignatura_id__nombres_asignatura_id',
+            'curso_id',
+        )
+    )
+
+    asignaturas = {}
+    cursos = {}
+    pares = set()
+
+    for c in clases:
+        asignaturas[c.asignatura_id_id] = nombre_asignatura(c.asignatura_id)
+        cursos[c.curso_id_id] = c.curso_id
+        pares.add((c.curso_id_id, c.asignatura_id_id))
+
+    cursos_ordenados = sorted(
+        cursos.values(),
+        key=lambda curso: (not curso.nivel.endswith('B'), curso.nivel, curso.letra),
+    )
+    asignaturas_ordenadas = sorted(asignaturas.items(), key=lambda item: item[1])
+
+    curso_de = dict(
+        Estudiante.objects
+        .filter(is_active=True, curso_id__in=list(cursos))
+        .values_list('rut', 'curso_id')
+    )
+
+    # notas_por = {}
+    # filas_notas = (
+    #     PromedioAsignatura.objects
+    #     .filter(
+    #         estudiante_id__in=list(curso_de),
+    #         plan_de_estudio_id__asignatura_id__in=list(asignaturas),
+    #         nota__isnull=False,
+    #     )
+    #     .values_list('estudiante_id', 'plan_de_estudio_id__asignatura_id', 'nota')
+    # )
+
+    # for rut, asignatura_id, nota in filas_notas:
+    #     notas_por.setdefault((rut, asignatura_id), []).append(nota)
+
+    riesgo = {pk: 0 for pk in asignaturas}
+
+    # for (rut, asignatura_id), valores in notas_por.items():
+    #     if len(valores) < MIN_NOTAS_PROMEDIO:
+    #         continue
+    #     if (curso_de[rut], asignatura_id) not in pares:
+    #         continue
+    #     if sum(valores) / len(valores) < 4:
+    #         riesgo[asignatura_id] += 1
+
+    carga = CargaHoraria.objects.filter(
+        usuario_id=usuario,
+        anio_planificacion=anio,
+    ).first()
+
+    return {
+        'anio': anio,
+        'anios': anios,
+        'total_asignaturas': len(asignaturas),
+        'total_cursos': len(cursos),
+        'total_bloques': clases.count(),
+        'hrs_pedagogicas': carga.hrs_contrato if carga else 0,
+        'carga_registrada': carga is not None,
+        'detalle_asignaturas': ', '.join(nombre for _, nombre in asignaturas_ordenadas),
+        'detalle_cursos': ', '.join(str(curso) for curso in cursos_ordenados),
+        'riesgo_asignaturas': {
+            'labels': [f'{nombre} ({riesgo[pk]})' for pk, nombre in asignaturas_ordenadas],
+            'values': [riesgo[pk] for pk, _ in asignaturas_ordenadas],
+        },
+    }
+
+def horario_docente(usuario, anio):
+    filtro_anio = Q(horario_id__anio_planificacion=anio)
+
+    if anio == timezone.now().year:
+        filtro_anio |= Q(horario_id__anio_planificacion__isnull=True)
+
+    clases = (
+        BloqueDeClase.objects
+        .filter(usuario_id=usuario)
+        .filter(filtro_anio)
+        .select_related(
+            'bloque_id',
+            'asignatura_id__nombres_asignatura_id',
+            'curso_id',
+        )
+    )
+
+    ocupadas = {
+        (c.bloque_id.dia, c.bloque_id.hora_inicio, c.bloque_id.hora_termino): c
+        for c in clases
+    }
+
+    bloques_por_jornada = obtener_bloques_por_jornada()
+    jornadas = []
+
+    for codigo, nombre in (('JM', 'Jornada de mañana'), ('JT', 'Jornada de tarde')):
+        filas, tiene_clases, numero = [], False, 0
+
+        for b in bloques_por_jornada[codigo]:
+            celdas = [
+                ocupadas.get((DIAS_CODIGO[n], b['hora_inicio'], b['hora_termino']))
+                for n in sorted(DIAS_CODIGO)
+            ]
+
+            if any(celdas):
+                tiene_clases = True
+
+            if not b['es_recreo']:
+                numero += 1
+
+            filas.append({**b, 'numero': numero, 'celdas': celdas})
+
+        if tiene_clases:
+            jornadas.append({
+                'codigo': codigo,
+                'nombre': nombre,
+                'filas': filas,
+            })
+
+    return jornadas
 
 # ----------------------------------- # ROLES
 
