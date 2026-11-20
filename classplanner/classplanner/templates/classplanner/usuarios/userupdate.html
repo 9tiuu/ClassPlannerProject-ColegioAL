@@ -8,11 +8,10 @@
 {% endblock %}
 {% block content %}
 <div class="p-4 min-h-[10vh] mt-4 rounded-lg">
-    {% if request.user.rol.name != 'Director' %}
+    {% if request.user.rol.name != 'Director' and request.user.rol.name != 'Administrador' %}
     <p class="mb-2 text-slate-500 text-sm dark:text-slate-400"><button class="hover:underline" id="home-link" data-url="{% url 'home' %}" onclick="window.exitConfirm(this)">Sistema</button> / <button class="hover:underline" id="userlist-link" data-url="{% url 'userlist' %}" onclick="window.exitConfirm(this)">Usuarios</button> / <a class="hover:underline font-semibold text-slate-700 dark:text-slate-200" href="#">Crear</a></p>
     <h2 class="mb-2 text-4xl font-semibold text-[#234FA8] dark:text-blue-400 sm:text-3xl">Actualizar Usuario</h2>
     <p class="text-sm text-slate-500 dark:text-slate-400 sm:text-base">Actualice los datos del usuario completando los siguientes campos:</p>
-    <p class="text-amber-600 dark:text-amber-500 font-semibold text-sm sm:text-base">Dejar en blanco los campos de contraseña si NO se desea modificar:</p>
     {% else %}
     <p class="mb-2 text-slate-500 text-sm dark:text-slate-400"><button class="hover:underline" id="home-link" data-url="{% url 'home' %}" onclick="window.exitConfirm(this)">Sistema</button> / <button class="hover:underline" id="userlist-link" data-url="{% url 'userlist' %}" onclick="window.exitConfirm(this)">Profesores</button> / <a class="hover:underline font-semibold text-slate-700 dark:text-slate-200" href="#">Crear</a></p>
     <h2 class="mb-2 text-4xl font-semibold text-[#234FA8] dark:text-blue-400 sm:text-3xl">Actualizar Profesor</h2>
@@ -103,10 +102,9 @@
                 <div class="flex flex-col w-full">
                     <label for="rol" class="mb-1 text-base font-semibold text-slate-600 dark:text-white">Rol de usuario <b class="text-red-600">*</b></label>
                     <select name="rol" id="id_rol" class="bg-white dark:bg-[#141826] text-sm focus:outline-none focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 focus:transition focus:duration-300 rounded-lg h-12 border-2 p-3 border-slate-300 dark:border-slate-700 dark:placeholder:text-[#a8b2d2] dark:text-white {% if form.rol.field.disabled %}cursor-not-allowed opacity-60{% endif %}" {% if form.rol.field.disabled %}disabled{% endif %}>
-                        <option value="" {% if not form.rol.value %} selected {% endif %}>Por seleccionar...</option>
-                        {% for option in form.rol.field.queryset %}
-                            <option value="{{ option.id }}" {% if option.id == form.rol.value %} selected {% endif %}>
-                                {{ option }}
+                        {% for option in form.rol %}
+                            <option value="{{ option.data.value }}" {% if option.data.selected %}selected{% endif %}>
+                                {{ option.data.label }}
                             </option>
                         {% endfor %}
                     </select>
@@ -119,9 +117,42 @@
                     </div>
                     {% endif %}
                 </div>
+                {% if usuario.rol.name == 'Docente' %}
+                <div class="flex flex-col w-full relative">
+                    <label for="asignatura_id" class="text-base font-semibold text-slate-600 dark:text-white">Asignaturas asignadas</label>
+                    <p class="text-blue-600 mb-2 dark:text-blue-500 font-semibold text-xs">Campo exclusivo para docentes:</p>
+                    <select name="asignatura_id" id="hs-multiple-optgroup" multiple data-hs-select='{
+                            "placeholder": "Seleccione las asignaturas por asignar...",
+                            "toggleTag": "<button type=\"button\" aria-expanded=\"false\"></button>",
+                            "toggleClasses": "flex w-full bg-white dark:bg-[#141826] text-sm focus:outline-none focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 focus:transition focus:duration-300 rounded-lg h-12 border-2 p-3 border-slate-300 dark:border-slate-700 dark:text-white",
+                            "dropdownClasses": "dark:text-white bg-white dark:bg-[#141826] z-50 w-full max-h-72 p-1 space-y-0.5 bg-select border border-slate-300 dark:border-slate-700 border-select-line rounded-lg shadow-xl overflow-hidden overflow-y-auto focus:outline-hidden [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:rounded-none [&::-webkit-scrollbar-track]:bg-scrollbar-track [&::-webkit-scrollbar-thumb]:bg-scrollbar-thumb",
+                            "optionClasses": "py-2 px-4 w-full text-sm text-select-item-foreground cursor-pointer hover:bg-gray-100 dark:hover:bg-[#1d2236] hs-selected:bg-blue-50 dark:hs-selected:bg-blue-600/40 rounded focus:outline-hidden focus:bg-select-item-focus hs-select-disabled:pointer-events-none hs-select-disabled:opacity-50",
+                            "optionTemplate": "<div class=\"flex justify-between items-center w-full\"><span data-title></span><span class=\"hidden hs-selected:block\"><svg class=\"shrink-0 size-3.5 text-white\" xmlns=\"http://wwww.w3.org/2000/svg\" width=\"30\" height=\"30\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><polyline points=\"20 6 9 17 4 12\"/></svg></span></div>",
+                            "optgroupTag": "<div></div>",
+                            "optgroupClasses": "py-2 px-4 w-full text-xs font-semibold text-blue-600 dark:text-blue-500 uppercase",
+                            "extraMarkup": "<div class=\"absolute text-muted-foreground-1 dark:text-white top-1/2 right-2 inset-e-3 -translate-y-1/2\"><svg class=\"shrink-0 size-3.5 text-muted-foreground-1\" xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m7 15 5 5 5-5\"/><path d=\"m7 9 5-5 5 5\"/></svg></div>"
+                        }' class="hidden">
+                        <option value="">Choose</option>
+                        <optgroup label="Asignaturas">
+                            {% for option in form.asignatura_id %}
+                            <option value="{{ option.data.value }}" {% if option.data.selected %}selected{% endif %}>
+                                {{ option.data.label }}
+                            </option>
+                            {% endfor %}
+                        </optgroup>
+                    </select>
+                    {% if form.asignatura_id.errors %}
+                    <div class="errors">
+                        {% for error in form.asignatura_id.errors %}
+                        <p class="bg-red-100 dark:bg-red-900/40 p-4 my-3 text-sm text-red-700 rounded-lg dark:text-red-300 transition duration-200">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
             </div>
-            {% if request.user.rol.name != 'Director' or request.user.rol.name != 'Administrador' %}
-            <div class="flex md:flex-row flex-col w-full gap-5 mb-5">
+            {% if request.user.rol.name != 'Director' and request.user.rol.name != 'Administrador' %}
+            <div class="flex md:flex-row flex-col w-full gap-5 mb-2">
                 <div class="flex flex-col w-full">
                     <label for="id_password_nueva" class="mb-1 text-base font-semibold text-slate-600 dark:text-white">Contraseña <b class="text-red-600">*</b></label>
                     <input type="password" name="password_nueva" id="id_password_nueva" class="bg-white dark:bg-[#141826] text-sm focus:outline-none focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 focus:transition focus:duration-300 rounded-lg h-12 border-2 p-3 border-slate-300 dark:border-slate-700 dark:placeholder:text-[#a8b2d2] dark:text-white" placeholder="**********">
@@ -132,6 +163,7 @@
                     <input type="password" name="password_confirmacion" id="id_password_confirmacion" class="bg-white dark:bg-[#141826] text-sm focus:outline-none focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 focus:transition focus:duration-300 rounded-lg h-12 border-2 p-3 border-slate-300 dark:border-slate-700 dark:placeholder:text-[#a8b2d2] dark:text-white" placeholder="**********">
                 </div>
             </div>
+            <p class="text-amber-600 mb-5 dark:text-amber-500 font-semibold text-xs">Dejar en blanco los campos de contraseña si NO se desea modificar:</p>
             <div>
                 {% if form.password_nueva.errors %}
                     <div class="errors">
@@ -148,6 +180,8 @@
                     </div>
                 {% endif %}
             </div>
+            {% else %}
+            <div></div>
             {% endif %}
 
             <div class="flex justify-end flex-row gap-2 my-8 w-full">              

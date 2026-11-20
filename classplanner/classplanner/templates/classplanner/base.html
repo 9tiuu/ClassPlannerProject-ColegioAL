@@ -23,6 +23,7 @@
     </script>
 
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/preline@latest/dist/preline.js"></script>
 
     <script>
         tailwind.config = {
@@ -380,19 +381,25 @@
 
         {% for message in messages %}
             <script>
-                if ('{{ message }}' === 'loginsuccessful') { 
-                    const loginMsg = document.getElementById('login_message');
-                    setTimeout(() => {loginMsg.classList.remove('translate-y-24')}, 1000);
-                    setTimeout(() => {loginMsg.classList.add('translate-y-24')}, 4000);
+                document.addEventListener('DOMContentLoaded', () => {
+                    const isDarkMode = document.documentElement.classList.contains('dark') || document.body.classList.contains('dark');
 
-                } else {
-                    Swal.fire({
-                        "title": "{% if 'error' in message.tags %}¡Error!{% elif 'success' in message.tags %}Listo!{% else %}Información{% endif %}",
-                        "text": "{{ message }}",
-                        "icon": "{% if 'error' in message.tags %}error{% elif 'success' in message.tags %}success{% elif 'warning' in message.tags %}warning{% else %}info{% endif %}",
-                        "confirmButtonColor": "{% if 'error' in message.tags %}#d33{% elif 'success' in message.tags %}#0d6efd{% elif 'warning' in message.tags %}#f39c12{% else %}#3085d6{% endif %}"
-                    }); 
-                }   
+                    if ('{{ message }}' === 'loginsuccessful') { 
+                        const loginMsg = document.getElementById('login_message');
+                        setTimeout(() => {loginMsg.classList.remove('translate-y-24')}, 1000);
+                        setTimeout(() => {loginMsg.classList.add('translate-y-24')}, 4000);
+
+                    } else {
+                        Swal.fire({
+                            "title": "{% if 'error' in message.tags %}¡Error!{% elif 'success' in message.tags %}Listo!{% else %}Información{% endif %}",
+                            "text": "{{ message }}",
+                            "icon": "{% if 'error' in message.tags %}error{% elif 'success' in message.tags %}success{% elif 'warning' in message.tags %}warning{% else %}info{% endif %}",
+                            "background": isDarkMode ? "#141826" : "#ffffff",
+                            "color": isDarkMode ? "#f8fafc" : "#0f172a",
+                            "confirmButtonColor": "{% if 'error' in message.tags %}#d33{% elif 'success' in message.tags %}#0d6efd{% elif 'warning' in message.tags %}#f39c12{% else %}#3085d6{% endif %}"
+                        }); 
+                    }   
+                });
             </script>
         {% endfor %}
     {% endif %}

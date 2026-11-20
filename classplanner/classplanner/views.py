@@ -329,6 +329,11 @@ class UpdateUsuario(UpdateView):
                 name__in=('Docente', 'Administrador')
             ).order_by('name')
 
+        if self.request.user.rol.name == 'Administrador':
+            form.fields['rol'].queryset = Rol.objects.filter(
+                name__in=('Docente', '')
+            ).order_by('name')
+
         if self.request.user.rol.name != 'root':
             form.fields.pop('password_nueva', None)
             form.fields.pop('password_confirmacion', None)  
@@ -336,7 +341,7 @@ class UpdateUsuario(UpdateView):
 
     def get_object(self, queryset=None):
         obj = super().get_object(queryset)
-        if (self.request.user.rol.name == 'Director' and obj.rol.name == 'Docente') or self.request.user.rol.name == 'root':
+        if (self.request.user.rol.name == 'Director' and obj.rol.name == 'Docente') or self.request.user.rol.name == 'root' or self.request.user.rol.name == 'Administrador':
             if not obj.is_active and self.request.user.rol.name != 'root':
                 raise Http404('Este usuario está desactivado')
             return obj
@@ -1954,7 +1959,7 @@ def DescargarHorario(request, filename):
 
 @login_required
 def ListHorarios(request):
-    horarios = Horario.objects.select_related('plan_de_estudio_id__curso_id', 'aula_id')
+    horarios = Horario.objects.select_related('plan_de_estudio_id__curso_id')
 
     # Cursos que ya tienen horario
     ids_cursos = set(horarios.values_list('plan_de_estudio_id__curso_id', flat=True))
@@ -1967,12 +1972,12 @@ def ListHorarios(request):
     jornadas, horario_sel = [], None
 
     if curso_sel:
-        horario_sel = horarios.filter(plan_de_estudio_id__curso_id=curso_sel).first()
+        horario_sel = horarios.filter(plan_de_estudio_id__curso_id=curso_sel).order_by('-anio_planificacion').first()
 
         clases = (
             BloqueDeClase.objects
             .filter(curso_id=curso_sel)
-            .select_related('bloque_id', 'asignatura_id', 'usuario_id')
+            .select_related('bloque_id', 'asignatura_id__nombres_asignatura_id', 'usuario_id', 'aula_id')
         )
 
         ocupadas = {
@@ -2021,11 +2026,12 @@ def leer_casillas(post, bloques_por_jornada):
         jornada, fila, dia = m.group(1), int(m.group(2)), int(m.group(3))
         asignatura_id = post.get(clave)
         docente_id = post.get(f'docente_{jornada}_{fila}_{dia}')
+        aula_id = post.get(f'aula_{jornada}_{fila}_{dia}') 
 
-        if not asignatura_id and not docente_id:
+        if not (asignatura_id or docente_id or aula_id):
             continue  # casilla vacía
-        if not (asignatura_id and docente_id):
-            errores.append('Hay una casilla con asignatura pero sin docente (o al revés).')
+        if not (asignatura_id and docente_id and aula_id):
+            errores.append('Hay una casilla incompleta: falta asignatura, docente o aula.')
             continue
 
         try:
@@ -2036,6 +2042,7 @@ def leer_casillas(post, bloques_por_jornada):
                 'dia': DIAS_CODIGO[dia],
                 'asignatura_id': int(asignatura_id),
                 'docente_id': int(docente_id),
+                'aula_id': int(aula_id),  
             })
         except (IndexError, KeyError, ValueError):
             errores.append('Se recibió una casilla con una posición inválida.')
@@ -2051,18 +2058,20 @@ def restaurar_casillas(post):
         jornada, fila, dia = m.groups()
         asignatura = post.get(clave)
         docente = post.get(f'docente_{jornada}_{fila}_{dia}')
+        aula = post.get(f'aula_{jornada}_{fila}_{dia}')  
         if asignatura and docente:
             restauradas.append({
                 'clave': f'{jornada}_{fila}_{dia}',
                 'asignatura': asignatura,
                 'docente': docente,
+                'aula': aula, 
             })
     return restauradas
 
-def datos_para_horario():
+def datos_para_horario(anio):
     filas = PlanDeEstudio.objects.select_related('curso_id', 'asignatura_id')
-
     planes_data = {}
+
     for p in filas:
         curso = p.curso_id
         entrada = planes_data.setdefault(
@@ -2075,16 +2084,21 @@ def datos_para_horario():
     cursos = list(Curso.objects.filter(pk__in=[int(k) for k in planes_data]))
 
     asignadas = {
-        (u, a): n
-        for u, a, n in BloqueDeClase.objects
-        .values_list('usuario_id', 'horario_id__anio_planificacion')
-        .annotate(n=Count('id'))
+        fila['usuario_id']: fila['n']
+        for fila in (
+            BloqueDeClase.objects
+            .filter(horario_id__anio_planificacion=anio)
+            .order_by()
+            .values('usuario_id')
+            .annotate(n=Count('id'))
+        )
     }
 
     cargas = (
         CargaHoraria.objects
-        .filter(usuario_id__is_active=True)
+        .filter(usuario_id__is_active=True, anio_planificacion=anio)
         .select_related('usuario_id')
+        .prefetch_related('usuario_id__asignatura_id') 
         .order_by('usuario_id__name', 'usuario_id__last_name')
     )
     
@@ -2093,7 +2107,8 @@ def datos_para_horario():
             'id': c.usuario_id.pk,
             'nombre': str(c.usuario_id),
             'contrato': c.hrs_contrato,
-            'asignadas': asignadas.get((c.usuario_id.pk, c.anio_planificacion), 0),
+            'asignadas': asignadas.get(c.usuario_id.pk, 0),
+            'asignaturas': [a.pk for a in c.usuario_id.asignatura_id.all()],
         }
         for c in cargas
     ]
@@ -2113,7 +2128,7 @@ def CreateHorario(request): # Pendiente: validar asignaturas asignadas en bloque
 
     if request.method == 'POST':
         errores = {
-            'plan': [], 'aula': [], 'casillas': []
+            'plan': [], 'casillas': []
         }
 
         # Curso (plan de estudio)
@@ -2135,11 +2150,6 @@ def CreateHorario(request): # Pendiente: validar asignaturas asignadas en bloque
             ).exists():
                 errores['plan'].append(f'El curso {curso} ya tiene un horario para el año {anio}.')
 
-        # Aula
-        aula = Aula.objects.filter(pk=a_int(request.POST.get('aula_id'))).first()
-        if not aula:
-            errores['aula'].append('Seleccione un aula.')
-
         # Casillas
         casillas, errores_casillas = leer_casillas(request.POST, bloques_por_jornada)
         errores['casillas'] += errores_casillas
@@ -2147,7 +2157,12 @@ def CreateHorario(request): # Pendiente: validar asignaturas asignadas en bloque
             errores['casillas'].append('Asigne al menos una hora de clase.')
 
         if casillas:
-            asignaturas_db = Asignatura.objects.in_bulk({c['asignatura_id'] for c in casillas})
+            asignaturas_db = (
+                Asignatura.objects
+                .select_related('nombres_asignatura_id')
+                .in_bulk({c['asignatura_id'] for c in casillas})
+            )
+            aulas_db = Aula.objects.in_bulk({c['aula_id'] for c in casillas}) 
 
             # solo cargas del año del horario
             cargas_db = {
@@ -2169,16 +2184,28 @@ def CreateHorario(request): # Pendiente: validar asignaturas asignadas en bloque
             docentes_sin_cargas = set()
             docente_db = Usuario.objects.in_bulk({c['docente_id'] for c in casillas})
 
+            asig_por_docente = {
+                u.pk: {a.pk for a in u.asignatura_id.all()}
+                for u in Usuario.objects.filter(pk__in={c['docente_id'] for c in casillas}).prefetch_related('asignatura_id')
+            }
+
             for c in casillas:
                 c['asignatura'] = asignaturas_db.get(c['asignatura_id'])
                 c['carga'] = cargas_db.get(c['docente_id'])
                 c['bloque'] = bloques_db.get((c['dia'], c['hora_inicio'], c['hora_termino']))
+                c['aula'] = aulas_db.get(c['aula_id'])
 
                 if not c['asignatura']:
                     errores['casillas'].append('Una asignatura seleccionada ya no existe.')
                     datos_ok = False
                 elif ids_plan is not None and c['asignatura_id'] not in ids_plan:
-                    errores['casillas'].append(f'La asignatura "{c["asignatura"].nombre}" no pertenece al plan de estudio del curso.')
+                    errores['casillas'].append(f'La asignatura "{c["asignatura"].nombres_asignatura_id.nombre}" no pertenece al plan de estudio del curso.')
+                    datos_ok = False
+
+                if c['asignatura'] and c['carga'] and c['asignatura_id'] not in asig_por_docente.get(c['docente_id'], set()):
+                    errores['casillas'].append(
+                        f'{c["carga"].usuario_id} no tiene asignada la asignatura {c["asignatura"].nombres_asignatura_id.nombre}.'
+                    )
                     datos_ok = False
 
                 if not c['carga']: 
@@ -2187,6 +2214,10 @@ def CreateHorario(request): # Pendiente: validar asignaturas asignadas en bloque
 
                 if not c['bloque']:
                     errores['casillas'].append(f'No existe el bloque {c["dia"]} {c["hora_inicio"]:%H:%M} en la base de datos.')
+                    datos_ok = False
+
+                if not c['aula']:
+                    errores['casillas'].append('Un aula seleccionada ya no existe.')
                     datos_ok = False
 
             for d in docentes_sin_cargas:
@@ -2214,6 +2245,23 @@ def CreateHorario(request): # Pendiente: validar asignaturas asignadas en bloque
                             f'a las {c["hora_inicio"]:%H:%M} en el curso {e.curso_id}.'
                         )
 
+                aulas_ocupadas = {
+                    (e.aula_id.pk, e.bloque_id.pk): e
+                    for e in BloqueDeClase.objects.filter(
+                        aula_id__in=[c['aula'].pk for c in casillas],
+                        bloque_id__in=[c['bloque'].pk for c in casillas],
+                        horario_id__anio_planificacion=anio,
+                    ).select_related('aula_id', 'bloque_id', 'curso_id')
+                }
+
+                for c in casillas:
+                    e = aulas_ocupadas.get((c['aula'].pk, c['bloque'].pk))
+                    if e:
+                        errores['casillas'].append(
+                            f'El aula {c["aula"]} ya está ocupada el {c["bloque"].get_dia_display()} '
+                            f'a las {c["hora_inicio"]:%H:%M} por el curso {e.curso_id}.'
+                        )
+
                 # Horas de contrato: bloques del mismo año ya registrados + nuevos <= contrato
                 nuevos = Counter(c['docente_id'] for c in casillas)
                 actuales = dict(
@@ -2239,7 +2287,6 @@ def CreateHorario(request): # Pendiente: validar asignaturas asignadas en bloque
             with transaction.atomic():
                 horario = Horario.objects.create(
                     plan_de_estudio_id=plan,
-                    aula_id=aula,
                     anio_planificacion=anio,
                 )
 
@@ -2250,6 +2297,7 @@ def CreateHorario(request): # Pendiente: validar asignaturas asignadas en bloque
                         bloque_id=c['bloque'],
                         asignatura_id=c['asignatura'],
                         curso_id=curso,
+                        aula_id=c['aula'],
                     )
 
                 # actualizar hrs_aula de la carga horaria docente del año seleccionado
@@ -2266,7 +2314,7 @@ def CreateHorario(request): # Pendiente: validar asignaturas asignadas en bloque
             messages.success(request, 'Horario creado correctamente.')
             return redirect('horarios')
 
-    cursos, planes_data, docentes_data = datos_para_horario()
+    cursos, planes_data, docentes_data = datos_para_horario(anio)
     dias = [(1, 'Lunes'), (2, 'Martes'), (3, 'Miércoles'), (4, 'Jueves'), (5, 'Viernes')]
 
     return render(request, 'classplanner/horarios/horariocreate.html', {
@@ -2282,7 +2330,6 @@ def CreateHorario(request): # Pendiente: validar asignaturas asignadas en bloque
         },
         'errores': errores,
         'curso_sel': request.POST.get('curso_id', ''),
-        'aula_sel': request.POST.get('aula_id', ''),
         'jornada_sel': request.POST.get('jornada', 'JM'),
         'anio_sel': anio,
     })
@@ -2310,6 +2357,7 @@ def casillas_de_horario(horario, bloques_por_jornada):
             'clave': f'{jornada}_{fila}_{dia_num[c.bloque_id.dia]}',
             'asignatura': c.asignatura_id_id,
             'docente': c.usuario_id_id,
+            'aula': c.aula_id_id,  
         })
 
     if jornadas == {'JM', 'JT'}:
@@ -2325,7 +2373,7 @@ def casillas_de_horario(horario, bloques_por_jornada):
 @periodo_planificacion_required()
 def UpdateHorario(request, pk): # Pendiente: validar asignaturas asignadas en bloques si: total de casillas (por asignatura) es == hrs registradas en el plan de estudio 
     horario = get_object_or_404(
-        Horario.objects.select_related('plan_de_estudio_id__curso_id', 'aula_id'), pk=pk
+        Horario.objects.select_related('plan_de_estudio_id__curso_id'), pk=pk
     )
     curso = horario.plan_de_estudio_id.curso_id
     anio = horario.anio_planificacion
@@ -2333,18 +2381,12 @@ def UpdateHorario(request, pk): # Pendiente: validar asignaturas asignadas en bl
     errores = {}
 
     previas, jornada_sel = casillas_de_horario(horario, bloques_por_jornada)
-    aula_sel = str(horario.aula_id_id) if hasattr(horario, 'aula_id_id') else str(horario.aula_id.pk)
 
     if request.method == 'POST':
-        errores = {'aula': [], 'casillas': []}
+        errores = {'casillas': []}
         aula_sel = request.POST.get('aula_id', '')
         jornada_sel = request.POST.get('jornada', jornada_sel)
         previas = restaurar_casillas(request.POST)
-
-        # Aula
-        aula = Aula.objects.filter(pk=a_int(aula_sel)).first()
-        if not aula:
-            errores['aula'].append('Seleccione un aula.')
 
         if anio is None:
             errores['casillas'].append('Este horario no tiene año de planificación.')
@@ -2359,7 +2401,14 @@ def UpdateHorario(request, pk): # Pendiente: validar asignaturas asignadas en bl
             errores['casillas'].append('Asigne al menos una hora de clase.')
 
         if casillas and anio is not None:
-            asignaturas_db = Asignatura.objects.in_bulk({c['asignatura_id'] for c in casillas})
+            asignaturas_db = (
+                Asignatura.objects
+                .select_related('nombres_asignatura_id')
+                .in_bulk({c['asignatura_id'] for c in casillas})
+            )
+            aulas_db = Aula.objects.in_bulk({c['aula_id'] for c in casillas})
+            docente_db = Usuario.objects.in_bulk({c['docente_id'] for c in casillas})
+
             cargas_db = {
                 c.usuario_id.pk: c
                 for c in CargaHoraria.objects
@@ -2369,22 +2418,37 @@ def UpdateHorario(request, pk): # Pendiente: validar asignaturas asignadas en bl
                 )
                 .select_related('usuario_id')
             }
+
             bloques_db = {
                 (b.dia, b.hora_inicio, b.hora_termino): b
                 for b in Bloque.objects.filter(hora_inicio__in={c['hora_inicio'] for c in casillas})
             }
 
+            asig_por_docente = {
+                u.pk: {a.pk for a in u.asignatura_id.all()}
+                for u in Usuario.objects.filter(pk__in={c['docente_id'] for c in casillas}).prefetch_related('asignatura_id')
+            }
+
             datos_ok = True
+            docentes_sin_cargas = set()
+            
             for c in casillas:
                 c['asignatura'] = asignaturas_db.get(c['asignatura_id'])
                 c['carga'] = cargas_db.get(c['docente_id'])
                 c['bloque'] = bloques_db.get((c['dia'], c['hora_inicio'], c['hora_termino']))
+                c['aula'] = aulas_db.get(c['aula_id'])
 
                 if not c['asignatura']:
                     errores['casillas'].append('Una asignatura seleccionada ya no existe.')
                     datos_ok = False
                 elif c['asignatura_id'] not in ids_plan:
-                    errores['casillas'].append(f'La asignatura "{c["asignatura"].nombre}" no pertenece al plan de estudio del curso.')
+                    errores['casillas'].append(f'La asignatura "{c["asignatura"].nombres_asignatura_id.nombre}" no pertenece al plan de estudio del curso.')
+                    datos_ok = False
+
+                if c['asignatura'] and c['carga'] and c['asignatura_id'] not in asig_por_docente.get(c['docente_id'], set()):
+                    errores['casillas'].append(
+                        f'{c["carga"].usuario_id} no tiene asignada la asignatura {c["asignatura"].nombres_asignatura_id.nombre}.'
+                    )
                     datos_ok = False
 
                 if not c['carga']:
@@ -2394,6 +2458,9 @@ def UpdateHorario(request, pk): # Pendiente: validar asignaturas asignadas en bl
                 if not c['bloque']:
                     errores['casillas'].append(f'No existe el bloque {c["dia"]} {c["hora_inicio"]:%H:%M} en la base de datos.')
                     datos_ok = False
+                    
+            for d in docentes_sin_cargas:
+                errores['casillas'].append(f'{docente_db.get(d)} no tiene una carga horaria para el año {anio}.')
 
             if datos_ok:
                 # Conflicto de docente: se ignoran las clases de ESTE horario, porque se van a reemplazar
@@ -2414,6 +2481,25 @@ def UpdateHorario(request, pk): # Pendiente: validar asignaturas asignadas en bl
                         errores['casillas'].append(
                             f'{c["carga"].usuario_id} ya tiene clase el {c["bloque"].get_dia_display()} '
                             f'a las {c["hora_inicio"]:%H:%M} en el curso {e.curso_id}.'
+                        )
+
+                aulas_ocupadas = {
+                    (e.aula_id.pk, e.bloque_id.pk): e
+                    for e in BloqueDeClase.objects.filter(
+                        aula_id__in=[c['aula'].pk for c in casillas],
+                        bloque_id__in=[c['bloque'].pk for c in casillas],
+                        horario_id__anio_planificacion=anio,
+                    )
+                    .exclude(horario_id=horario)
+                    .select_related('aula_id', 'bloque_id', 'curso_id')
+                }
+
+                for c in casillas:
+                    e = aulas_ocupadas.get((c['aula'].pk, c['bloque'].pk))
+                    if e:
+                        errores['casillas'].append(
+                            f'El aula {c["aula"]} ya está ocupada el {c["bloque"].get_dia_display()} '
+                            f'a las {c["hora_inicio"]:%H:%M} por el curso {e.curso_id}.'
                         )
 
                 # Horas de contrato: bloques de otros horarios del año + los de este horario <= contrato
@@ -2447,9 +2533,6 @@ def UpdateHorario(request, pk): # Pendiente: validar asignaturas asignadas en bl
                     BloqueDeClase.objects.filter(horario_id=horario).values_list('usuario_id', flat=True)
                 )
 
-                horario.aula_id = aula
-                horario.save(update_fields=['aula_id'])
-
                 BloqueDeClase.objects.filter(horario_id=horario).delete()
                 for c in casillas:
                     BloqueDeClase.objects.create(
@@ -2458,6 +2541,7 @@ def UpdateHorario(request, pk): # Pendiente: validar asignaturas asignadas en bl
                         bloque_id=c['bloque'],
                         asignatura_id=c['asignatura'],
                         curso_id=curso,
+                        aula_id=c['aula'],  
                     )
 
                 for docente_id in docentes_previos | {c['docente_id'] for c in casillas}:
@@ -2472,32 +2556,8 @@ def UpdateHorario(request, pk): # Pendiente: validar asignaturas asignadas en bl
             messages.success(request, 'Horario actualizado correctamente.')
             return redirect(f"{reverse('horarios')}?curso={curso.pk}")
 
-    cursos, planes_data, _ = datos_para_horario()
+    cursos, planes_data, docentes_data = datos_para_horario(anio)
     dias = [(1, 'Lunes'), (2, 'Martes'), (3, 'Miércoles'), (4, 'Jueves'), (5, 'Viernes')]
-
-    asignadas = {
-        fila['usuario_id']: fila['n']
-        for fila in (
-            BloqueDeClase.objects
-            .filter(horario_id__anio_planificacion=anio)
-            .order_by()
-            .values('usuario_id')
-            .annotate(n=Count('id'))
-        )
-    }
-
-    docentes_data = [
-        {
-            'id': c.usuario_id.pk,
-            'nombre': str(c.usuario_id),
-            'contrato': c.hrs_contrato,
-            'asignadas': asignadas.get(c.usuario_id.pk, 0),
-        }
-        for c in CargaHoraria.objects
-        .filter(anio_planificacion=anio, usuario_id__is_active=True)
-        .select_related('usuario_id')
-        .order_by('usuario_id__name', 'usuario_id__last_name')
-    ]
 
     return render(request, 'classplanner/horarios/horarioupdate.html', {
         'horario': horario,
@@ -2513,7 +2573,6 @@ def UpdateHorario(request, pk): # Pendiente: validar asignaturas asignadas en bl
             'previas': previas,
         },
         'errores': errores,
-        'aula_sel': aula_sel,
         'jornada_sel': jornada_sel,
     })
 

@@ -40,11 +40,13 @@
 
                             <div class="asignado hidden bg-blue-600/10 border border-blue-600/25 rounded-lg px-4 py-2 min-w-52 min-h-[3.6rem]">
                                 <p class="font-bold w-full txt-asignatura text-xs text-blue-500"></p>
-                                <p class="txt-docente text-xs"></p>
+                                <p class="txt-docente text-xs font-semibold"></p>
+                                <p class="txt-aula text-xs"></p>
                             </div>
 
                             <input type="hidden" class="in-asignatura" name="asignatura_{{ jornada }}_{{ forloop.parentloop.counter }}_{{ num }}">
                             <input type="hidden" class="in-docente" name="docente_{{ jornada }}_{{ forloop.parentloop.counter }}_{{ num }}">
+                            <input type="hidden" class="in-aula" name="aula_{{ jornada }}_{{ forloop.parentloop.counter }}_{{ num }}">
                         </button>
                     </td>
                     {% endfor %}

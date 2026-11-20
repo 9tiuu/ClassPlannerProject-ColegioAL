@@ -80,10 +80,9 @@
                 <div class="flex flex-col w-full">
                     <label for="rol" class="mb-1 text-base font-semibold text-slate-600 dark:text-white">Rol de usuario <b class="text-red-600">*</b></label>
                     <select name="rol" id="id_rol" class="bg-white dark:bg-[#141826] text-sm focus:outline-none focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 focus:transition focus:duration-300 rounded-lg h-12 border-2 p-3 border-slate-300 dark:border-slate-700 dark:placeholder:text-[#a8b2d2] dark:text-white">
-                        <option value="" {% if not form.rol.value %} selected {% endif %}>Por seleccionar...</option>
-                        {% for option in form.rol.field.queryset %}
-                            <option value="{{ option.id }}" {% if option.id == form.rol.value %} selected {% endif %}>
-                                {{ option }}
+                        {% for option in form.rol %}
+                            <option value="{{ option.data.value }}" {% if option.data.selected %}selected{% endif %}>
+                                {{ option.data.label }}
                             </option>
                         {% endfor %}
                     </select>

@@ -43,15 +43,19 @@ class UserUpdateForm(UniqueDirectorRoleFormMixin, UserChangeForm):
 
     class Meta:
         model = Usuario
-        fields = ['username', 'name', 'last_name', 'rut', 'email', 'telefono', 'rol', 'avatar']
+        fields = ['username', 'name', 'last_name', 'rut', 'email', 'telefono', 'rol', 'avatar', 'asignatura_id']
 
     def clean(self):
         cleaned = super().clean()
         nueva = cleaned.get('password_nueva')
         confirmacion = cleaned.get('password_confirmacion')
+        asignaturas = cleaned.get('asignatura_id')
+
+        if not asignaturas:
+            self.add_error('asignatura_id', 'El docente debe estar asociado al menos en una asignatura.')
     
         if not (nueva or confirmacion):
-            return cleaned  # no quiere cambiar la contraseña
+            return cleaned # se deja en blanco si no se desea cambiar
     
         if not nueva:
             self.add_error('password_nueva', 'Debe ingresar una nueva contraseña.')
@@ -76,6 +80,12 @@ class UserUpdateForm(UniqueDirectorRoleFormMixin, UserChangeForm):
             user.save()
             self.save_m2m()
         return user
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['asignatura_id'].queryset = Asignatura.objects.filter(
+            is_active=True
+        ).select_related('nombres_asignatura_id')
 
 class CursoForm(forms.ModelForm):
     class Meta:
