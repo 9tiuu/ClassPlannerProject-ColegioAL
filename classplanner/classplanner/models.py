@@ -60,6 +60,7 @@ class Asignatura(models.Model):
         )
     areas_planes_diferenciales_id = models.ForeignKey(AreasPlanesDiferenciales, on_delete=models.RESTRICT, blank=True, null=True)
     is_active = models.BooleanField(default=True, blank=True)
+    color = models.CharField(max_length=7, default='#64748b')
 
     def delete(self, *args, **kwargs):
         self.is_active = False

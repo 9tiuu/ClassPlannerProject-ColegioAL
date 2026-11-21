@@ -2314,7 +2314,7 @@ def datos_para_horario(anio):
             str(curso.pk), {'curso': str(curso), 'asignaturas': []}
         )
         entrada['asignaturas'].append(
-            {'id': p.asignatura_id.pk, 'nombre': p.asignatura_id.nombres_asignatura_id.nombre}
+            {'id': p.asignatura_id.pk, 'nombre': p.asignatura_id.nombres_asignatura_id.nombre, 'color': p.asignatura_id.color}
         )
 
     cursos = list(Curso.objects.filter(pk__in=[int(k) for k in planes_data]))

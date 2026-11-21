@@ -29,9 +29,9 @@
                 {% for celda in fila.celdas %}
                 <td data-dia="{{ forloop.counter }}" class="p-1.5 align-middle">
                     {% if celda %}
-                    <div class="flex h-16 flex-col justify-center overflow-hidden rounded-lg border px-3 bg-blue-600/10 border-blue-600/25" title="{{ celda.asignatura_id.nombre }} · {{ celda.curso_id }}">
-                        <p class="line-clamp-2 text-xs font-semibold leading-tight text-blue-500">{{ celda.asignatura_id.nombres_asignatura_id.nombre }}</p>
-                        <p class="truncate text-xs text-slate-500 dark:text-slate-300">Curso: {{ celda.curso_id }} - Aula: {{ celda.aula_id }}</p>
+                    <div class="flex h-16 flex-col justify-center overflow-hidden rounded-lg border-b px-3 bg-[{{ celda.asignatura_id.color }}]/15 border-[{{ celda.asignatura_id.color }}]/25" title="{{ celda.asignatura_id.nombre }} · {{ celda.curso_id }}">
+                        <p class="text-xs font-bold text-slate-700 dark:text-slate-200">{{ celda.asignatura_id.nombres_asignatura_id.nombre }}</p>
+                        <p class="truncate text-xs text-slate-600 dark:text-slate-300">Curso: {{ celda.curso_id }} - Aula: {{ celda.aula_id }}</p>
                         <p class="truncate text-xs text-slate-500 dark:text-slate-300"></p>
                     </div>
                     {% else %}

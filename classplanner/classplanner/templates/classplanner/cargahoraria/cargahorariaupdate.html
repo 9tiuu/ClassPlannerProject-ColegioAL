@@ -84,8 +84,8 @@
                                     {% for clase in f.celdas %}
                                     <td class="p-2">
                                         {% if clase %}
-                                        <div class="bg-blue-600/10 border border-blue-600/25 rounded-lg px-4 py-2 min-w-52 min-h-[3.6rem] flex flex-col justify-center">
-                                            <p class="font-bold text-xs text-blue-500">{{ clase.asignatura_id.nombres_asignatura_id }}</p>
+                                        <div class="bg-[{{ clase.asignatura_id.color }}]/15 border-b border-[{{ clase.asignatura_id.color }}]/45 rounded-lg px-4 py-2 min-w-52 min-h-[3.6rem] flex flex-col justify-center">
+                                            <p class="font-bold text-xs text-slate-700 dark:text-slate-200">{{ clase.asignatura_id.nombres_asignatura_id }}</p>
                                             <p class="text-xs">Curso: {{ clase.curso_id }} - Aula: {{ clase.aula_id }}</p>
                                         </div>
                                         {% else %}

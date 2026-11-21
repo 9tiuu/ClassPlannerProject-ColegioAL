@@ -411,7 +411,7 @@ class PlanDeEstudioUpdateForm(forms.ModelForm):
 class AsignaturasCreateForm(forms.ModelForm):
     class Meta:
         model = Asignatura
-        fields = ['ident', 'nombres_asignatura_id', 'descripcion', 'areas_planes_diferenciales_id']
+        fields = ['ident', 'nombres_asignatura_id', 'descripcion', 'areas_planes_diferenciales_id', 'color']
         widgets = { 
             'nombres_asignatura_id': forms.Select(attrs={'class': 'w-full rounded border my-2 px-2 py-2 bg-white dark:bg-[#141826] text-sm focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 focus:transition focus:duration-300 rounded-lg invalid:border-red-400 focus:outline-none dark:bg-slate-800 dark:text-white'}),
             'areas_planes_diferenciales_id': forms.Select(attrs={'class': 'w-full rounded border my-2 px-2 py-2 bg-white dark:bg-[#141826] text-sm focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 focus:transition focus:duration-300 rounded-lg invalid:border-red-400 focus:outline-none dark:bg-slate-800 dark:text-white'}),
@@ -431,7 +431,7 @@ class AsignaturasCreateForm(forms.ModelForm):
 class AsignaturaUpdateForm(forms.ModelForm):
     class Meta:
         model = Asignatura
-        fields = ['ident', 'nombres_asignatura_id', 'descripcion', 'areas_planes_diferenciales_id']
+        fields = ['ident', 'nombres_asignatura_id', 'descripcion', 'areas_planes_diferenciales_id', 'color']
         widgets = { 
             'nombres_asignatura_id': forms.Select(attrs={'class': 'w-full rounded border my-2 px-2 py-2 bg-white dark:bg-[#141826] text-sm focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 focus:transition focus:duration-300 rounded-lg invalid:border-red-400 focus:outline-none dark:bg-slate-800 dark:text-white'}),
             'areas_planes_diferenciales_id': forms.Select(attrs={'class': 'w-full rounded border my-2 px-2 py-2 bg-white dark:bg-[#141826] text-sm focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 focus:transition focus:duration-300 rounded-lg invalid:border-red-400 focus:outline-none dark:bg-slate-800 dark:text-white'}),

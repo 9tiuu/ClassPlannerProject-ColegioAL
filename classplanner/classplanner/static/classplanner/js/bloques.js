@@ -62,6 +62,7 @@ document.addEventListener('drop', function (e) {
 
 // obtener información de la casilla
 function obtenerDatos(casilla) {
+    const asignado = casilla.querySelector('.asignado');
     return {
         asignatura: casilla.querySelector('.in-asignatura').value,
         docente: casilla.querySelector('.in-docente').value,
@@ -69,7 +70,11 @@ function obtenerDatos(casilla) {
 
         nombreAsignatura: casilla.querySelector('.txt-asignatura').textContent,
         nombreDocente: casilla.querySelector('.txt-docente').textContent,
-        nombreAula: casilla.querySelector('.txt-aula').textContent
+        nombreAula: casilla.querySelector('.txt-aula').textContent,
+
+        colores: [...asignado.classList].filter(clase =>
+            clase.startsWith('bg-[') || clase.startsWith('border-[')
+        )
     };
 }
 
@@ -85,6 +90,16 @@ function establecerDatos(casilla, datos) {
     const vacio = casilla.querySelector('.vacio');
     const asignado = casilla.querySelector('.asignado');
     const ocupado = datos.asignatura !== '';
+
+    [...asignado.classList].forEach(clase => {
+        if (clase.startsWith('bg-[') || clase.startsWith('border-[')) {
+            asignado.classList.remove(clase);
+        }
+    });
+
+    if (ocupado) {
+        asignado.classList.add(...datos.colores);
+    }
 
     vacio.classList.toggle('hidden', ocupado);
     asignado.classList.toggle('hidden', !ocupado);

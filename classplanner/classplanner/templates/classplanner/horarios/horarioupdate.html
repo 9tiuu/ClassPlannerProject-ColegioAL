@@ -64,7 +64,7 @@
                 {% if errores.casillas %}
                 <div class="errors mb-2">
                     {% for error in errores.casillas %}
-                    <p class="bg-red-100 dark:bg-red-900 p-4 my-1 text-sm text-red-700 rounded-lg dark:text-red-300 transition duration-200">{{ error }}</p>
+                    <p class="bg-red-100 dark:bg-red-900/40 p-4 my-1 text-sm text-red-700 rounded-lg dark:text-red-300 transition duration-200">{{ error }}</p>
                     {% endfor %}
                 </div>
                 {% endif %}
@@ -169,16 +169,21 @@
         );
     }
 
-function cargarSelects() {
-    llenarSelect(selAsig, asignaturasDelPlan().map(a => ({ id: a.id, texto: a.nombre })), '---------');
-    cargarDocentes('');
-}
+    function cargarSelects() {
+        llenarSelect(selAsig, asignaturasDelPlan().map(a => ({ id: a.id, texto: a.nombre })), '---------');
+        cargarDocentes('');
+    }
 
-selAsig.addEventListener('change', () => cargarDocentes(selAsig.value));
+    selAsig.addEventListener('change', () => cargarDocentes(selAsig.value));
 
     function nombreAsignatura(id) {
         const a = asignaturasDelPlan().find(x => String(x.id) === String(id));
         return a ? a.nombre : '';
+    }
+
+    function colorAsignatura(id) {
+        const a = asignaturasDelPlan().find(x => String(x.id) === String(id));
+        return a && a.color ? a.color : '';
     }
 
     function nombreDocente(id) {
@@ -195,6 +200,7 @@ selAsig.addEventListener('change', () => cargarDocentes(selAsig.value));
     function pintarCasilla(casilla, asigId, docId, aulaId) {
         const vacio = casilla.querySelector('.vacio');
         const asignado = casilla.querySelector('.asignado');
+        const colorAsig = (colorAsignatura(asigId));
 
         casilla.querySelector('.in-asignatura').value = asigId;
         casilla.querySelector('.in-docente').value = docId;
@@ -204,6 +210,16 @@ selAsig.addEventListener('change', () => cargarDocentes(selAsig.value));
             casilla.querySelector('.txt-asignatura').textContent = nombreAsignatura(asigId);
             casilla.querySelector('.txt-docente').textContent = 'Docente: ' + nombreDocente(docId);
             casilla.querySelector('.txt-aula').textContent = 'Aula: ' + nombreAula(aulaId);
+
+            [...asignado.classList].forEach(clase => {
+                if (clase.startsWith('bg-[') || clase.startsWith('border-[')) {
+                    asignado.classList.remove(clase);
+                }
+            });
+
+            asignado.classList.add(`bg-[${colorAsig}]/15`);
+            asignado.classList.add(`border-[${colorAsig}]/45`);
+
             vacio.classList.add('hidden');
             asignado.classList.remove('hidden');
         } else {

@@ -84,10 +84,12 @@
                 {% if errores.casillas %}
                 <div class="errors mb-2">
                     {% for error in errores.casillas %}
-                    <p class="bg-red-100 dark:bg-red-900 p-4 my-1 text-sm text-red-700 rounded-lg dark:text-red-300 transition duration-200">{{ error }}</p>
+                    <p class="bg-red-100 dark:bg-red-900/40 p-4 my-1 text-sm text-red-700 rounded-lg dark:text-red-300 transition duration-200">{{ error }}</p>
                     {% endfor %}
                 </div>
                 {% endif %}
+
+                <p id="select-curso" class="hidden bg-red-100 dark:bg-red-900/40 p-4 mb-3 text-sm text-red-700 rounded-lg dark:text-red-300 transition duration-200">Primero seleccione un curso</p>
 
                 <div class="space-y-1 bg-white dark:bg-[#141826] text-sm rounded-lg border-2 p-3 border-slate-300 dark:border-slate-700 dark:text-white">
                     {% include 'classplanner/horarios/tabla_bloques.html' with bloques=bloques_jm jornada='JM' %}
@@ -195,6 +197,11 @@
         return a ? a.nombre : '';
     }
 
+    function colorAsignatura(id) {
+        const a = asignaturasDelPlan().find(x => String(x.id) === String(id));
+        return a && a.color ? a.color : '';
+    }
+
     function nombreDocente(id) {
         const d = DATOS.docentes.find(x => String(x.id) === String(id));
         return d ? d.nombre : '';
@@ -209,6 +216,7 @@
     function pintarCasilla(casilla, asigId, docId, aulaId = '') {
         const vacio = casilla.querySelector('.vacio');
         const asignado = casilla.querySelector('.asignado');
+        const colorAsig = (colorAsignatura(asigId));
 
         casilla.querySelector('.in-asignatura').value = asigId;
         casilla.querySelector('.in-docente').value = docId;
@@ -218,8 +226,19 @@
             casilla.querySelector('.txt-asignatura').textContent = nombreAsignatura(asigId);
             casilla.querySelector('.txt-docente').textContent = 'Docente: ' + nombreDocente(docId);
             casilla.querySelector('.txt-aula').textContent = 'Aula: ' + nombreAula(aulaId);
+            
+            [...asignado.classList].forEach(clase => {
+                if (clase.startsWith('bg-[') || clase.startsWith('border-[')) {
+                    asignado.classList.remove(clase);
+                }
+            });
+
+            asignado.classList.add(`bg-[${colorAsig}]/15`);
+            asignado.classList.add(`border-[${colorAsig}]/45`);
+
             vacio.classList.add('hidden');
             asignado.classList.remove('hidden');
+            
         } else {
             vacio.classList.remove('hidden');
             asignado.classList.add('hidden');
@@ -235,9 +254,11 @@
     }
 
     // Modal ----------
+    const errorSelection = document.getElementById('select-curso');
     function abrirModal(casilla) {
         if (!selPlan.value) {
-            alert('Primero seleccione un curso'); // Alerta temporal
+            errorSelection.classList.remove('hidden');
+            setTimeout(() => errorSelection.classList.add('hidden'), 5000)
             return;
         }
         casillaActual = casilla;
