@@ -26,15 +26,15 @@
 
                 {% if b.es_recreo %}
                 <td colspan="{{ dias|length }}" class="p-2">
-                    <div class="flex items-center justify-center rounded-lg border border-amber-500/30 bg-amber-500/10 min-h-[3.6rem] px-4 py-2">
+                    <div class="flex items-center justify-center rounded-lg bg-amber-500/10 min-h-[3.6rem] px-4 py-2">
                         <p class="font-bold text-amber-600 dark:text-amber-400">Recreo</p>
                     </div>
                 </td>
                 {% else %}
                     {% for num, nombre in dias %}
-                    <td class="p-2">
+                    <td class="p-2 bloque_asignatura" data-dia="{{ num }}" data-bloque="{{ forloop.parentloop.counter }}" data-jornada="{{ jornada }}">
                         <button type="button" class="casilla w-full text-left cursor-pointer">
-                            <div class="vacio flex items-center justify-center bg-slate-400/10 dark:bg-slate-600/10 border min-h-[3.6rem] border-slate-300 dark:border-slate-700 rounded-lg px-4 py-2 min-w-52 hover:bg-slate-400/20">
+                            <div class="vacio flex items-center justify-center bg-slate-300/25 dark:bg-slate-500/10 min-h-[3.6rem] rounded-lg px-4 py-2 min-w-52 hover:bg-slate-500/20">
                                 <p class="font-bold w-full text-center">+</p>
                             </div>
 
@@ -56,3 +56,7 @@
         </tbody>
     </table>
 </div>
+
+<script>
+    
+</script>

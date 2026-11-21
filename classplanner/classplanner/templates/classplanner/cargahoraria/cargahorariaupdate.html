@@ -76,7 +76,7 @@
 
                                 {% if f.es_recreo %}
                                 <td colspan="{{ dias|length }}" class="p-2">
-                                    <div class="flex items-center justify-center rounded-lg border border-amber-500/30 bg-amber-500/10 min-h-[3.6rem] px-4 py-2">
+                                    <div class="flex items-center justify-center rounded-lg bg-amber-500/10 min-h-[3.6rem] px-4 py-2">
                                         <p class="font-bold text-amber-600 dark:text-amber-400">Recreo</p>
                                     </div>
                                 </td>
@@ -84,12 +84,12 @@
                                     {% for clase in f.celdas %}
                                     <td class="p-2">
                                         {% if clase %}
-                                        <div class="bg-blue-600/10 border border-blue-600/25 rounded-lg px-4 py-2 min-w-52 min-h-[3.6rem]">
+                                        <div class="bg-blue-600/10 border border-blue-600/25 rounded-lg px-4 py-2 min-w-52 min-h-[3.6rem] flex flex-col justify-center">
                                             <p class="font-bold text-xs text-blue-500">{{ clase.asignatura_id.nombres_asignatura_id }}</p>
-                                            <p class="text-xs">Curso: {{ clase.curso_id }}</p>
+                                            <p class="text-xs">Curso: {{ clase.curso_id }} - Aula: {{ clase.aula_id }}</p>
                                         </div>
                                         {% else %}
-                                        <div class="flex items-center justify-center bg-slate-400/10 dark:bg-slate-600/10 border border-slate-300 dark:border-slate-700 rounded-lg min-h-[3.6rem] px-4 py-2 min-w-52">
+                                        <div class="flex items-center justify-center bg-slate-300/25 dark:bg-slate-500/10 rounded-lg min-h-[3.6rem] px-4 py-2 min-w-52">
                                             <p class="text-slate-400">—</p>
                                         </div>
                                         {% endif %}

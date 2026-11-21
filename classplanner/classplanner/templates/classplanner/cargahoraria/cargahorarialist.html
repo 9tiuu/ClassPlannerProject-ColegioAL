@@ -54,7 +54,7 @@
                 {% csrf_token %}
             <div class="flex gap-2">
                 <a href="{% url 'cargashorariascreate' %}" class="flex w-full items-center gap-2 bg-blue-600 hover:bg-blue-800 text-center hover:transition transition hover:duration-300 duration-300 rounded-lg px-6 py-3">
-                    <p class="w-full text-white font-semibold">+ Nueva Carga Horaria</p>
+                    <p class="w-full text-white font-semibold text-sm">+ Nueva Carga Horaria</p>
                 </a>
                 <button title="Exportar seleccionados a PDF" type="submit" formaction="{% url 'cargashorariasexport' %}" class="flex items-center justify-between gap-3 rounded-xl bg-rose-600 px-6 py-3 text-center font-semibold text-white shadow-sm transition duration-200 hover:bg-rose-700 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[#141826]">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-file-earmark-pdf-fill" viewBox="0 0 16 16">

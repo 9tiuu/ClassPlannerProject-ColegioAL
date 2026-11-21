@@ -21,15 +21,15 @@
                     <path d="M21 21l-6 -6" />
                 </svg>
             </div>
-            <div class="flex gap-4">
+            <div class="flex md:flex-row flex-col-reverse gap-4">
                 <form method="get" action="{% url 'nombresasignatura' %}">
-                    <label for="change_state" class="flex cursor-pointer items-center justify-center dark:text-[#a8b2d2] text-slate-500 gap-2 pr-3 w-auto border p-1 bg-white dark:bg-[#141826] border-slate-300 dark:border-slate-800 rounded-lg">
+                    <label for="change_state" class="flex text-sm cursor-pointer items-center justify-center dark:text-[#a8b2d2] text-slate-500 pr-3 w-auto border p-1 bg-white dark:bg-[#141826] border-slate-300 dark:border-slate-800 rounded-lg">
                         <input type="checkbox" name="change_state" id="change_state" value="1" onchange="this.form.submit()" {% if mostrar_desactivados %}checked{% endif %} class="h-4 w-4 p-3 m-3 cursor-pointer rounded border-slate-300 accent-blue-600 focus:ring-2 focus:ring-blue-600 dark:border-slate-700 dark:accent-blue-500">
                         Mostrar desactivados
                     </label>
                 </form>
                 <a href="{% url 'nombresasignaturacreate' %}" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-800 text-center hover:transition transition hover:duration-300 duration-300 rounded-lg px-6 py-3">
-                    <p class="w-full text-white font-semibold">+ Nuevo Nombre</p>
+                    <p class="w-full text-white font-semibold text-sm">+ Nuevo Nombre</p>
                 </a>
             </div>
         </div>
