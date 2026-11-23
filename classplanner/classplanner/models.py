@@ -12,34 +12,6 @@ class Rol(models.Model):
     def __str__(self) -> str:
         return self.name
 
-class Usuario(AbstractUser):
-    # Contraseña proporcionada por django
-    name = models.CharField(max_length=50)
-    last_name = models.CharField(max_length=50)
-    rut = models.CharField(max_length=10, unique=True, null=True,
-        error_messages = {
-            'unique': 'Ya existe un usuario con este RUT.'
-        }
-        )
-    email = models.EmailField(max_length=254, unique=True,
-        error_messages = {
-            'unique': 'Ya existe un usuario con este correo.'
-        }
-        )
-    telefono = models.CharField(max_length=12, blank=True, null=True)
-    rol = models.ForeignKey(Rol, on_delete=models.RESTRICT, null=True)
-    avatar = models.ImageField(upload_to='avatars', blank=True, null=True)
-    passwd_changed = models.BooleanField(default=False, blank=True)
-    # abstractuser tiene campo is_active
-
-    def delete(self, *args, **kwargs):
-        self.is_active = False
-        self.rol = None
-        self.save()
-
-    def __str__(self) -> str:
-        return f'{self.name} {self.last_name}'
-
 class NombresAsignatura(models.Model):
     nombre = models.CharField(max_length=80, unique=True,
         error_messages = {
@@ -88,6 +60,7 @@ class Asignatura(models.Model):
         )
     areas_planes_diferenciales_id = models.ForeignKey(AreasPlanesDiferenciales, on_delete=models.RESTRICT, blank=True, null=True)
     is_active = models.BooleanField(default=True, blank=True)
+    color = models.CharField(max_length=7, default='#64748b')
 
     def delete(self, *args, **kwargs):
         self.is_active = False
@@ -95,6 +68,35 @@ class Asignatura(models.Model):
 
     def __str__(self) -> str:
         return f'{self.ident} - {self.nombres_asignatura_id}'
+
+class Usuario(AbstractUser):
+    # Contraseña proporcionada por django
+    name = models.CharField(max_length=50)
+    last_name = models.CharField(max_length=50)
+    rut = models.CharField(max_length=10, unique=True, null=True,
+        error_messages = {
+            'unique': 'Ya existe un usuario con este RUT.'
+        }
+    )
+    email = models.EmailField(max_length=254, unique=True,
+        error_messages = {
+            'unique': 'Ya existe un usuario con este correo.'
+        }
+    )
+    telefono = models.CharField(max_length=12, blank=True, null=True)
+    rol = models.ForeignKey(Rol, on_delete=models.RESTRICT, null=True)
+    avatar = models.ImageField(upload_to='avatars', blank=True, null=True)
+    passwd_changed = models.BooleanField(default=False, blank=True)
+    asignatura_id = models.ManyToManyField(Asignatura, blank=True, null=True)
+    # abstractuser tiene campo is_active
+
+    def delete(self, *args, **kwargs):
+        self.is_active = False
+        self.rol = None
+        self.save()
+
+    def __str__(self) -> str:
+        return f'{self.name} {self.last_name}'
 
 class Curso(models.Model):
     class Nivel(models.TextChoices):
@@ -195,11 +197,10 @@ class CargaHoraria(models.Model):
 
 class Horario(models.Model):
     plan_de_estudio_id = models.ForeignKey(PlanDeEstudio, on_delete=models.RESTRICT)
-    aula_id = models.ForeignKey(Aula, on_delete=models.RESTRICT)
     anio_planificacion = models.PositiveIntegerField(null=True, blank=True)
 
     def __str__(self) -> str:
-        return f'Plan {self.plan_de_estudio_id}, Aula: {self.aula_id}, Planificacion: {self.anio_planificacion}'
+        return f'Plan {self.plan_de_estudio_id}, Planificacion: {self.anio_planificacion}'
 
 class BloqueDeClase(models.Model):
     horario_id = models.ForeignKey(Horario, on_delete=models.CASCADE, null=True, blank=True)
@@ -207,6 +208,7 @@ class BloqueDeClase(models.Model):
     bloque_id = models.ForeignKey(Bloque, on_delete=models.RESTRICT)
     asignatura_id = models.ForeignKey(Asignatura, on_delete=models.RESTRICT)
     curso_id = models.ForeignKey(Curso, on_delete=models.RESTRICT)
+    aula_id = models.ForeignKey(Aula, on_delete=models.RESTRICT, null=True, blank=True)
 
     def __str__(self) -> str:
         return f'({self.asignatura_id} / {self.curso_id} / {self.usuario_id}): {self.bloque_id}'

@@ -16,12 +16,12 @@
             {% for fila in jornada.filas %}
             <tr class="border-b dark:border-b-slate-800 odd:bg-white even:bg-white even:dark:bg-[#171c2b] dark:odd:bg-[#171c2b]">
                 <td class="whitespace-nowrap px-4 py-2 align-middle">
-                    <p class="font-semibold text-black dark:text-white">Hora {{ fila.numero }}</p>
-                    <p class="text-xs text-slate-500 dark:text-slate-300">{{ fila.hora_inicio|time:"H:i" }} - {{ fila.hora_termino|time:"H:i" }}</p>
+                    <p class="font-bold dark:text-[#a8b2d2] text-slate-500">Hora {{ fila.numero }}</p>
+                    <p class="text-xs dark:text-[#a8b2d2] text-slate-500">{{ fila.hora_inicio|time:"H:i" }} - {{ fila.hora_termino|time:"H:i" }}</p>
                 </td>
                 {% if fila.es_recreo %}
                 <td colspan="{{ dias|length }}" class="p-2">
-                    <div class="flex min-h-[3.6rem] items-center justify-center rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-2">
+                    <div class="flex min-h-[3.6rem] items-center justify-center rounded-lg bg-amber-500/10 px-4 py-2">
                         <p class="font-bold text-amber-600 dark:text-amber-400">Recreo</p>
                     </div>
                 </td>
@@ -29,12 +29,15 @@
                 {% for celda in fila.celdas %}
                 <td data-dia="{{ forloop.counter }}" class="p-1.5 align-middle">
                     {% if celda %}
-                    <div class="flex h-16 flex-col justify-center overflow-hidden rounded-lg border border-blue-200 bg-blue-50 px-3 dark:border-blue-900 dark:bg-blue-950/40" title="{{ celda.asignatura_id.nombre }} · {{ celda.curso_id }}">
-                        <p class="line-clamp-2 text-xs font-semibold leading-tight text-blue-600 dark:text-blue-400">{{ celda.asignatura_id.nombre }}</p>
-                        <p class="truncate text-xs text-slate-500 dark:text-slate-300">Curso: {{ celda.curso_id }}</p>
+                    <div class="flex h-16 flex-col justify-center overflow-hidden rounded-lg border-b px-3 bg-[{{ celda.asignatura_id.color }}]/15 border-[{{ celda.asignatura_id.color }}]/25" title="{{ celda.asignatura_id.nombre }} · {{ celda.curso_id }}">
+                        <p class="text-xs font-bold text-slate-700 dark:text-slate-200">{{ celda.asignatura_id.nombres_asignatura_id.nombre }}</p>
+                        <p class="truncate text-xs text-slate-600 dark:text-slate-300">Curso: {{ celda.curso_id }} - Aula: {{ celda.aula_id }}</p>
+                        <p class="truncate text-xs text-slate-500 dark:text-slate-300"></p>
                     </div>
                     {% else %}
-                    <div class="flex h-16 items-center justify-center rounded-lg border border-slate-200 bg-slate-100 text-slate-400 dark:border-slate-700 dark:bg-[#1d2236]">—</div>
+                    <div class="flex items-center justify-center bg-slate-400/10 dark:bg-slate-500/10 rounded-lg min-h-[3.6rem] px-4 py-2 min-w-52">
+                        <p class="text-slate-400 dark:text-slate-500">—</p>
+                    </div>
                     {% endif %}
                 </td>
                 {% endfor %}

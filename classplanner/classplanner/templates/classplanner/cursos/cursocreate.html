@@ -5,7 +5,7 @@
 {% block content %}
 <div class="p-4 min-h-[10vh] mt-4 rounded-lg">
     <p class="mb-2 text-slate-500 text-sm dark:text-slate-400">
-        <button class="hover:underline" id="home-link" data-url="{% url 'home' %}" onclick="window.exitConfirm(this)">Gestión</button> / <button class="hover:underline" id="cursos-link" data-url="{% url 'cursos' %}" onclick="window.exitConfirm(this)">Cursos</button> / <a class="hover:underline font-semibold text-slate-700 dark:text-slate-200" href="#">Crear</a></p>
+        <button class="hover:underline" id="home-link" data-url="{% url 'home' %}" onclick="window.exitConfirm(this)">Colegio</button> / <button class="hover:underline" id="cursos-link" data-url="{% url 'cursos' %}" onclick="window.exitConfirm(this)">Cursos</button> / <a class="hover:underline font-semibold text-slate-700 dark:text-slate-200" href="#">Crear</a></p>
     <h2 class="mb-2 text-4xl font-semibold text-[#234FA8] dark:text-blue-400 sm:text-3xl">Nuevo Curso</h2>
     <p class="text-sm text-slate-500 dark:text-slate-400 sm:text-base">Registre un nuevo curso completando los siguientes campos:</p>
 </div>
@@ -18,7 +18,7 @@
             {% if form.non_field_errors %}
             <div class="mb-5">
                 {% for error in form.non_field_errors %}
-                <p class="bg-red-100 dark:bg-red-900 p-4 my-3 text-sm text-red-700 rounded-lg dark:text-red-300 transition duration-200">{{ error }}</p>
+                <p class="bg-red-100 dark:bg-red-900/40 p-4 my-3 text-sm text-red-700 rounded-lg dark:text-red-300 transition duration-200">{{ error }}</p>
                 {% endfor %}
             </div>
             {% endif %}
@@ -37,7 +37,7 @@
                 {% if form.nivel.errors %}
                 <div class="mb-2">
                     {% for error in form.nivel.errors %}
-                    <p class="bg-red-100 dark:bg-red-900 p-4 my-3 text-sm text-red-700 rounded-lg dark:text-red-300 transition duration-200">{{ error }}</p>
+                    <p class="bg-red-100 dark:bg-red-900/40 p-4 my-3 text-sm text-red-700 rounded-lg dark:text-red-300 transition duration-200">{{ error }}</p>
                     {% endfor %}
                 </div>
                 {% endif %}
@@ -51,7 +51,7 @@
                     {% if form.letra.errors %}
                     <div class="mb-2">
                         {% for error in form.letra.errors %}
-                        <p class="bg-red-100 dark:bg-red-900 p-4 my-3 text-sm text-red-700 rounded-lg dark:text-red-300 transition duration-200">{{ error }}</p>
+                        <p class="bg-red-100 dark:bg-red-900/40 p-4 my-3 text-sm text-red-700 rounded-lg dark:text-red-300 transition duration-200">{{ error }}</p>
                         {% endfor %}
                     </div>
                     {% endif %}
@@ -64,7 +64,7 @@
                     {% if form.horas_plan_total.errors %}
                     <div class="mb-2">
                         {% for error in form.horas_plan_total.errors %}
-                        <p class="bg-red-100 dark:bg-red-900 p-4 my-3 text-sm text-red-700 rounded-lg dark:text-red-300 transition duration-200">{{ error }}</p>
+                        <p class="bg-red-100 dark:bg-red-900/40 p-4 my-3 text-sm text-red-700 rounded-lg dark:text-red-300 transition duration-200">{{ error }}</p>
                         {% endfor %}
                     </div>
                     {% endif %}
@@ -83,7 +83,7 @@
                 {% if form.usuario_id.errors %}
                 <div class="mb-2">
                     {% for error in form.usuario_id.errors %}
-                    <p class="bg-red-100 dark:bg-red-900 p-4 my-3 text-sm text-red-700 rounded-lg dark:text-red-300 transition duration-200">{{ error }}</p>
+                    <p class="bg-red-100 dark:bg-red-900/40 p-4 my-3 text-sm text-red-700 rounded-lg dark:text-red-300 transition duration-200">{{ error }}</p>
                     {% endfor %}
                 </div>
                 {% endif %}

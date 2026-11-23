@@ -8,7 +8,7 @@
 
 <div class="p-4 border border-slate-300 dark:border-slate-700 min-h-screen mt-10 rounded-lg">
     <p class="mb-3 text-slate-500 dark:text-[#a8b2d2]">
-        <button class="hover:underline" id="home-link" data-url="{% url 'home' %}" onclick="window.exitConfirm(this)">Gestión</button> /
+        <button class="hover:underline" id="home-link" data-url="{% url 'home' %}" onclick="window.exitConfirm(this)">Colegio</button> /
         <button class="hover:underline" id="estudiantes-link" data-url="{% url 'estudiantes' %}" onclick="window.exitConfirm(this)">Estudiantes</button> /
         <button class="hover:underline" id="notas-link" data-url="{% url 'promedioasignatura' estudiante.rut estudiante.curso_id_id %}" onclick="window.exitConfirm(this)">Notas</button> / Eliminar
     </p>
@@ -95,10 +95,13 @@
 
 <script>
     window.exitConfirm = function(button) {
+        const isDarkMode = document.documentElement.classList.contains('dark');
         Swal.fire({
             title: "¿Está seguro que desea salir?",
             text: "No se guardarán los cambios.",
             icon: "warning",
+            background: isDarkMode ? "#141826" : "#ffffff",
+            color: isDarkMode ? "#f8fafc" : "#0f172a",
             showCancelButton: true,
             confirmButtonColor: "#0d6efd",
             cancelButtonColor: "#d33",

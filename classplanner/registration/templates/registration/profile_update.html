@@ -4,9 +4,7 @@
 
 <div class="mt-6 left-0 z-40 w-full">
     <div class="h-screen border-default rounded-lg">
-        <div class="bg-blue-800 p-2 w-full md:h-56 h-44 rounded-lg">
-            
-
+        <div class="bg-gradient-to-br from-purple-900 via-indigo-700 to-sky-500 p-2 w-full md:h-56 h-44 rounded-lg">
             <div class="profile-card">
                 <div class="border border-white/0 md:px-16 md:translate-y-24 translate-y-24">
                     <div class="profile-img-center">
@@ -18,8 +16,8 @@
                         {% endif %}
                     </div>
 
-                    <div class="flex md:justify-between md:flex-row flex-col p-2 gap-8 mb-4">
-                        <div>
+                    <div class="flex md:justify-between items-center md:flex-row flex-col gap-8 mb-8">
+                        <div class="w-full">
                             <div class="flex items-center gap-2">
                                 <p class="dark:text-white text-xl font-bold">
                                     {{ request.user.name }} {{ request.user.last_name }}
@@ -51,6 +49,9 @@
                                     <path d="M6 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6m-5 6s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1zM11 3.5a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 0 1h-4a.5.5 0 0 1-.5-.5m.5 2.5a.5.5 0 0 0 0 1h4a.5.5 0 0 0 0-1zm2 3a.5.5 0 0 0 0 1h2a.5.5 0 0 0 0-1zm0 3a.5.5 0 0 0 0 1h2a.5.5 0 0 0 0-1z"/>
                                 </svg>
                                 <p class="font-semibold md:flex hidden">Personal</p>
+                                {% if form.username.errors or form.name.errors or form.last_name.errors %}
+                                    <b class="p-1 bg-red-600 rounded-full"></b>
+                                {% endif %}
                             </button>
                             <button onclick="showSection('account')" class="flex items-center justify-center outline-none w-full gap-2 dark:bg-[#141826] dark:hover:bg-[#1d2236] dark:text-[#a8b2d2] dark:hover:text-white text-slate-500 hover:bg-gray-100 hover:text-slate-700 text-center hover:transition transition hover:duration-300 duration-300 rounded-lg px-4 py-2">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-person-circle" viewBox="0 0 16 16">
@@ -58,6 +59,9 @@
                                     <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1"/>
                                 </svg>
                                 <p class="font-semibold md:flex hidden">Cuenta</p>
+                                {% if form.telefono.errors or form.email.errors or form.rut.errors or form.password_actual.errors or form.password_nueva.errors or form.password_confirmacion.errors %}
+                                    <b class="p-1 bg-red-600 rounded-full"></b>
+                                {% endif %}
                             </button>
                             <button onclick="showSection('image')" class="flex items-center justify-center outline-none w-full gap-2 dark:bg-[#141826] dark:hover:bg-[#1d2236] dark:text-[#a8b2d2] dark:hover:text-white text-slate-500 hover:bg-gray-100 hover:text-slate-700 text-center hover:transition transition hover:duration-300 duration-300 rounded-lg px-4 py-2">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-image" viewBox="0 0 16 16">
@@ -75,21 +79,21 @@
                     <form method="POST" enctype="multipart/form-data" class="users-u-form">
                         {% csrf_token %}
                         <div class="flex md:flex-row flex-col gap-2 mb-4 w-full" id="profile">
-                            <div class="dark:bg-[#141826] bg-white w-full shadow rounded-lg mb-10 p-4 md:p-8">
+                            <div class="dark:bg-[#141826] bg-white w-full shadow rounded-lg mb-2 p-4 md:p-8">
                                 <div>
-                                    <h3 class="dark:text-white text-black font-bold text-xl">Información Personal</h3>
+                                    <h3 class="text-[#234FA8] dark:text-blue-400 font-bold text-2xl">Información Personal</h3>
                                     <p class="dark:text-[#a8b2d2] text-slate-500">Actualiza tus datos personales</p>
                                 </div>
                                 
-                                <div class="mt-8 flex flex-col">
+                                <div class="my-8 flex flex-col">
                                     <div class="flex flex-col w-ful mb-5">
                                         <label for="id_username" class="mb-1 text-base font-semibold text-slate-600 dark:text-white">Nombre de Usuario</label>
                                         <input type="text" name="username" id="id_username" value="{{ form.username.value}}" class="bg-white dark:bg-[#141826] text-sm focus:outline-none focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 focus:transition focus:duration-300 rounded-lg h-12 border-2 p-3 border-slate-300 dark:border-slate-700 dark:placeholder:text-[#a8b2d2] dark:text-white" minlength="2" maxlength="45" required>
 
-                                        {% if form.name.errors %}
-                                        <div class="errors mb-2">
-                                            {% for error in form.name.errors %}
-                                            <p class="text-red-500 text-sm">{{ error }}</p>
+                                        {% if form.username.errors %}
+                                        <div class="errors">
+                                            {% for error in form.username.errors %}
+                                            <p class="bg-red-100 dark:bg-red-900/40 p-4 my-3 text-sm text-red-700 rounded-lg dark:text-red-300 transition duration-200">{{ error }}</p>
                                             {% endfor %}
                                         </div>
                                         {% endif %}
@@ -100,9 +104,9 @@
                                             <input type="text" name="name" id="id_name" value="{{ form.name.value}}" class="bg-white dark:bg-[#141826] text-sm focus:outline-none focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 focus:transition focus:duration-300 rounded-lg h-12 border-2 p-3 border-slate-300 dark:border-slate-700 dark:placeholder:text-[#a8b2d2] dark:text-white" minlength="2" maxlength="45" required>
 
                                             {% if form.name.errors %}
-                                            <div class="errors mb-2">
+                                            <div class="errors">
                                                 {% for error in form.name.errors %}
-                                                <p class="text-red-500 text-sm">{{ error }}</p>
+                                                <p class="bg-red-100 dark:bg-red-900/40 p-4 my-3 text-sm text-red-700 rounded-lg dark:text-red-300 transition duration-200">{{ error }}</p>
                                                 {% endfor %}
                                             </div>
                                             {% endif %}
@@ -113,40 +117,32 @@
                                             <input type="text" name="last_name" id="id_lastname" value="{{ form.last_name.value}}" class="bg-white dark:bg-[#141826] text-sm focus:outline-none focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 focus:transition focus:duration-300 rounded-lg h-12 border-2 p-3 border-slate-300 dark:border-slate-700 dark:placeholder:text-[#a8b2d2] dark:text-white" minlength="2" maxlength="45" required>
 
                                             {% if form.last_name.errors %}
-                                            <div class="errors mb-2">
+                                            <div class="errors">
                                                 {% for error in form.last_name.errors %}
-                                                <p class="text-red-500 text-sm">{{ error }}</p>
+                                                <p class="bg-red-100 dark:bg-red-900/40 p-4 my-3 text-sm text-red-700 rounded-lg dark:text-red-300 transition duration-200">{{ error }}</p>
                                                 {% endfor %}
                                             </div>
                                             {% endif %}
                                         </div>
                                     </div>
                                 </div>
-                                <div class="flex justify-end flex-row gap-2 my-8 w-full">
-                                    <a href="{% url 'profile' %}" class="flex items-center text-sm gap-2 border-2 font-semibold border-slate-300 dark:border-slate-700 dark:bg-[#141826] dark:hover:bg-[#1d2236] dark:text-[#a8b2d2] dark:hover:text-white text-slate-500 hover:bg-gray-100 hover:text-slate-700 text-center hover:transition transition hover:duration-300 duration-300 rounded-lg px-4 py-3">
-                                        Cancelar
-                                    </a>
-                                    <button type="submit" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-800 text-center hover:transition transition hover:duration-300 duration-300 rounded-lg px-4 py-3 ">
-                                        <p class="w-full text-sm text-white font-semibold">Guardar cambios</p>
-                                    </button>
-                                </div>
                             </div>
                         </div>
                         <div class="flex flex-col gap-2 mb-4 w-full hidden" id="account">
-                            <div class="dark:bg-[#141826] bg-white w-full shadow rounded-lg mb-4 p-4 md:p-8">
-                                <h3 class="dark:text-white text-black font-bold text-xl">Información de Contacto</h3>
+                            <div class="dark:bg-[#141826] bg-white w-full shadow rounded-lg mb-2 p-4 md:p-8">
+                                <h3 class="text-[#234FA8] dark:text-blue-400 font-bold text-2xl">Información de Contacto</h3>
                                 <p class="dark:text-[#a8b2d2] text-slate-500">Actualiza tus información de contacto</p>
 
-                                <div class="mt-8 flex flex-col">
+                                <div class="my-8 flex flex-col">
                                     <div class="flex md:flex-row flex-col gap-4 mb-5">
                                         <div class="flex flex-col w-full">
                                             <label for="id_telefono" class="mb-1 text-base font-semibold text-slate-600 dark:text-white">Teléfono</label>
-                                            <input type="text" name="telefono" id="id_telefono" value="{{ form.telefono.value }}" class="bg-white dark:bg-[#141826] text-sm focus:outline-none focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 focus:transition focus:duration-300 rounded-lg h-12 border-2 p-3 border-slate-300 dark:border-slate-700 dark:placeholder:text-[#a8b2d2] dark:text-white" minlength="2" maxlength="45" required>
+                                            <input type="text" name="telefono" id="id_telefono" value="{{ form.telefono.value }}" class="bg-white dark:bg-[#141826] text-sm focus:outline-none focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 focus:transition focus:duration-300 rounded-lg h-12 border-2 p-3 border-slate-300 dark:border-slate-700 dark:placeholder:text-[#a8b2d2] dark:text-white" minlength="12" maxlength="13" placeholder="Ej: +569 12345678" required>
 
                                             {% if form.telefono.errors %}
-                                            <div class="errors mb-2">
+                                            <div class="errors">
                                                 {% for error in form.telefono.errors %}
-                                                <p class="text-red-500 text-sm">{{ error }}</p>
+                                                <p class="bg-red-100 dark:bg-red-900/40 p-4 my-3 text-sm text-red-700 rounded-lg dark:text-red-300 transition duration-200">{{ error }}</p>
                                                 {% endfor %}
                                             </div>
                                             {% endif %}
@@ -155,12 +151,12 @@
                                     <div class="flex md:flex-row flex-col gap-4">
                                         <div class="flex flex-col w-full">
                                             <label for="id_email" class="mb-1 text-base font-semibold text-slate-600 dark:text-white">Correo</label>
-                                            <input type="text" name="email" id="id_email" value="{{ form.email.value}}" class="bg-white dark:bg-[#141826] text-sm focus:outline-none focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 focus:transition focus:duration-300 rounded-lg h-12 border-2 p-3 border-slate-300 dark:border-slate-700 dark:placeholder:text-[#a8b2d2] dark:text-white" minlength="2" maxlength="45" required>
+                                            <input type="text" name="email" id="id_email" value="{{ form.email.value}}" class="bg-white dark:bg-[#141826] text-sm focus:outline-none focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 focus:transition focus:duration-300 rounded-lg h-12 border-2 p-3 border-slate-300 dark:border-slate-700 dark:placeholder:text-[#a8b2d2] dark:text-white" minlength="2" maxlength="45" placeholder="Ej: ejemplo@outlook.com" required>
 
                                             {% if form.email.errors %}
-                                            <div class="errors mb-2">
+                                            <div class="errors">
                                                 {% for error in form.email.errors %}
-                                                <p class="text-red-500 text-sm">{{ error }}</p>
+                                                <p class="bg-red-100 dark:bg-red-900/40 p-4 my-3 text-sm text-red-700 rounded-lg dark:text-red-300 transition duration-200">{{ error }}</p>
                                                 {% endfor %}
                                             </div>
                                             {% endif %}
@@ -168,41 +164,34 @@
 
                                         <div class="flex flex-col w-full">
                                             <label for="id_rut" class="mb-1 text-base font-semibold text-slate-600 dark:text-white">RUT</label>
-                                            <input type="text" name="rut" id="id_rut" value="{{ form.rut.value}}" class="bg-white dark:bg-[#141826] text-sm focus:outline-none focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 focus:transition focus:duration-300 rounded-lg h-12 border-2 p-3 border-slate-300 dark:border-slate-700 dark:placeholder:text-[#a8b2d2] dark:text-white" minlength="2" maxlength="45" required>
+                                            <input type="text" name="rut" id="id_rut" value="{{ form.rut.value}}" class="bg-white dark:bg-[#141826] text-sm focus:outline-none focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 focus:transition focus:duration-300 rounded-lg h-12 border-2 p-3 border-slate-300 dark:border-slate-700 dark:placeholder:text-[#a8b2d2] dark:text-white" minlength="2" maxlength="45" placeholder="Ej: 12345678-K" required>
 
                                             {% if form.rut.errors %}
                                             <div class="errors mb-2">
                                                 {% for error in form.rut.errors %}
-                                                <p class="text-red-500 text-sm">{{ error }}</p>
+                                                <p class="bg-red-100 dark:bg-red-900/40 p-4 my-3 text-sm text-red-700 rounded-lg dark:text-red-300 transition duration-200">{{ error }}</p>
                                                 {% endfor %}
                                             </div>
                                             {% endif %}
                                         </div>
                                     </div>                                   
                                 </div>
-                                <div class="flex justify-end flex-row gap-2 my-8 w-full">
-                                    <a href="{% url 'profile' %}" class="flex items-center text-sm gap-2 border-2 font-semibold border-slate-300 dark:border-slate-700 dark:bg-[#141826] dark:hover:bg-[#1d2236] dark:text-[#a8b2d2] dark:hover:text-white text-slate-500 hover:bg-gray-100 hover:text-slate-700 text-center hover:transition transition hover:duration-300 duration-300 rounded-lg px-4 py-3">
-                                        Cancelar
-                                    </a>
-                                    <button type="submit" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-800 text-center hover:transition transition hover:duration-300 duration-300 rounded-lg px-4 py-3 ">
-                                        <p class="w-full text-white text-sm font-semibold">Guardar cambios</p>
-                                    </button>
-                                </div>
                             </div>
-                            <div class="dark:bg-[#141826] bg-white w-full shadow rounded-lg mb-10 p-4 md:p-8">
-
-                                {% comment %} 
-                                    Aca no se estan mostrando algunos mensajes de errores donde deberian de ir (por corregir)
-                                {% endcomment %}
-
-                                <h3 class="dark:text-white text-black font-bold text-xl">Contraseña</h3>
+                            <div class="dark:bg-[#141826] bg-white w-full shadow rounded-lg mb-2 p-4 md:p-8">
+                                <h3 class="text-[#234FA8] dark:text-blue-400 font-bold text-2xl">Contraseña</h3>
                                 <p class="dark:text-[#a8b2d2] text-slate-500">Actualiza tu contraseña actual</p>
+                                <p class="text-amber-600 dark:text-amber-500 font-semibold">Deje en blanco estos campos si NO desea modificar su contraseña:</p>
 
-                                <div class="mt-8 flex flex-col">
-                                    <div class="flex md:flex-row flex-col gap-4 mb-5">
+                                <div class="my-8 flex flex-col">
+                                    <div class="flex flex-col mb-5">
                                         <div class="flex flex-col w-full">
                                             <label for="id_password_actual" class="mb-1 text-base font-semibold text-slate-600 dark:text-white">Contraseña actual</label>
                                             <input type="password" name="password_actual" id="id_password_actual" class="bg-white dark:bg-[#141826] text-sm focus:outline-none focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 focus:transition focus:duration-300 rounded-lg h-12 border-2 p-3 border-slate-300 dark:border-slate-700 dark:placeholder:text-[#a8b2d2] dark:text-white" minlength="2" maxlength="45" placeholder="**********">
+                                        </div>
+                                        <div>
+                                            {% for error in form.password_actual.errors %}
+                                                <p class="bg-red-100 dark:bg-red-900/40 p-4 my-3 text-sm text-red-700 rounded-lg dark:text-red-300">{{ error }}</p>
+                                            {% endfor %}
                                         </div>
                                     </div>
                                     <div class="flex flex-col gap-5">
@@ -214,31 +203,24 @@
                                         <div class="flex flex-col w-full">
                                             <label for="id_password_confirmacion" class="mb-1 text-base font-semibold text-slate-600 dark:text-white">Confirmar contraseña</label>
                                             <input type="password" name="password_confirmacion" id="id_password_confirmacion" class="bg-white dark:bg-[#141826] text-sm focus:outline-none focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 focus:transition focus:duration-300 rounded-lg h-12 border-2 p-3 border-slate-300 dark:border-slate-700 dark:placeholder:text-[#a8b2d2] dark:text-white" minlength="2" maxlength="45" placeholder="**********">
-
-                                            {% if form.rut.errors %}
-                                            <div class="errors mb-2">
-                                                {% for error in form.rut.errors %}
-                                                <p class="text-red-500 text-sm">{{ error }}</p>
+                                            
+                                            <div>
+                                                {% for error in form.password_nueva.errors %}
+                                                    <p class="bg-red-100 dark:bg-red-900/40 p-4 my-3 text-sm text-red-700 rounded-lg dark:text-red-300">{{ error }}</p>
+                                                {% endfor %}
+                                                {% for error in form.password_confirmacion.errors %}
+                                                    <p class="bg-red-100 dark:bg-red-900/40 p-4 my-3 text-sm text-red-700 rounded-lg dark:text-red-300">{{ error }}</p>
                                                 {% endfor %}
                                             </div>
-                                            {% endif %}
                                         </div>
                                     </div>                                   
-                                </div>
-                                <div class="flex justify-end flex-row gap-2 my-8 w-full">
-                                    <a href="{% url 'profile' %}" class="flex items-center text-sm gap-2 border-2 font-semibold border-slate-300 dark:border-slate-700 dark:bg-[#141826] dark:hover:bg-[#1d2236] dark:text-[#a8b2d2] dark:hover:text-white text-slate-500 hover:bg-gray-100 hover:text-slate-700 text-center hover:transition transition hover:duration-300 duration-300 rounded-lg px-4 py-3">
-                                        Cancelar
-                                    </a>
-                                    <button type="submit" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-800 text-center hover:transition transition hover:duration-300 duration-300 rounded-lg px-4 py-3 ">
-                                        <p class="w-full text-white text-sm font-semibold">Guardar cambios</p>
-                                    </button>
                                 </div>
                             </div>
                         </div>
                         <div class="mb-4 w-full hidden" id="image">
-                            <div class="dark:bg-[#141826] bg-white w-full shadow rounded-lg mb-10 p-4 md:p-8">
+                            <div class="dark:bg-[#141826] bg-white w-full shadow rounded-lg mb-2 p-4 md:p-8">
                                 <div>
-                                    <h3 class="dark:text-white text-black font-bold text-xl">Imagen de Perfil</h3>
+                                    <h3 class="text-[#234FA8] dark:text-blue-400 font-bold text-2xl">Imagen de Perfil</h3>
                                     <p class="dark:text-[#a8b2d2] text-slate-500">Sube o actualiza tu imagen de perfil</p>
                                 </div>
 
@@ -263,9 +245,6 @@
                                         </label>
 
                                         <div class="flex md:flex-row flex-col w-full gap-2 mt-4">
-                                            <button type="submit" class="flex items-center gap-2 bg-blue-600 mt-4 hover:bg-blue-800 text-center hover:transition transition hover:duration-300 duration-300 rounded-lg px-4 py-3 w-full">
-                                                <p class="w-full text-white text-sm font-semibold">Guardar cambios</p>
-                                            </button>
                                             {% if request.user.avatar %}
                                             <button type="submit" name="avatar_clear" id="avatar-clear_id" value="Borrar imagen" class="flex items-center gap-2 bg-red-700 mt-4 hover:bg-red-900 text-center hover:transition transition hover:duration-300 duration-300 rounded-lg px-4 py-3 w-full">
                                                 <p class="w-full text-white text-sm font-semibold">Borrar imagen</p>
@@ -277,6 +256,14 @@
                                     <p class="text-xs text-center dark:text-[#a8b2d2] text-slate-500">SVG, PNG o JPG (MAX. 800x400px)</p>
                                 </div>
                             </div>                
+                        </div>
+                        <div class="flex justify-end md:flex-row flex-col-reverse gap-2 w-ful mb-10">
+                            <a href="{% url 'profile' %}" class="flex items-center justify-center text-sm gap-2 border-2 font-semibold border-slate-300 dark:border-slate-700 dark:bg-[#141826] dark:hover:bg-[#1d2236] dark:text-[#a8b2d2] dark:hover:text-white text-slate-500 hover:bg-gray-100 hover:text-slate-700 text-center hover:transition transition hover:duration-300 duration-300 rounded-lg px-4 py-3">
+                                Volver atrás
+                            </a>
+                            <button type="submit" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-800 text-center hover:transition transition hover:duration-300 duration-300 rounded-lg px-4 py-3 ">
+                                <p class="w-full text-white text-sm font-semibold">Guardar cambios</p>
+                            </button>
                         </div>
                     </form>
                 </div>

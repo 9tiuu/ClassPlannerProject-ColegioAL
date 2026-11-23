@@ -4,7 +4,7 @@
 {% endblock %}
 {% block content %}
 <div class="p-4 min-h-[10vh] mt-4 rounded-lg">
-    <p class="mb-2 text-slate-500 text-sm dark:text-slate-400"><a class="hover:underline" href="{% url 'home' %}">Gestión</a> / <a class="hover:underline font-semibold text-slate-700 dark:text-slate-200" href="#">Planes de Estudio</a></p>
+    <p class="mb-2 text-slate-500 text-sm dark:text-slate-400"><a class="hover:underline" href="{% url 'home' %}">Colegio</a> / <a class="hover:underline font-semibold text-slate-700 dark:text-slate-200" href="#">Planes de Estudio</a></p>
     <h2 class="mb-2 text-4xl font-semibold text-[#234FA8] dark:text-blue-400 sm:text-3xl">Planes de Estudio</h2>
     <p class="text-sm text-slate-500 dark:text-slate-400 sm:text-base">Listado de todos los planes de estudio registrados.</p>
 </div>
@@ -43,7 +43,7 @@
         </div>
 
         {% if plandeestudio %}
-        <div class="relative max-h-[70vh] overflow-y-auto overflow-x-auto bg-neutral-primary-soft shadow-xs rounded-base border border-default border-slate-300 dark:border-slate-800 rounded-lg">
+        <div class="relative max-h-[60vh] overflow-y-auto overflow-x-auto bg-neutral-primary-soft shadow-xs rounded-base border border-default border-slate-300 dark:border-slate-800 rounded-lg">
             <table id="data-table" class="w-full text-sm text-left rtl:text-right text-body">
                 <thead class="text-sm text-left text-slate-700 dark:text-white bg-slate-200 dark:bg-[#10141f] text-body bg-neutral-secondary-soft border-b rounded-base border-default dark:border-slate-800">
                     <tr>
@@ -112,11 +112,14 @@
 </div>
 {% if msg %}
     <script>
+        const isDarkMode = document.documentElement.classList.contains('dark');
         Swal.fire({
             "title": "Listo!",
             "text": "{{ msg }}",
             "icon": "success",
-            "confirmButtonColor": "#0d6efd"
+            "confirmButtonColor": "#0d6efd",
+            "background": isDarkMode ? "#141826" : "#ffffff",
+            "color": isDarkMode ? "#f8fafc" : "#0f172a",
         }).then((result) => { if (result.isConfirmed) window.location.href = '{% url "plandeestudio" %}'});
     </script>
 {% endif %}

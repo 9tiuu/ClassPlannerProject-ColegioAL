@@ -5,13 +5,16 @@
 {% block content %}
 
 <div class="p-4 min-h-[10vh] mt-4 rounded-lg">
-    <p class="mb-2 text-slate-500 text-sm dark:text-slate-400"><a class="hover:underline" href="{% url 'home' %}">Gestión</a> / <a class="hover:underline" href="{% url 'cargashorarias' %}">Cargas horarias</a> / <a class="hover:underline font-semibold text-slate-700 dark:text-slate-200" href="#">Actualizar</a></p>
+    <p class="mb-2 text-slate-500 text-sm dark:text-slate-400">
+        <button class="hover:underline" id="home-link" onclick="window.exitConfirm(this)" data-url="{% url 'home' %}">Colegio</button> / 
+        <button class="hover:underline" id="cargas-link" onclick="window.exitConfirm(this)" data-url="{% url 'cargashorarias' %}">Cargas horarias</button> / 
+        <a class="hover:underline font-semibold text-slate-700 dark:text-slate-200" href="#">Actualizar</a></p>
     <h2 class="mb-2 text-2xl font-semibold text-[#234FA8] dark:text-blue-400 sm:text-3xl">Actualizar Carga Horaria</h2>
     <p class="text-sm text-slate-500 dark:text-slate-400 sm:text-base">Actualice los datos de la carga horaria del docente seleccionado completando los siguientes campos:</p>
 </div>
 
-<div class="p-4 border-slate-300 dark:border-slate-700 min-h-[70vh] border-default border mt-10 rounded-lg">
-    <div class="p-4 bg-white dark:bg-[#141826] rounded-lg">
+<div class="p-4 bg-white dark:bg-[#141826] border-slate-300 dark:border-slate-700 min-h-[70vh] border-default border mt-10 rounded-lg">
+    <div class="p-4 rounded-lg">
         <div class="flex items-start md:flex-row flex-row-reverse gap-2 mb-4">
             <p class="text-cyan-600 dark:text-cyan-500 text-xs font-semibold bg-cyan-600/20 px-2 py-1 text-center w-44 rounded">
                     Docente: {{ docente }}
@@ -73,7 +76,7 @@
 
                                 {% if f.es_recreo %}
                                 <td colspan="{{ dias|length }}" class="p-2">
-                                    <div class="flex items-center justify-center rounded-lg border border-amber-500/30 bg-amber-500/10 min-h-[3.6rem] px-4 py-2">
+                                    <div class="flex items-center justify-center rounded-lg bg-amber-500/10 min-h-[3.6rem] px-4 py-2">
                                         <p class="font-bold text-amber-600 dark:text-amber-400">Recreo</p>
                                     </div>
                                 </td>
@@ -81,12 +84,12 @@
                                     {% for clase in f.celdas %}
                                     <td class="p-2">
                                         {% if clase %}
-                                        <div class="bg-blue-600/10 border border-blue-600/25 rounded-lg px-4 py-2 min-w-52 min-h-[3.6rem]">
-                                            <p class="font-bold text-xs text-blue-500">{{ clase.asignatura_id.nombres_asignatura_id }}</p>
-                                            <p class="text-xs">Curso: {{ clase.curso_id }}</p>
+                                        <div class="bg-[{{ clase.asignatura_id.color }}]/15 border-b border-[{{ clase.asignatura_id.color }}]/45 rounded-lg px-4 py-2 min-w-52 min-h-[3.6rem] flex flex-col justify-center">
+                                            <p class="font-bold text-xs text-slate-700 dark:text-slate-200">{{ clase.asignatura_id.nombres_asignatura_id }}</p>
+                                            <p class="text-xs">Curso: {{ clase.curso_id }} - Aula: {{ clase.aula_id }}</p>
                                         </div>
                                         {% else %}
-                                        <div class="flex items-center justify-center bg-slate-400/10 dark:bg-slate-600/10 border border-slate-300 dark:border-slate-700 rounded-lg min-h-[3.6rem] px-4 py-2 min-w-52">
+                                        <div class="flex items-center justify-center bg-slate-300/25 dark:bg-slate-500/10 rounded-lg min-h-[3.6rem] px-4 py-2 min-w-52">
                                             <p class="text-slate-400">—</p>
                                         </div>
                                         {% endif %}
@@ -137,7 +140,7 @@
                 {% if errores.casillas %}
                 <div class="errors mb-2">
                     {% for error in errores.casillas %}
-                    <p class="bg-red-100 dark:bg-red-900 p-4 my-3 text-sm text-red-700 rounded-lg dark:text-red-300 transition duration-200">{{ error }}</p>
+                    <p class="bg-red-100 dark:bg-red-900/40 p-4 my-3 text-sm text-red-700 rounded-lg dark:text-red-300 transition duration-200">{{ error }}</p>
                     {% endfor %}
                 </div>
                 {% endif %}
@@ -171,9 +174,9 @@
             </div>
 
             <div class="flex justify-end flex-row gap-2 my-8 w-full">              
-                <a href="{% url 'cargashorarias' %}" class="flex items-center text-sm gap-2 border-2 font-semibold border-slate-300 dark:border-slate-700 dark:bg-[#141826] dark:hover:bg-[#1d2236] dark:text-[#a8b2d2] dark:hover:text-white text-slate-500 hover:bg-gray-100 hover:text-slate-700 text-center hover:transition transition hover:duration-300 duration-300 rounded-lg px-4 py-3">
+                <button type="button" id="cargas-back" data-url="{% url 'cargashorarias' %}" onclick="window.exitConfirm(this)" class="flex items-center text-sm gap-2 border-2 font-semibold border-slate-300 dark:border-slate-700 dark:bg-[#141826] dark:hover:bg-[#1d2236] dark:text-[#a8b2d2] dark:hover:text-white text-slate-500 hover:bg-gray-100 hover:text-slate-700 text-center hover:transition transition hover:duration-300 duration-300 rounded-lg px-4 py-3">
                     Volver atrás
-                </a>
+                </button>
                 <button type="submit" class="flex items-center gap-2 text-white text-sm font-semibold bg-blue-600 hover:bg-blue-800 text-center hover:transition transition hover:duration-300 duration-300 rounded-lg px-4 py-3 ">
                     Crear carga horaria
                 </button>
@@ -181,4 +184,30 @@
         </form>
     </div>
 </div>
+<script>
+    function exitConfirm(button) {
+        const isDarkMode = document.documentElement.classList.contains('dark');
+
+        Swal.fire({
+            "title": "¿Está seguro que desea salir?",
+            "text": "No se guardarán los cambios.",
+            "icon": "warning",
+            "background": isDarkMode ? "#141826" : "#ffffff",
+            "color": isDarkMode ? "#f8fafc" : "#0f172a",
+            "showCancelButton": true,
+            "confirmButtonColor": "#0d6efd",
+            "cancelButtonColor": '#d33',
+            "confirmButtonText": 'Si, salir',
+            "cancelButtonText": 'Cancelar',
+        }).then((r) => {
+            if (!r.isConfirmed) return;
+
+            if (button.id != '') {
+                window.location.assign(button.dataset.url);
+            } else {
+                window.location.assign('/home');
+            }
+        });
+    };
+</script>
 {% endblock %}

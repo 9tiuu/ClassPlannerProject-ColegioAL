@@ -7,7 +7,10 @@
 {% block content %}
 
 <div class="p-4 min-h-[10vh] mt-4 rounded-lg">
-    <p class="mb-2 text-slate-500 text-sm dark:text-slate-400"><button class="hover:underline" id="home-link" data-url="{% url 'home' %}" onclick="window.exitConfirm(this)">Gestión</button> / <button class="hover:underline" id="aulas-link" data-url="{% url 'aulas' %}" onclick="window.exitConfirm(this)">Aulas</button> / <a class="hover:underline font-semibold text-slate-700 dark:text-slate-200" href="#">Crear</a></p>
+    <p class="mb-2 text-slate-500 text-sm dark:text-slate-400">
+        <button class="hover:underline" id="home-link" data-url="{% url 'home' %}" onclick="window.exitConfirm(this)">Colegio</button> / 
+        <button class="hover:underline" id="aulas-link" data-url="{% url 'aulas' %}" onclick="window.exitConfirm(this)">Aulas</button> / 
+        <a class="hover:underline font-semibold text-slate-700 dark:text-slate-200" href="#">Crear</a></p>
     <h2 class="mb-2 text-4xl font-semibold text-[#234FA8] dark:text-blue-400 sm:text-3xl">Nueva Aula</h2>
     <p class="text-sm text-slate-500 dark:text-slate-400 sm:text-base">Registre un nueva aula completando los siguientes campos:</p>
 </div>
@@ -32,7 +35,7 @@
                 {% if form.nombre.errors %}
                 <div class="mb-2">
                     {% for error in form.nombre.errors %}
-                    <p class="bg-red-100 dark:bg-red-900 p-4 my-3 text-sm text-red-700 rounded-lg dark:text-red-300 transition duration-200">{{ error }}</p>
+                    <p class="bg-red-100 dark:bg-red-900/40 p-4 my-3 text-sm text-red-700 rounded-lg dark:text-red-300 transition duration-200">{{ error }}</p>
                     {% endfor %}
                 </div>
                 {% endif %}
@@ -46,7 +49,7 @@
                     {% if form.cupos.errors %}
                     <div class="mb-2">
                         {% for error in form.cupos.errors %}
-                        <p class="bg-red-100 dark:bg-red-900 p-4 my-3 text-sm text-red-700 rounded-lg dark:text-red-300 transition duration-200">{{ error }}</p>
+                        <p class="bg-red-100 dark:bg-red-900/40 p-4 my-3 text-sm text-red-700 rounded-lg dark:text-red-300 transition duration-200">{{ error }}</p>
                         {% endfor %}
                     </div>
                     {% endif %}
@@ -54,26 +57,28 @@
 
                 <div class="flex flex-col w-full">
                     <label for="id_curso_id" class="mb-1 text-base font-semibold text-slate-600 dark:text-white">Cursos asignados (máximo 2)</label>
-                    <div id="id_curso_id" class="flex flex-col gap-2 rounded-lg border-2 border-slate-300 p-3 dark:border-slate-700">
-                        {% for option in form.curso_id %}
-                        <label class="flex items-center gap-2 text-sm text-slate-700 dark:text-white">
-                            <input type="checkbox" name="curso_id" value="{{ option.data.value }}" {% if option.data.selected %}checked{% endif %} class="rounded border-slate-300 text-blue-600 focus:ring-blue-600">
-                            {{ option.data.label }}
-                        </label>
-                        {% endfor %}
+                    <div class="border-2 border-slate-300 dark:border-slate-700 rounded-lg">
+                        <div id="id_curso_id" class="flex flex-col max-h-[30vh] gap-2 p-3 overflow-y-auto">
+                            {% for option in form.curso_id %}
+                            <label class="flex items-center gap-2 text-sm text-slate-700 dark:text-white">
+                                <input type="checkbox" name="curso_id" value="{{ option.data.value }}" {% if option.data.selected %}checked{% endif %} class="rounded border-slate-300 text-blue-600 focus:ring-blue-600">
+                                {{ option.data.label }}
+                            </label>
+                            {% endfor %}
+                        </div>
                     </div>
 
                     {% if form.curso_id.errors %}
                     <div class="mb-2">
                         {% for error in form.curso_id.errors %}
-                        <p class="bg-red-100 dark:bg-red-900 p-4 my-3 text-sm text-red-700 rounded-lg dark:text-red-300 transition duration-200">{{ error }}</p>
+                        <p class="bg-red-100 dark:bg-red-900/40 p-4 my-3 text-sm text-red-700 rounded-lg dark:text-red-300 transition duration-200">{{ error }}</p>
                         {% endfor %}
                     </div>
                     {% endif %}
                 </div>
             </div>
 
-            <div class="flex justify-end flex-col-reverse sm:flex-row gap-2 my-8 w-full">
+            <div class="flex justify-end flex-col-reverse sm:flex-row gap-2 mt-8 mb-4 w-full">
                 <a href="{% url 'aulas' %}" class="flex items-center justify-center text-sm gap-2 border-2 font-semibold border-slate-300 dark:border-slate-700 dark:bg-[#141826] dark:hover:bg-[#1d2236] dark:text-[#a8b2d2] dark:hover:text-white text-slate-500 hover:bg-gray-100 hover:text-slate-700 text-center transition duration-300 rounded-lg px-4 py-3">
                     Volver atrás
                 </a>

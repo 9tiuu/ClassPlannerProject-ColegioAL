@@ -4,11 +4,13 @@ from io import BytesIO
 from pathlib import Path
 import colorsys
 import random
+from zipfile import ZIP_DEFLATED, ZipFile
 
 import reportlab
+from django.conf import settings
 from django.core.exceptions import BadRequest
 from django.db.models.query import QuerySet
-from django.http import HttpResponse
+from django.http import Http404, HttpResponse
 from reportlab.lib import colors
 from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
 from reportlab.lib.pagesizes import A4, landscape, letter
@@ -658,11 +660,11 @@ def _crear_tabla_horario(
                 if carga_docente is not None:
                     docente = carga_docente.usuario_id
                 nombre_docente = str(docente) if docente else ''
-                aula = horario.aula_id.nombre if horario.aula_id else ''
+                aula = clase.aula_id.nombre if clase.aula_id else ''
                 contenidos.append(
                     '<b>{}</b><br/><font size="6.5">'
                     'Prof.: {}<br/>Aula: {}</font>'.format(
-                        escape(str(asignatura.nombre)),
+                        escape(str(asignatura.nombres_asignatura_id)),
                         escape(nombre_docente),
                         escape(str(aula)),
                     )
@@ -896,9 +898,9 @@ def exportar_horarios(cursos, cargas: QuerySet, bloques: QuerySet):
         bloques.select_related(
             'usuario_id',
             'bloque_id',
-            'asignatura_id',
+            'asignatura_id__nombres_asignatura_id',
             'curso_id',
-            'horario_id__aula_id',
+            'aula_id',
         ).order_by(
             'bloque_id__hora_inicio',
             'bloque_id__dia',
@@ -948,7 +950,6 @@ def exportar_horarios(cursos, cargas: QuerySet, bloques: QuerySet):
         )
 
     document.build(historia)
-    response = HttpResponse(pdf_buffer.getvalue(), content_type='application/pdf')
     anios = sorted(
         {
             str(curso.horario_export.anio_planificacion)
@@ -957,7 +958,61 @@ def exportar_horarios(cursos, cargas: QuerySet, bloques: QuerySet):
         }
     )
     anio_archivo = '-'.join(anios) or 'sin-anio'
+    if len(cursos_exportados) == 1:
+        ext_archivo = (
+            str(cursos_exportados[0])
+            .replace(' "', '')
+            .replace('"', '')
+        )
+    else:
+        ext_archivo = 'ExportacionCompleta'
+    nombre_archivo = f'Horarios_{ext_archivo}_{anio_archivo}.pdf'
+    contenido_pdf = pdf_buffer.getvalue()
+    directorio_exportaciones = Path(settings.MEDIA_ROOT) / 'horarios'
+    directorio_exportaciones.mkdir(parents=True, exist_ok=True)
+    (directorio_exportaciones / nombre_archivo).write_bytes(contenido_pdf)
+
+    response = HttpResponse(contenido_pdf, content_type='application/pdf')
     response['Content-Disposition'] = (
-        f'attachment; filename=Horarios_{anio_archivo}.pdf'
+        f'attachment; filename={nombre_archivo}'
     )
+    return response
+
+def DescargaHorariosHistoricos(filenames):
+    filenames = list(dict.fromkeys(filenames))
+    filenames = [
+        filename for filename in filenames if filename != 'exportar_todo'
+    ]
+    if not filenames:
+        raise BadRequest(
+            'No existen horarios para descargar, asegúrese de haber seleccionado por lo menos un horario'
+        )
+
+    directorio_exportaciones = (Path(settings.MEDIA_ROOT) / 'horarios').resolve()
+    archivo_zip = BytesIO()
+    with ZipFile(archivo_zip, 'w', compression=ZIP_DEFLATED) as zip_file:
+        for filename in filenames:
+            nombre = Path(filename)
+            if (
+                nombre.name != filename
+                or '/' in filename
+                or '\\' in filename
+                or nombre.suffix.lower() != '.pdf'
+            ):
+                raise Http404
+
+            ruta_pdf = (directorio_exportaciones / nombre).resolve()
+            if (
+                directorio_exportaciones not in ruta_pdf.parents
+                or not ruta_pdf.is_file()
+            ):
+                raise Http404
+
+            zip_file.write(ruta_pdf, arcname=nombre.name)
+
+    response = HttpResponse(
+        archivo_zip.getvalue(),
+        content_type='application/zip',
+    )
+    response['Content-Disposition'] = 'attachment; filename=HorariosHistoricos.zip'
     return response
