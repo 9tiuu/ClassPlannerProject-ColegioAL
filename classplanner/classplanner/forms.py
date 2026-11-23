@@ -5,6 +5,9 @@ from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 # from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
+from django.db import transaction
+from decimal import Decimal
+import re
 
 class UniqueDirectorRoleFormMixin:
     def clean_rol(self):
@@ -253,109 +256,120 @@ class EstudiantesUpdateForm(forms.ModelForm):
             'curso_id': forms.Select(attrs={'required': 'true'}),
         }
 
-class PromedioAsignaturaCreateForm(forms.ModelForm):
-    nota = forms.CharField(required=False, label='Nota', widget=forms.TextInput())
+#PROMEDIOS
+MIN_NOTAS_PROMEDIO = 1
+MAX_NOTAS_ASIGNATURA = 8
 
-    class Meta:
-        model = PromedioAsignatura
-        fields = ['asignatura_id', 'nota']
-        labels = {
-            'asignatura_id': 'Asignatura',
-        }
-        widgets = {
-            'asignatura_id': forms.Select(),
-        }
+class NotaField(forms.Field):
+    def __init__(self, **kwargs):
+        kwargs.setdefault('required', False)
+        kwargs.setdefault('widget', forms.NumberInput(attrs={
+            'class': 'form-control nota-input',
+            'placeholder': '-',
+            'inputmode': 'decimal',
+            'step': '0.1',
+            'min': '1.0',
+            'max': '7.0',
+        }))
+        super().__init__(**kwargs)
 
-    def __init__(self, *args, estudiante=None, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.estudiante = estudiante
-        self.instance.estudiante_id_id = estudiante.rut
-        self.fields['asignatura_id'].queryset = Asignatura.objects.filter(
-            is_active=True
-        )
-
-    def clean_nota(self):
-        valor = (self.cleaned_data.get('nota') or '').strip().replace(',', '.')
-
+    def to_python(self, value):
+        valor = str(value if value is not None else '').strip().replace(',', '.')
         if not valor:
             return None
-
-        try:
-            numero = float(valor)
-        except ValueError:
-            raise forms.ValidationError('Ingrese una nota numérica, por ejemplo 5.5.')
-
-        if not 1.0 <= numero <= 7.0:
+        if not re.fullmatch(r'[1-7]\.[0-9]', valor):
+            raise forms.ValidationError('Ingrese una nota válida, por ejemplo 5.5.')
+        nota = Decimal(valor)
+        if nota > Decimal('7.0'):
             raise forms.ValidationError('La nota debe estar entre 1.0 y 7.0.')
+        return float(nota)
 
-        return round(numero, 1)
 
-    def clean(self):
-        cleaned = super().clean()
-        asignatura = cleaned.get('asignatura_id')
-
-        if asignatura:
-            cantidad = PromedioAsignatura.objects.filter(
-                estudiante_id=self.estudiante.rut,
-                asignatura_id=asignatura,
-            ).exclude(pk=self.instance.pk).count()
-
-            if cantidad >= 8:
-                raise forms.ValidationError('Un estudiante puede tener como máximo 8 notas por asignatura.')
-
-        return cleaned
-
-class PromedioAsignaturaUpdateForm(forms.ModelForm):
-    nota = forms.CharField(required=False, label='Nota', widget=forms.TextInput())
-
-    class Meta:
-        model = PromedioAsignatura
-        fields = ['asignatura_id', 'nota']
-        labels = {
-            'asignatura_id': 'Asignatura',
-        }
-        widgets = {
-            'asignatura_id': forms.Select(),
-        }
-
-    def __init__(self, *args, estudiante=None, **kwargs):
+class PlanillaNotasForm(forms.Form):
+    def __init__(self, *args, estudiantes, curso, asignaturas, **kwargs):
         super().__init__(*args, **kwargs)
-        self.estudiante = estudiante
-        self.instance.estudiante_id_id = estudiante.rut
-        self.fields['asignatura_id'].queryset = Asignatura.objects.filter(
-            is_active=True
-        )
+        self.estudiantes = list(estudiantes)
+        self.curso = curso
+        self.asignaturas = list(asignaturas)
+        self.notas = {}
+        existentes = PromedioAsignatura.objects.filter(
+            estudiante_id__in=[e.rut for e in self.estudiantes],
+            curso_id=self.curso.pk,
+            asignatura_id__in=[a.pk for a in self.asignaturas],
+        ).order_by('id')
+        for nota in existentes:
+            self.notas.setdefault(
+                (nota.estudiante_id_id, nota.asignatura_id_id), []
+            ).append(nota)
+        for estudiante in self.estudiantes:
+            for asignatura in self.asignaturas:
+                guardadas = self.notas.get((estudiante.rut, asignatura.pk), [])
+                for numero in range(1, MAX_NOTAS_ASIGNATURA + 1):
+                    self.fields[self.nombre(estudiante.rut, asignatura.pk, numero)] = NotaField(
+                        label=f'Nota {numero}',
+                        initial=guardadas[numero - 1].nota if numero <= len(guardadas) else None,
+                    )
 
-    def clean_nota(self):
-        valor = (self.cleaned_data.get('nota') or '').strip().replace(',', '.')
+    @staticmethod
+    def nombre(rut, asignatura_pk, numero):
+        return f'nota_{rut}_{asignatura_pk}_{numero}'
 
-        if not valor:
-            return None
+    def fila(self, rut, asignatura_pk):
+        campos = [
+            self[self.nombre(rut, asignatura_pk, n)]
+            for n in range(1, MAX_NOTAS_ASIGNATURA + 1)
+        ]
+        valores = []
+        for campo in campos:
+            valor = campo.value()
+            if valor in (None, ''):
+                continue
+            try:
+                valores.append(float(str(valor).replace(',', '.')))
+            except ValueError:
+                pass
+        media = sum(valores) / len(valores) if len(valores) >= MIN_NOTAS_PROMEDIO else None
+        return {
+            'campos': campos,
+            'cantidad': len(valores),
+            'media': media,
+            'promedio': None if media is None else round(media, 1),
+        }
 
-        try:
-            numero = float(valor)
-        except ValueError:
-            raise forms.ValidationError('Ingrese una nota numérica, por ejemplo 5.5.')
-
-        if not 1.0 <= numero <= 7.0:
-            raise forms.ValidationError('La nota debe estar entre 1.0 y 7.0.')
-
-        return round(numero, 1)
-
-    def clean(self):
-        cleaned = super().clean()
-        asignatura = cleaned.get('asignatura_id')
-
-        if asignatura:
-            cantidad = PromedioAsignatura.objects.filter(
-                estudiante_id=self.estudiante.rut,
-                asignatura_id=asignatura,
-            ).exclude(pk=self.instance.pk).count()
-
-            if cantidad >= 5:
-                raise forms.ValidationError('Un estudiante puede tener como máximo 5 notas por asignatura.')
-
-        return cleaned
+    def save(self):
+        crear, actualizar, borrar = [], [], []
+        for estudiante in self.estudiantes:
+            for asignatura in self.asignaturas:
+                guardadas = self.notas.get((estudiante.rut, asignatura.pk), [])
+                valores = [
+                    valor
+                    for valor in (
+                        self.cleaned_data.get(self.nombre(estudiante.rut, asignatura.pk, n))
+                        for n in range(1, MAX_NOTAS_ASIGNATURA + 1)
+                    )
+                    if valor is not None
+                ]
+                for indice, valor in enumerate(valores):
+                    if indice < len(guardadas):
+                        if guardadas[indice].nota != valor:
+                            guardadas[indice].nota = valor
+                            actualizar.append(guardadas[indice])
+                    else:
+                        crear.append(PromedioAsignatura(
+                            estudiante_id=estudiante,
+                            curso_id=self.curso,
+                            asignatura_id=asignatura,
+                            nota=valor,
+                        ))
+                borrar.extend(nota.pk for nota in guardadas[len(valores):])
+        with transaction.atomic():
+            if actualizar:
+                PromedioAsignatura.objects.bulk_update(actualizar, ['nota'])
+            if crear:
+                PromedioAsignatura.objects.bulk_create(crear)
+            if borrar:
+                PromedioAsignatura.objects.filter(pk__in=borrar).delete()
+        return [estudiante.rut for estudiante in self.estudiantes]
 
 # Para creación PDE
 class CursoSelect(forms.Select):

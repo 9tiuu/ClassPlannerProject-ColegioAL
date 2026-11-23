@@ -26,6 +26,9 @@ from reportlab.platypus import (
     TableStyle as PDFTableStyle,
 )
 
+from classplanner.models import PlanDeEstudio, PromedioAsignatura
+
+
 reportlab_fonts = Path(reportlab.__file__).parent / 'fonts'
 pdfmetrics.registerFont(TTFont('Vera', str(reportlab_fonts / 'Vera.ttf')))
 pdfmetrics.registerFont(TTFont('Vera-Bold', str(reportlab_fonts / 'VeraBd.ttf')))
@@ -39,63 +42,98 @@ def _format_pdf_value(value):
     return str(value)
 
 
-def _build_grade_table_data(notas, promedio_general, asistencia):
-    asignaturas = {}
+def _build_grade_table_data(planes, notas, promedio_general, asistencia):
+    notas_por_asignatura = {}
+
     for nota in notas:
-        asignatura = nota.asignatura_id
-        asignatura_data = asignaturas.setdefault(
-            nota.asignatura_id_id,
-            {
-                'asignatura': asignatura,
-                'notas': [],
-            },
-        )
-        asignatura_data['notas'].append(nota.nota)
+        asignatura_id = nota.asignatura_id_id
+
+        notas_por_asignatura.setdefault(asignatura_id, []).append(nota.nota)
+    
+    promedios_asignaturas = []
 
     asignaturas_ordenadas = sorted(
-        asignaturas.values(),
-        key=lambda item: (
-            item['asignatura'].areas_planes_diferenciales_id is not None,
-            str(item['asignatura'].nombres_asignatura_id).casefold(),
+        planes,
+        key=lambda plan: (
+            plan.asignatura_id.areas_planes_diferenciales_id is not None,
+            str(plan.asignatura_id.nombres_asignatura_id).casefold(),
         ),
     )
-    cantidad_notas = min(
-        max((len(item['notas']) for item in asignaturas_ordenadas), default=0),
-        8,
+
+    cantidad_notas = max(
+        (
+            len(notas_por_asignatura.get(plan.asignatura_id_id, []))
+            for plan in asignaturas_ordenadas
+        ),
+        default=0,
     )
+
     table_data = [
         ['Asignaturas']
         + [str(numero) for numero in range(1, cantidad_notas + 1)]
         + ['Prom.']
     ]
 
-    for item in asignaturas_ordenadas:
-        notas_asignatura = item['notas']
-        notas_validas = [valor for valor in notas_asignatura if valor is not None]
-        promedio = (
-            _format_pdf_value(round(sum(notas_validas) / len(notas_validas), 1))
+    for plan in asignaturas_ordenadas:
+        notas_asignatura = notas_por_asignatura.get(plan.asignatura_id_id, [])
+
+        notas_validas = [
+            valor for valor in notas_asignatura
+            if valor is not None
+        ]
+
+        promedio_numerico = (
+            sum(notas_validas) / len(notas_validas)
             if notas_validas
+            else None
+        )
+
+        if promedio_numerico is not None:
+            promedios_asignaturas.append(promedio_numerico)
+
+        promedio = (
+            _format_pdf_value(round(promedio_numerico, 1))
+            if promedio_numerico is not None
             else ''
         )
+
         notas_visibles = [
-            _format_pdf_value(valor) for valor in notas_asignatura[:cantidad_notas]
+            _format_pdf_value(valor)
+            for valor in notas_asignatura
         ]
-        notas_visibles.extend([''] * (cantidad_notas - len(notas_visibles)))
-        table_data.append(
-            [item['asignatura'].nombres_asignatura_id] + notas_visibles + [promedio]
+
+        notas_visibles.extend(
+            [''] * (cantidad_notas - len(notas_visibles))
         )
+
+        table_data.append(
+            [
+                plan.asignatura_id.nombres_asignatura_id,
+                *notas_visibles,
+                promedio,
+            ]
+        )
+
+    promedio_general = (
+        round(sum(promedios_asignaturas) / len(promedios_asignaturas), 1)
+        if promedios_asignaturas
+        else None
+    )
 
     table_data.append(
         ['PROMEDIO GENERAL']
         + [''] * cantidad_notas
         + [_format_pdf_value(promedio_general)]
     )
+
     table_data.append(
         ['% ASISTENCIA']
         + [''] * cantidad_notas
         + [_format_pdf_value(asistencia)]
     )
+
     return table_data, cantidad_notas
+
 
 
 def _exportar_notas_pdf(
@@ -112,19 +150,53 @@ def _exportar_notas_pdf(
     else:
         raise BadRequest('No se pudo completar la exportación')
 
-    notas_exportadas = list(
-        notas.select_related('asignatura_id').order_by('pk')
-    )
     estudiante_exportado = estudiante.select_related(
         'curso_id__usuario_id'
     ).get()
+
+    curso = estudiante_exportado.curso_id
+
+    planes = list(
+        PlanDeEstudio.objects.filter(
+            curso_id=curso,
+            asignatura_id__is_active=True,
+        ).select_related(
+            'curso_id',
+            'asignatura_id',
+            'asignatura_id__nombres_asignatura_id',
+            'asignatura_id__areas_planes_diferenciales_id',
+        ).order_by(
+            'asignatura_id__ident'
+        )
+    )
+
+    asignaturas_ids = [plan.asignatura_id_id for plan in planes]
+
+    notas_exportadas = list(
+        PromedioAsignatura.objects.filter(
+            estudiante_id=estudiante_exportado.rut,
+            curso_id=curso,
+            asignatura_id__in=asignaturas_ids,
+            nota__isnull=False,
+        ).select_related(
+            'asignatura_id',
+            'asignatura_id__nombres_asignatura_id',
+            'asignatura_id__areas_planes_diferenciales_id',
+        ).order_by(
+            'asignatura_id_id',
+            'id',
+        )
+    )
+
     tabla_datos, cantidad_notas = _build_grade_table_data(
+        planes,
         notas_exportadas,
         estudiante_exportado.promedio,
         asistencia,
     )
 
     pdf_buffer = BytesIO()
+
     document = SimpleDocTemplate(
         pdf_buffer,
         pagesize=letter,
@@ -134,6 +206,7 @@ def _exportar_notas_pdf(
         bottomMargin=90,
         title=f'INFORME DE NOTAS {semestre_texto}',
     )
+
     ancho_disponible = letter[0] - document.leftMargin - document.rightMargin
 
     title_style = ParagraphStyle(
@@ -144,6 +217,7 @@ def _exportar_notas_pdf(
         leading=12,
         alignment=TA_CENTER,
     )
+
     body_style = ParagraphStyle(
         'CertificateBody',
         fontName='Vera',
@@ -151,6 +225,7 @@ def _exportar_notas_pdf(
         leading=12,
         alignment=TA_JUSTIFY,
     )
+
     left_style = ParagraphStyle(
         'TeacherName',
         fontName='Vera',
@@ -158,6 +233,7 @@ def _exportar_notas_pdf(
         leading=12,
         alignment=TA_LEFT,
     )
+
     table_header_style = ParagraphStyle(
         'GradeTableHeader',
         fontName='Vera-Bold',
@@ -165,6 +241,7 @@ def _exportar_notas_pdf(
         leading=9,
         alignment=TA_CENTER,
     )
+
     table_cell_style = ParagraphStyle(
         'GradeTableCell',
         fontName='Vera',
@@ -172,6 +249,7 @@ def _exportar_notas_pdf(
         leading=9,
         alignment=TA_CENTER,
     )
+
     table_subject_style = ParagraphStyle(
         'GradeTableSubject',
         fontName='Vera',
@@ -179,6 +257,7 @@ def _exportar_notas_pdf(
         leading=9,
         alignment=TA_LEFT,
     )
+
     table_label_style = ParagraphStyle(
         'GradeTableLabel',
         fontName='Vera-Bold',
@@ -192,11 +271,13 @@ def _exportar_notas_pdf(
         return Paragraph(escaped_value, style)
 
     image_directory = Path(__file__).resolve().parents[1] / 'img'
+
     logo = Image(
         str(image_directory / 'export' / 'logo_bk.png'),
-        width=132*0.5,
-        height=37*0.5,
+        width=132 * 0.5,
+        height=37 * 0.5,
     )
+
     header = PDFTable(
         [
             [logo],
@@ -204,6 +285,7 @@ def _exportar_notas_pdf(
         ],
         colWidths=[ancho_disponible],
     )
+
     header.setStyle(
         PDFTableStyle(
             [
@@ -227,16 +309,17 @@ def _exportar_notas_pdf(
             estudiante_exportado.apellido_m,
         )
     )
-    curso = estudiante_exportado.curso_id
+
     texto_certificado = (
         'RECONOCIDO OFICIALMENTE POR EL MINISTERIO DE EDUCACIÓN DE LA '
-        'RESPÚBLICA DE CHILE SEGÚN Res. Rec. Oficial/Doc. Traspaso N°409 DEL '
+        'REPÚBLICA DE CHILE SEGÚN Res. Rec. Oficial/Doc. Traspaso N°409 DEL '
         'AÑO 1982 ROL BASE DE DATOS N°67-1 OTORGA EL PRESENTE CERTIFICADO DE '
         f'CALIFICACIONES SEMESTRALES A DON(A) {estudiante_nombre} DEL '
         f'{curso.nivel} {curso.letra} DE ACUERDO AL PLAN Y PROGRAMAS DE '
         'ESTUDIOS APROBADOS POR DECRETO DE EDUCACIÓN N°193 DE 2019 Y '
         'REGLAMENTO DE EVALUACIÓN Y PROMOCIÓN ESCOLAR DTO. EXENTO N°67 DE 2018.'
     )
+
     historia = [
         header,
         Spacer(1, 12),
@@ -251,17 +334,21 @@ def _exportar_notas_pdf(
 
     ancho_asignatura = ancho_disponible * 0.44
     ancho_promedio = 48
+
     ancho_nota = (
         (ancho_disponible - ancho_asignatura - ancho_promedio) / cantidad_notas
         if cantidad_notas
         else 0
     )
+
     anchos_columnas = (
         [ancho_asignatura]
         + [ancho_nota] * cantidad_notas
         + [ancho_promedio]
     )
+
     datos_tabla = []
+
     for row_index, fila in enumerate(tabla_datos):
         datos_tabla.append(
             [
@@ -285,6 +372,7 @@ def _exportar_notas_pdf(
         repeatRows=1,
         hAlign='CENTER',
     )
+
     estilos_tabla = [
         ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
         ('BACKGROUND', (0, 0), (-1, 0), colors.transparent),
@@ -296,6 +384,7 @@ def _exportar_notas_pdf(
         ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
         ('FONTNAME', (0, 0), (-1, 0), 'Vera-Bold'),
     ]
+
     for row_index, fila in enumerate(tabla_datos):
         if fila[0] in ('PROMEDIO GENERAL', '% ASISTENCIA'):
             estilos_tabla.extend(
@@ -304,7 +393,9 @@ def _exportar_notas_pdf(
                     ('BACKGROUND', (0, row_index), (-1, row_index), colors.transparent),
                 ]
             )
+
     tabla.setStyle(PDFTableStyle(estilos_tabla))
+
     historia.extend(
         [
             tabla,
@@ -314,16 +405,21 @@ def _exportar_notas_pdf(
     )
 
     hoy = timezone.localdate()
+
     with PILImage.open(image_directory / 'export' / 'escudo.png') as monkey_image:
         monkey_background = monkey_image.convert('RGBA')
-    monkey_background.putalpha(38) # Imagen con 15% opacidad
+
+    monkey_background.putalpha(38)
+
     monkey_buffer = BytesIO()
     monkey_background.save(monkey_buffer, format='PNG')
     monkey_buffer.seek(0)
+
     monkey_background_reader = ImageReader(monkey_buffer)
 
     def dibujar_pie(canvas, doc):
         canvas.saveState()
+
         canvas.drawImage(
             monkey_background_reader,
             0,
@@ -332,30 +428,50 @@ def _exportar_notas_pdf(
             height=letter[1],
             mask='auto',
         )
+
         canvas.setStrokeColor(colors.black)
         canvas.setLineWidth(0.5)
+
         firma_y = 100
         firma_ancho = 135
+
         izquierda = doc.leftMargin + 8
         derecha = letter[0] - doc.rightMargin - firma_ancho - 8
-        canvas.line(izquierda, firma_y, izquierda + firma_ancho, firma_y)
-        canvas.line(derecha, firma_y, derecha + firma_ancho, firma_y)
+
+        canvas.line(
+            izquierda,
+            firma_y,
+            izquierda + firma_ancho,
+            firma_y,
+        )
+
+        canvas.line(
+            derecha,
+            firma_y,
+            derecha + firma_ancho,
+            firma_y,
+        )
+
         canvas.setFont('Vera', 8)
+
         canvas.drawCentredString(
             izquierda + firma_ancho / 2,
             firma_y - 16,
             'Profesor Jefe',
         )
+
         canvas.drawCentredString(
             derecha + firma_ancho / 2,
             firma_y - 16,
             'Director',
         )
+
         canvas.drawRightString(
             letter[0] - doc.rightMargin,
             20,
             f'Arica, {hoy.day} de {hoy.strftime("%B")} de {hoy.year}',
         )
+
         canvas.restoreState()
 
     document.build(
@@ -363,6 +479,15 @@ def _exportar_notas_pdf(
         onFirstPage=dibujar_pie,
         onLaterPages=dibujar_pie,
     )
-    response = HttpResponse(pdf_buffer.getvalue(), content_type='application/pdf')
-    response['Content-Disposition'] = f'attachment; filename=InformeDeNotas_{str(estudiante_nombre).replace(" ", "")}.pdf'
+
+    response = HttpResponse(
+        pdf_buffer.getvalue(),
+        content_type='application/pdf',
+    )
+
+    response['Content-Disposition'] = (
+        f'attachment; filename=InformeDeNotas_'
+        f'{str(estudiante_nombre).replace(" ", "")}.pdf'
+    )
+
     return response
