@@ -1,46 +1,51 @@
 {% for jornada in jornadas %}
-<div class="mt-4 overflow-x-auto rounded-xl border-2 border-slate-300 dark:border-slate-700">
-    <table class="w-full min-w-[50rem] table-fixed text-sm">
-        <thead>
-            <tr class="bg-slate-200 text-left text-black dark:bg-[#10141f] dark:text-white">
-                <th class="w-36 whitespace-nowrap px-4 py-3 font-bold">
-                    Hora
-                    <span class="ml-2 rounded px-2 py-0.5 text-xs font-semibold {% if jornada.codigo == 'JM' %}bg-orange-200 text-orange-600 dark:bg-orange-500/20 dark:text-orange-400{% else %}bg-violet-200 text-violet-700 dark:bg-violet-500/20 dark:text-violet-400{% endif %}">{{ jornada.codigo }}</span>
+<div class="relative mt-4 max-h-[80vh] overflow-y-auto overflow-x-auto bg-neutral-primary-soft shadow-xs border border-slate-300 dark:border-slate-800 rounded-lg">
+    <table class="min-w-full text-sm text-left text-body table-fixed">
+        <thead class="sticky top-0 z-10 text-sm text-slate-700 dark:text-white bg-slate-200 dark:bg-[#10141f] border-b dark:border-slate-800">
+            <tr>
+                <th scope="col" class="flex gap-2 px-4 min-w-40 py-3 font-bold">
+                    Horas
+                    {% if jornada.codigo == 'JM' %}
+                    <p class="text-orange-500 text-xs bg-orange-600/20 text-center px-2 py-0.5 rounded">JM</p>
+                    {% else %}
+                    <p class="text-violet-600 dark:text-violet-500 text-xs bg-violet-600/20 text-center px-2 py-0.5 rounded">JT</p>
+                    {% endif %}
                 </th>
                 {% for numero, nombre in dias %}
-                <th data-dia="{{ numero }}" class="px-3 py-3 font-bold">{{ nombre }}</th>
+                <th data-dia="{{ numero }}" scope="col" class="px-6 py-3 font-bold">{{ nombre }}</th>
                 {% endfor %}
             </tr>
         </thead>
+
         <tbody class="dark:text-[#a8b2d2] text-slate-500">
             {% for fila in jornada.filas %}
             <tr class="border-b dark:border-b-slate-800 odd:bg-white even:bg-white even:dark:bg-[#171c2b] dark:odd:bg-[#171c2b]">
-                <td class="whitespace-nowrap px-4 py-2 align-middle">
-                    <p class="font-bold dark:text-[#a8b2d2] text-slate-500">Hora {{ fila.numero }}</p>
-                    <p class="text-xs dark:text-[#a8b2d2] text-slate-500">{{ fila.hora_inicio|time:"H:i" }} - {{ fila.hora_termino|time:"H:i" }}</p>
+                <td class="px-6 py-2 min-w-36 w-40">
+                    <p class="font-bold">Hora {{ fila.numero }}</p>
+                    <p>{{ fila.hora_inicio|time:"H:i" }} - {{ fila.hora_termino|time:"H:i" }}</p>
                 </td>
                 {% if fila.es_recreo %}
                 <td colspan="{{ dias|length }}" class="p-2">
-                    <div class="flex min-h-[3.6rem] items-center justify-center rounded-lg bg-amber-500/10 px-4 py-2">
+                    <div class="flex items-center justify-center rounded-lg bg-amber-500/10 min-h-[3.6rem] px-4 py-2">
                         <p class="font-bold text-amber-600 dark:text-amber-400">Recreo</p>
                     </div>
                 </td>
                 {% else %}
-                {% for celda in fila.celdas %}
-                <td data-dia="{{ forloop.counter }}" class="p-1.5 align-middle">
-                    {% if celda %}
-                    <div class="flex h-16 flex-col justify-center overflow-hidden rounded border-b px-3 bg-[{{ celda.asignatura_id.color }}]/15 border-[{{ celda.asignatura_id.color }}]/45" title="{{ celda.asignatura_id.nombre }} · {{ celda.curso_id }}">
-                        <p class="text-xs font-bold text-slate-700 dark:text-slate-200">{{ celda.asignatura_id.nombres_asignatura_id.nombre }}</p>
-                        <p class="truncate text-xs font-semibold text-slate-600 dark:text-slate-300">Curso: {{ celda.curso_id }}</p>
-                        <p class="truncate text-xs">Aula: {{ celda.aula_id }}</p>
-                    </div>
-                    {% else %}
-                    <div class="flex items-center justify-center bg-slate-400/10 dark:bg-slate-500/10 rounded-lg min-h-[3.6rem] px-4 py-2 min-w-52">
-                        <p class="text-slate-400 dark:text-slate-500">—</p>
-                    </div>
-                    {% endif %}
-                </td>
-                {% endfor %}
+                    {% for celda in fila.celdas %}
+                    <td data-dia="{{ forloop.counter }}" class="p-1.5 align-middle">
+                        {% if celda %}
+                        <div class="flex items-center h-16 flex-col justify-center overflow-hidden rounded-lg border-b px-3 bg-[{{ celda.asignatura_id.color }}]/15 border-[{{ celda.asignatura_id.color }}]/45" title="{{ celda.asignatura_id.nombre }} · {{ celda.curso_id }}">
+                            <p class="text-xs font-bold text-slate-700 dark:text-slate-200">{{ celda.asignatura_id.nombres_asignatura_id.nombre }}</p>
+                            <p class="truncate text-xs font-semibold text-slate-600 dark:text-slate-300">Curso: {{ celda.curso_id }}</p>
+                            <p class="truncate text-xs">Aula: {{ celda.aula_id }}</p>
+                        </div>
+                        {% else %}
+                        <div class="flex items-center justify-center bg-slate-400/10 dark:bg-slate-500/10 rounded-lg min-h-[3.6rem] px-4 py-2 min-w-52">
+                            <p class="text-slate-400 dark:text-slate-500">—</p>
+                        </div>
+                        {% endif %}
+                    </td>
+                    {% endfor %}
                 {% endif %}
             </tr>
             {% endfor %}

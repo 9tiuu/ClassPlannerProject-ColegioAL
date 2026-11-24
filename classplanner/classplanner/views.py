@@ -39,7 +39,7 @@ from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.contrib.auth.mixins import UserPassesTestMixin
 from django.contrib.contenttypes.models import ContentType
-from django.db.models import Q
+from django.db.models import Q, Exists, OuterRef
 from django.db.models.query import QuerySet
 from functools import wraps
 from .static.classplanner.py.exportar_planes import exportar_planes
@@ -1183,8 +1183,11 @@ class UpdateEstudiante(UpdateView):
             apellido_m=apellido_m.capitalize(),
             curso_id=form.cleaned_data['curso_id'],
         )
+        # recalcular el promedio al cambiar de curso
         messages.success(self.request, '¡Estudiante actualizado con éxito!')
-        return super().form_valid(form)
+        response = super().form_valid(form)
+        actualizar_promedios([self.kwargs['rut']])
+        return response
 
 @method_decorator(login_required, name='dispatch')
 @method_decorator(roles_required('root', 'Administrador', 'Director'), name='dispatch')
@@ -1238,14 +1241,24 @@ def obtener_planes(curso, solo_diferenciales=False):
 
 def actualizar_promedios(ruts):
     por_estudiante = defaultdict(list)
+    curso_de = dict(
+        Estudiante.objects.filter(rut__in=ruts).values_list('rut', 'curso_id')
+    )
+    vigentes = PlanDeEstudio.objects.filter(
+        curso_id=OuterRef('curso_id'),
+        asignatura_id=OuterRef('asignatura_id'),
+        asignatura_id__is_active=True,
+    )
     medias = (
         PromedioAsignatura.objects
         .filter(estudiante_id__in=ruts, nota__isnull=False)
+        .filter(Exists(vigentes))
         .values('estudiante_id', 'curso_id', 'asignatura_id')
         .annotate(media=Avg('nota'))
     )
     for fila in medias:
-        por_estudiante[fila['estudiante_id']].append(fila['media'])
+        if fila['curso_id'] == curso_de.get(fila['estudiante_id']):
+            por_estudiante[fila['estudiante_id']].append(fila['media'])
     resultado = {}
     for rut in ruts:
         valores = por_estudiante.get(rut, [])
@@ -1255,6 +1268,14 @@ def actualizar_promedios(ruts):
 
 def actualizar_promedio_estudiante(rut):
     return actualizar_promedios([rut])[rut]
+
+def limpiar_notas_huerfanas(curso):
+    huerfanas = PromedioAsignatura.objects.filter(curso_id=curso).exclude(
+        asignatura_id__in=PlanDeEstudio.objects.filter(curso_id=curso).values('asignatura_id')
+    )
+    ruts = list(huerfanas.values_list('estudiante_id', flat=True).distinct())
+    huerfanas.delete()
+    actualizar_promedios(ruts)
 
 def clases_docente(usuario):
     return BloqueDeClase.objects.filter(
@@ -1706,6 +1727,7 @@ def CreatePlanDeEstudioForm(request): # hacer validacion hrs plan curso >= total
                     PlanDeEstudio.objects.bulk_create(
                         [PlanDeEstudio(**plan) for plan in planes]
                     )
+                    
                 messages.success(
                     request,
                     '¡Planes de estudio añadidos con éxito!'
@@ -1855,6 +1877,12 @@ def UpdatePlanDeEstudioForm(request, pk=None): # hacer validacion hrs plan curso
                 for plan in planes_existentes.values():
                     if plan not in planesDelete and plan not in planesUpdate and plan not in planesDelete:
                         planesDelete.append(plan)
+                        # Para eliminar las notas con la asignatura que se eliminó del plan de estudio
+                        if planesDelete != []:
+                            PlanDeEstudio.objects.filter(
+                                pk__in=[plan.pk for plan in planesDelete]
+                            ).delete()
+                        limpiar_notas_huerfanas(curso)
                         
                 PlanDeEstudio.objects.bulk_update(
                     planesUpdate,
