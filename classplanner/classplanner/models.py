@@ -146,11 +146,12 @@ class PromedioAsignatura(models.Model):
     nota = models.FloatField(null=True, blank=True)
     estudiante_id = models.ForeignKey(Estudiante, on_delete=models.CASCADE, to_field='rut')
     asignatura_id = models.ForeignKey(Asignatura, on_delete=models.CASCADE)
+    curso_id = models.ForeignKey(Curso, on_delete=models.CASCADE)
     created_at = models.DateField(auto_now_add=True)
 
     def __str__(self) -> str:
         valor = '—' if self.nota is None else self.nota
-        return f'Nota de {self.estudiante_id} en {self.asignatura_id.ident}: {valor}'
+        return f'Nota de {self.estudiante_id} en {self.asignatura_id} ({self.curso_id}): {valor}'
     
 class Aula(models.Model):
     nombre = models.CharField(max_length=50)

@@ -9,7 +9,7 @@ from .views import (
     ListAula, CreateAula, UpdateAula, DeleteAula,
     ListCursos, CreateCurso, UpdateCurso, DeleteCurso,
     ListEstudiantes, CreateEstudiante, UpdateEstudiante, DeleteEstudiante,
-    ListPromedioAsignatura, CreatePromedioAsignatura, UpdatePromedioAsignatura, DeletePromedioAsignatura,
+    ListPromedioAsignatura, NotasDocente,
     ListAsignatura, CreateAsignatura, UpdateAsignatura, DeleteAsignatura,
     ListCargaHoraria, 
 )
@@ -74,10 +74,8 @@ urlpatterns = [
 
     # PROMEDIOS
     path('promedioasignatura/estudiante/<str:rut>/<int:curso_id>/', ListPromedioAsignatura.as_view(), name='promedioasignatura'),
-    path('promedioasignatura/estudiante/<str:rut>/<int:curso_id>/crear/', CreatePromedioAsignatura.as_view(), name='promedioasignaturacreate'),
-    path('promedioasignaturaupdate/<int:pk>/', UpdatePromedioAsignatura.as_view(), name='promedioasignaturaupdate'),
-    path('promedioasignaturadelete/<int:pk>/', DeletePromedioAsignatura.as_view(), name='promedioasignaturadelete'),
     path('promedioasignaturaexport/<str:rut>/<int:export>', views.ExportarNotas, name='notasexport'),
+    path('promedioasignatura/notasdocentelist/', NotasDocente.as_view(), name='notasdocente'),
 
     # ASIGNATURAS
     path('asignaturas/', ListAsignatura.as_view(), name='asignaturas'),

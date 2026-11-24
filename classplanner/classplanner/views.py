@@ -10,7 +10,9 @@ from django.views import View
 from django.views.decorators.http import require_POST
 from django.contrib import messages
 from django.db.models.deletion import RestrictedError
-from django.db.models import Case, F, IntegerField, OuterRef, Subquery, When
+from django.db.models import Case, F, IntegerField, OuterRef, Subquery, When, Avg, Value
+from django.db.models.functions import Coalesce
+from collections import Counter, defaultdict
 from datetime import datetime
 from django.conf import settings
 import json
@@ -27,7 +29,7 @@ from .forms import (
     CursoForm, AsignaturasCreateForm, AsignaturaUpdateForm,
     AulaCreateForm, AulaUpdateForm,
     EstudiantesCreateForm, EstudiantesUpdateForm,
-    PromedioAsignaturaCreateForm, PromedioAsignaturaUpdateForm
+    PlanillaNotasForm, MIN_NOTAS_PROMEDIO,
 )
 
 from django.contrib.auth import logout, get_user_model
@@ -1250,172 +1252,231 @@ def ActivateEstudiante(request, rut):
 
 # ----------------------------------- # PROMEDIOS
 
-MIN_NOTAS_PROMEDIO = 2
+def obtener_planes(curso, solo_diferenciales=False):
+    planes = PlanDeEstudio.objects.filter(
+        curso_id=curso,
+        asignatura_id__is_active=True,
+    ).select_related(
+        'curso_id',
+        'asignatura_id__nombres_asignatura_id',
+        'asignatura_id__areas_planes_diferenciales_id',
+    ).order_by('asignatura_id__ident')
+    if solo_diferenciales:
+        planes = planes.filter(asignatura_id__areas_planes_diferenciales_id__isnull=False)
+    return planes
 
-def calcular_promedios(notas):
-    por_asignatura = {}
-
-    for nota in notas:
-        item = por_asignatura.setdefault(nota.asignatura_id_id, {
-            'asignatura': nota.asignatura_id,
-            'valores': [],
-        })
-
-        if nota.nota is not None:
-            item['valores'].append(nota.nota)
-
-    resultados = []
-
-    for item in por_asignatura.values():
-        valores = item['valores']
-        media = sum(valores) / len(valores) if len(valores) >= MIN_NOTAS_PROMEDIO else None
-        resultados.append({
-            'asignatura': item['asignatura'],
-            'cantidad': len(valores),
-            'media': media,
-            'promedio': None if media is None else round(media, 1),
-        })
-
-    return resultados
-
-def promedio_final(promedios):
-    medias = [p['media'] for p in promedios if p['media'] is not None]
-    return round(sum(medias) / len(medias), 1) if medias else 0
+def actualizar_promedios(ruts):
+    por_estudiante = defaultdict(list)
+    medias = (
+        PromedioAsignatura.objects
+        .filter(estudiante_id__in=ruts, nota__isnull=False)
+        .values('estudiante_id', 'curso_id', 'asignatura_id')
+        .annotate(media=Avg('nota'))
+    )
+    for fila in medias:
+        por_estudiante[fila['estudiante_id']].append(fila['media'])
+    resultado = {}
+    for rut in ruts:
+        valores = por_estudiante.get(rut, [])
+        resultado[rut] = round(sum(valores) / len(valores), 1) if valores else 0
+        Estudiante.objects.filter(rut=rut).update(promedio=resultado[rut])
+    return resultado
 
 def actualizar_promedio_estudiante(rut):
-    notas = PromedioAsignatura.objects.filter(estudiante_id=rut).select_related('asignatura_id')
-    final = promedio_final(calcular_promedios(notas))
-    Estudiante.objects.filter(rut=rut).update(promedio=final)
+    return actualizar_promedios([rut])[rut]
+
+def clases_docente(usuario):
+    return BloqueDeClase.objects.filter(
+        usuario_id=usuario,
+        horario_id__isnull=False,
+    ).annotate(
+        anio=Coalesce(
+            'horario_id__anio_planificacion',
+            Value(timezone.now().year),
+            output_field=IntegerField(),
+        )
+    )
+
+def elegir_anio(anios, solicitado):
+    anio_actual = timezone.now().year
+    solicitado = a_int(solicitado)
+    if solicitado in anios:
+        return solicitado
+    return anio_actual if anio_actual in anios else anios[0]
+
+def obtener_planes_docente(usuario, curso):
+    return obtener_planes(curso).filter(
+        asignatura_id__in=usuario.asignatura_id.all()
+    )
 
 @login_required
-@roles_required('root', 'Administrador', 'Director', 'Docente')
+@roles_required('root', 'Administrador', 'Director')
 def ExportarNotas(request, rut, export):
-    porcentaje_asis = request.GET.get('asistencia')
-    observacion = request.GET.get('observacion')
-    notas_estudiante_model = PromedioAsignatura.objects.all()
-
-    if Estudiante.objects.filter(rut=rut).exists():
-        if not export:
-            raise BadRequest('No se pudo completar la exportación')
-
-        notas_estudiante = notas_estudiante_model.filter(estudiante_id__rut=rut)
-        notas = [
-            nota for nota in notas_estudiante
-        ]
-        if not notas:
-            raise BadRequest('No existen notas para exportar')
-
-        return _exportar_notas_pdf(
-            notas_estudiante,
-            Estudiante.objects.filter(rut=rut),
-            export,
-            porcentaje_asis,
-            observacion,
-        )
-    else: raise Http404('El estudiante no existe')
-
-class PromedioAsignaturaMixin:
-    def get_estudiante(self):
-        if not hasattr(self, '_estudiante'):
-            if 'rut' in self.kwargs:
-                self._estudiante = get_object_or_404(
-                    Estudiante,
-                    rut=self.kwargs['rut'],
-                    curso_id=self.kwargs['curso_id'],
-                )
-            else:
-                self._estudiante = get_object_or_404(Estudiante, rut=self.object.estudiante_id_id)
-
-        return self._estudiante
-
-    def get_success_url(self):
-        estudiante = self.get_estudiante()
-        return reverse('promedioasignatura', kwargs={'rut': estudiante.rut, 'curso_id': estudiante.curso_id_id})
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['estudiante'] = self.get_estudiante()
-        return context
+    estudiante = get_object_or_404(Estudiante, rut=rut)
+    if not export:
+        raise BadRequest('No se pudo completar la exportación')
+    asignaturas = obtener_planes(
+        estudiante.curso_id, solo_diferenciales=True
+    ).values('asignatura_id')
+    notas_estudiante = PromedioAsignatura.objects.filter(
+        estudiante_id=estudiante.rut,
+        curso_id=estudiante.curso_id,
+        asignatura_id__in=asignaturas,
+    ).select_related(
+        'asignatura_id__nombres_asignatura_id'
+    ).order_by(
+        'asignatura_id__ident',
+        'id',
+    )
+    return _exportar_notas_pdf(
+        notas_estudiante,
+        Estudiante.objects.filter(rut=estudiante.rut),
+        export,
+        request.GET.get('asistencia'),
+        request.GET.get('observacion'),
+    )
 
 @method_decorator(login_required, name='dispatch')
-@method_decorator(roles_required('root', 'Administrador', 'Director', 'Docente'), name='dispatch')
-class ListPromedioAsignatura(PromedioAsignaturaMixin, ListView):
+@method_decorator(roles_required('root', 'Administrador', 'Director'), name='dispatch')
+class ListPromedioAsignatura(View):
     template_name = 'classplanner/promedioasignatura/promedioasignaturalist.html'
-    context_object_name = 'notas'
 
-    def get_queryset(self):
+    def get_estudiante(self):
+        estudiante = get_object_or_404(
+            Estudiante,
+            rut=self.kwargs['rut'],
+            curso_id=self.kwargs['curso_id'],
+        )
+        if not estudiante.is_active:
+            raise Http404('No se pueden editar las notas de un estudiante desactivado')
+        return estudiante
+
+    def crear_form(self, estudiante, datos=None):
+        planes = obtener_planes(estudiante.curso_id)
+        return PlanillaNotasForm(
+            datos,
+            estudiantes=[estudiante],
+            curso=estudiante.curso_id,
+            asignaturas=[p.asignatura_id for p in planes],
+        )
+
+    def get(self, request, *args, **kwargs):
         estudiante = self.get_estudiante()
-        if estudiante.is_active == False:
-            raise Http404('No se pueden editar las notas de un estudiante desactivado')
-        return PromedioAsignatura.objects.filter(
-            estudiante_id=estudiante.rut,
-        ).select_related('asignatura_id').order_by('asignatura_id__ident', 'id')
+        return self.render_page(request, estudiante, self.crear_form(estudiante))
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        promedios = calcular_promedios(context['notas'])
-        context['promedios'] = promedios
-        context['promedio_final'] = promedio_final(promedios)
-        context['con_promedio'] = sum(1 for p in promedios if p['media'] is not None)
-        return context
+    def post(self, request, *args, **kwargs):
+        estudiante = self.get_estudiante()
+        form = self.crear_form(estudiante, request.POST)
+        if form.is_valid():
+            actualizar_promedios(form.save())
+            messages.success(request, '¡Notas actualizadas correctamente!')
+            return redirect(
+                'promedioasignatura',
+                rut=estudiante.rut,
+                curso_id=estudiante.curso_id_id,
+            )
+        return self.render_page(request, estudiante, form)
 
-@method_decorator(login_required, name='dispatch')
-@method_decorator(roles_required('root', 'Administrador', 'Director', 'Docente'), name='dispatch')
-class CreatePromedioAsignatura(PromedioAsignaturaMixin, CreateView):
-    model = PromedioAsignatura
-    form_class = PromedioAsignaturaCreateForm
-    template_name = 'classplanner/promedioasignatura/promedioasignaturacreate.html'
-
-    def get_form_kwargs(self):
-        kwargs = super().get_form_kwargs()
-        kwargs['estudiante'] = self.get_estudiante()
-        if self.get_estudiante().is_active == False:
-            raise Http404('No se pueden editar las notas de un estudiante desactivado')
-        return kwargs
-
-    def get_form(self, form_class=None):
-        form_class = self.get_form_class()
-        form_class
-        return form_class(**self.get_form_kwargs())
-
-    def form_valid(self, form):
-        response = super().form_valid(form)
-        actualizar_promedio_estudiante(self.object.estudiante_id_id)
-        messages.success(self.request, '¡Nota registrada con éxito!')
-        return response
-
-@method_decorator(login_required, name='dispatch')
-@method_decorator(roles_required('root', 'Administrador', 'Director', 'Docente'), name='dispatch')
-class UpdatePromedioAsignatura(PromedioAsignaturaMixin, UpdateView):
-    model = PromedioAsignatura
-    form_class = PromedioAsignaturaUpdateForm
-    template_name = 'classplanner/promedioasignatura/promedioasignaturaupdate.html'
-    context_object_name = 'nota'
-
-    def get_form_kwargs(self):
-        kwargs = super().get_form_kwargs()
-        kwargs['estudiante'] = self.get_estudiante()
-        return kwargs
-
-    def form_valid(self, form):
-        response = super().form_valid(form)
-        actualizar_promedio_estudiante(self.object.estudiante_id_id)
-        messages.success(self.request, '¡Nota actualizada con éxito!')
-        return response
+    def render_page(self, request, estudiante, form):
+        promedios = [
+            {'asignatura': asignatura, **form.fila(estudiante.rut, asignatura.pk)}
+            for asignatura in form.asignaturas
+        ]
+        medias = [p['media'] for p in promedios if p['media'] is not None]
+        return render(request, self.template_name, {
+            'estudiante': estudiante,
+            'form': form,
+            'notas': PromedioAsignatura.objects.filter(
+                estudiante_id=estudiante.rut,
+                curso_id=estudiante.curso_id,
+                asignatura_id__in=[a.pk for a in form.asignaturas],
+            ).select_related(
+                'asignatura_id__nombres_asignatura_id'
+            ).order_by(
+                'asignatura_id__ident',
+                'id',
+            ),
+            'promedios': promedios,
+            'promedio_final': round(sum(medias) / len(medias), 1) if medias else None,
+            'con_promedio': len(medias),
+        })
 
 @method_decorator(login_required, name='dispatch')
-@method_decorator(roles_required('root', 'Administrador', 'Director', 'Docente'), name='dispatch')
-class DeletePromedioAsignatura(PromedioAsignaturaMixin, DeleteView):
-    model = PromedioAsignatura
-    template_name = 'classplanner/promedioasignatura/promedioasignaturadelete.html'
-    context_object_name = 'nota'
+@method_decorator(roles_required('Docente'), name='dispatch')
+class NotasDocente(View):
+    template_name = 'classplanner/promedioasignatura/notasdocentelist.html'
 
-    def form_valid(self, form):
-        rut = self.object.estudiante_id_id
-        response = super().form_valid(form)
-        actualizar_promedio_estudiante(rut)
-        messages.success(self.request, '¡Nota eliminada con éxito!')
-        return response
+    def obtener_seleccion(self, request):
+        datos = request.POST if request.method == 'POST' else request.GET
+        clases = clases_docente(request.user)
+        anios = sorted(set(clases.values_list('anio', flat=True)), reverse=True) or [timezone.now().year]
+        anio = elegir_anio(anios, datos.get('anio'))
+        clases_anio = clases.filter(anio=anio)
+        cursos = Curso.objects.filter(pk__in=clases_anio.values('curso_id')).order_by('nivel', 'letra')
+
+        curso = plan = None
+        asignaturas = PlanDeEstudio.objects.none()
+        estudiantes = []
+
+        if datos.get('curso'):
+            curso = get_object_or_404(cursos, pk=a_int(datos.get('curso')))
+            asignaturas = obtener_planes_docente(request.user, curso)
+            if datos.get('asignatura'):
+                plan = get_object_or_404(asignaturas, pk=a_int(datos.get('asignatura')))
+                estudiantes = list(
+                    Estudiante.objects
+                    .filter(curso_id=curso, is_active=True)
+                    .order_by('apellido_p', 'apellido_m', 'nombre')
+                )
+        return {
+            'anios': anios,
+            'anio': anio,
+            'cursos': cursos,
+            'curso_seleccionado': curso,
+            'asignaturas': asignaturas,
+            'plan_seleccionado': plan,
+            'estudiantes': estudiantes,
+        }
+
+    def get(self, request, *args, **kwargs):
+        contexto = self.obtener_seleccion(request)
+        plan = contexto['plan_seleccionado']
+        form = None
+        if plan:
+            form = PlanillaNotasForm(
+                estudiantes=contexto['estudiantes'],
+                curso=contexto['curso_seleccionado'],
+                asignaturas=[plan.asignatura_id],
+            )
+        return self.render_page(request, contexto, form)
+
+    def post(self, request, *args, **kwargs):
+        contexto = self.obtener_seleccion(request)
+        plan = contexto['plan_seleccionado']
+        if not plan:
+            raise Http404('No se encontró una asignatura válida para este curso.')
+        form = PlanillaNotasForm(
+            request.POST,
+            estudiantes=contexto['estudiantes'],
+            curso=contexto['curso_seleccionado'],
+            asignaturas=[plan.asignatura_id],
+        )
+        if form.is_valid():
+            actualizar_promedios(form.save())
+            messages.success(request, '¡Las notas de los estudiantes se actualizaron correctamente!')
+            return redirect(
+                f'{request.path}?anio={contexto["anio"]}&curso={contexto["curso_seleccionado"].pk}&asignatura={plan.pk}'
+            )
+        return self.render_page(request, contexto, form)
+
+    def render_page(self, request, contexto, form):
+        plan = contexto['plan_seleccionado']
+        contexto['form'] = form
+        contexto['filas'] = [
+            {'estudiante': estudiante, **form.fila(estudiante.rut, plan.asignatura_id.pk)}
+            for estudiante in contexto['estudiantes']
+        ] if form else []
+        return render(request, self.template_name, contexto)
 
 # ----------------------------------- # ASIGNATURAS
 
@@ -1515,7 +1576,9 @@ def ActivateAsignatura(request, pk):
 def ExportarPlanes(request, export):
     if export == 'excel':
         if request.method != 'POST':
-            raise BadRequest('Solicitud de exportación inválida')
+            # raise BadRequest('Solicitud de exportación inválida')
+            messages.error(request, 'Solicitud de exportación inválida')
+            return redirect('plandeestudio')
 
         planes_seleccionados = request.POST.getlist('plan_checkbox')
         if 'exportar_todo' in planes_seleccionados:
@@ -1526,14 +1589,18 @@ def ExportarPlanes(request, export):
             if curso_id != 'exportar_todo'
         ]
         if not cursos_seleccionados:
-            raise BadRequest('Seleccione planes válidos para exportar')
+            # raise BadRequest('Seleccione planes válidos para exportar')
+            messages.error(request, 'Seleccione planes válidos para exportar')
+            return redirect('plandeestudio')
 
         planes = PlanDeEstudio.objects.filter(curso_id__in=cursos_seleccionados)
         return exportar_planes(planes, export)
     
     elif export == 'pdf':
         if request.method != 'POST':
-                raise BadRequest('Solicitud de exportación inválida')
+            # raise BadRequest('Solicitud de exportación inválida')
+            messages.error(request, 'Solicitud de exportación inválida')
+            return redirect('plandeestudio')
     
         planes_seleccionados = request.POST.getlist('plan_checkbox')
         if 'exportar_todo' in planes_seleccionados:
@@ -1544,7 +1611,9 @@ def ExportarPlanes(request, export):
             if curso_id != 'exportar_todo'
         ]
         if not cursos_seleccionados:
-            raise BadRequest('Seleccione planes válidos para exportar')
+            # raise BadRequest('Seleccione planes válidos para exportar')
+            messages.error(request, 'Seleccione planes válidos para exportar')
+            return redirect('plandeestudio')
 
         planes = PlanDeEstudio.objects.filter(curso_id__in=cursos_seleccionados)
         return exportar_planes(planes, export)
@@ -2056,11 +2125,15 @@ def ExportarCargaHoraria(request):
     )
     if 'exportar_todo' not in cargas_seleccionadas:
         if not cargas_seleccionadas:
-            raise BadRequest('Seleccione cargas horarias válidas para exportar')
+            # raise BadRequest('Seleccione cargas horarias válidas para exportar')
+            messages.error(request, 'Seleccione cargas horarias válidas para exportar')
+            return redirect('cargashorarias')
         cargas = cargas.filter(pk__in=cargas_seleccionadas)
 
     if not cargas.exists():
-        raise BadRequest('Seleccione cargas horarias válidas para exportar')
+        # raise BadRequest('Seleccione cargas horarias válidas para exportar')
+        messages.error(request, 'Seleccione cargas horarias válidas para exportar')
+        return redirect('cargashorarias')
 
     bloques = (
         BloqueDeClase.objects
@@ -2165,7 +2238,7 @@ def PrevisualizarHorario(request, filename):
 @login_required
 @require_POST
 def DescargarHorariosHistoricos(request):
-    return DescargaHorariosHistoricos(request.POST.getlist('export_checkbox'))
+    return DescargaHorariosHistoricos(request.POST.getlist('export_checkbox'), request)
 
 @login_required
 def DescargarHorario(request, filename):
@@ -2201,9 +2274,13 @@ def ListHorarios(request):
     ids_cursos = set(horarios.values_list('plan_de_estudio_id__curso_id', flat=True))
     cursos = list(Curso.objects.filter(pk__in=ids_cursos))
 
-    curso_sel = next((c for c in cursos if c.pk == a_int(request.GET.get('curso'))), None)
-    if curso_sel is None and cursos:
-        curso_sel = cursos[0]
+    if request.user.rol.name == 'Docente':
+        curso_sel = next((c for c in cursos if c.usuario_id == request.user), None)
+        
+    else:
+        curso_sel = next((c for c in cursos if c.pk == a_int(request.GET.get('curso'))), None)
+        if curso_sel is None and cursos:
+            curso_sel = cursos[0]
 
     jornadas, horario_sel = [], None
 
@@ -2358,6 +2435,9 @@ def anio_de_planificacion(hoy=None):
 @roles_required('root', 'Administrador', 'Director')
 @periodo_planificacion_required()
 def CreateHorario(request): # Pendiente: validar asignaturas asignadas en bloques si: total de casillas (por asignatura) es == hrs registradas en el plan de estudio 
+    if request.user.rol.name == 'Docente':
+        horario = get_object_or_404(Horario.objects.all())
+
     bloques_por_jornada = obtener_bloques_por_jornada()
     errores = {}
     anio = anio_de_planificacion()  
@@ -2815,7 +2895,9 @@ def UpdateHorario(request, pk): # Pendiente: validar asignaturas asignadas en bl
 @login_required
 def ExportarHorario(request):
     if request.method != 'POST':
-        raise BadRequest('Solicitud de exportación inválida')
+        # raise BadRequest('Solicitud de exportación inválida')
+        messages.error(request, 'Solicitud de exportación inválida')
+        return redirect('horarios')
 
     cursos_seleccionados = [
         curso_id.strip()
@@ -2827,13 +2909,20 @@ def ExportarHorario(request):
         len(valores_exportar_todos) != 1
         or valores_exportar_todos[0] not in ('', '1')
     ):
-        raise BadRequest('Selección de exportación inválida')
+        # raise BadRequest('Selección de exportación inválida')
+        messages.error(request, 'Selección de exportación inválida')
+        return redirect('horarios')
 
     exportar_todos = valores_exportar_todos[0] == '1'
     if exportar_todos and cursos_seleccionados:
-        raise BadRequest('Seleccione un curso o todos los cursos')
+        # raise BadRequest('Seleccione un curso o todos los cursos')
+        messages.error(request, 'Seleccione un curso o todos los cursos')
+        return redirect('horarios')
+    
     if not exportar_todos and len(cursos_seleccionados) != 1:
-        raise BadRequest('Seleccione un curso o todos los cursos')
+        # raise BadRequest('Seleccione un curso o todos los cursos')
+        messages.error(request, 'Seleccione un curso o todos los cursos')
+        return redirect('horarios')
 
     ultimo_horario = (
         Horario.objects
@@ -2864,12 +2953,16 @@ def ExportarHorario(request):
     if not exportar_todos:
         curso_id = a_int(cursos_seleccionados[0])
         if curso_id is None:
-            raise BadRequest('Seleccione un curso válido')
+            # raise BadRequest('Seleccione un curso válido')
+            messages.error(request, 'Seleccione un curso válido')
+            return redirect('horarios')
         horarios = horarios.filter(plan_de_estudio_id__curso_id=curso_id)
 
     horarios_exportados = list(horarios)
     if not horarios_exportados:
-        raise BadRequest('No hay horarios disponibles para exportar')
+        # raise BadRequest('No hay horarios disponibles para exportar')
+        messages.error(request, 'No hay horarios disponibles para exportar')
+        return redirect('horarios')
 
     cursos = []
     for horario in horarios_exportados:
@@ -2905,6 +2998,11 @@ def ExportarHorario(request):
         .select_related('usuario_id')
     )
     return exportar_horarios(cursos, cargas, bloques)
+
+# ----------------------------------- # ERROR 404
+
+def error_404(request):
+    return render(request, 'classplanner/notfound.html', status=404)
 
 # ----------------------------------- #
 

@@ -1,0 +1,360 @@
+{% extends "classplanner/base.html" %}
+{% block title %}<title>Notas de estudiantes | ClassPlanner</title>{% endblock %}
+{% block content %}
+
+<div class="mt-2 min-h-[10vh] rounded-lg p-4">
+    <p class="mb-3 text-slate-500 dark:text-slate-400">
+        <a class="hover:underline" href="{% url 'home' %}">Gestión</a> /
+        <a class="hover:underline" href="{% url 'estudiantes' %}">Estudiantes</a> /
+        <span class="font-semibold text-slate-700 dark:text-slate-200">Notas de estudiantes</span>
+    </p>
+
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+            <h2 class="mb-2 text-4xl font-semibold text-[#234FA8] dark:text-blue-400">Notas de estudiantes</h2>
+            <p class="text-sm text-slate-500 dark:text-[#a8b2d2]">
+                Selecciona un curso y una asignatura para ingresar o modificar las calificaciones.
+            </p>
+        </div>
+
+        <button type="button" id="estudiantes-back" data-url="{% url 'estudiantes' %}" onclick="window.exitConfirm(this)" class="flex shrink-0 items-center justify-center gap-2 rounded-lg border-2 border-slate-300 px-4 py-3 text-sm font-semibold text-slate-500 transition hover:bg-gray-100 hover:text-slate-700 dark:border-slate-700 dark:bg-[#141826] dark:text-[#a8b2d2] dark:hover:bg-[#1d2236] dark:hover:text-white">
+            <i class="bi bi-arrow-left"></i> Volver a estudiantes
+        </button>
+    </div>
+</div>
+
+<div class="mt-10 min-h-[71vh] bg-white dark:bg-[#141826] rounded-lg border border-slate-300 p-4 dark:border-slate-700">
+    <div class="user-list-content">
+
+        <!-- SELECCIÓN DE CURSO Y ASIGNATURA -->
+        <form method="GET" id="form-filtros" class="mb-8 flex flex-col gap-4 md:flex-row md:items-end">
+
+            <div class="w-full md:w-72">
+                <label for="select-curso" class="mb-2 block text-sm font-semibold text-slate-600 dark:text-[#a8b2d2]">
+                    Curso
+                </label>
+                <select name="curso" id="select-curso" class="h-12 w-full rounded-lg border-2 border-slate-300 bg-white p-3 text-sm text-slate-700 transition focus:outline-none focus-visible:ring-[3px] focus-visible:ring-blue-600 dark:border-slate-700 dark:bg-[#141826] dark:text-[#a8b2d2]">
+                    <option value="">Seleccionar curso</option>
+                    {% for c in cursos %}
+                    <option value="{{ c.pk }}" {% if curso_seleccionado.pk == c.pk %}selected{% endif %}>
+                        {{ c }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="w-full md:w-80">
+                <label for="select-asignatura" class="mb-2 block text-sm font-semibold text-slate-600 dark:text-[#a8b2d2]">
+                    Asignatura
+                </label>
+                <select name="asignatura" id="select-asignatura" onchange="this.form.submit()" {% if not curso_seleccionado %}disabled{% endif %} class="h-12 w-full rounded-lg border-2 border-slate-300 bg-white p-3 text-sm text-slate-700 transition focus:outline-none focus-visible:ring-[3px] focus-visible:ring-blue-600 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400 dark:border-slate-700 dark:bg-[#141826] dark:text-[#a8b2d2] dark:disabled:bg-[#10141f]">
+                    <option value="">Seleccionar asignatura</option>
+                    {% for p in asignaturas %}
+                    <option value="{{ p.pk }}" {% if plan_seleccionado.pk == p.pk %}selected{% endif %}>
+                        {{ p.asignatura_id }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+        </form>
+
+        {% if not cursos %}
+        <div class="rounded-lg border border-slate-300 p-8 text-center dark:border-slate-700">
+            <i class="bi bi-calendar-x text-4xl text-slate-400"></i>
+            <p class="mt-3 font-semibold text-slate-600 dark:text-white">No tienes cursos asignados.</p>
+            <p class="mt-1 text-sm text-slate-400">No se encontraron cursos asociados a tu horario.</p>
+        </div>
+
+        {% elif curso_seleccionado and not asignaturas %}
+        <div class="rounded-lg border border-slate-300 p-8 text-center dark:border-slate-700">
+            <i class="bi bi-journal-x text-4xl text-slate-400"></i>
+            <p class="mt-3 font-semibold text-slate-600 dark:text-white">No tienes asignaturas asignadas en este curso.</p>
+            <p class="mt-1 text-sm text-slate-400">Selecciona otro curso o revisa tu horario.</p>
+        </div>
+
+        {% elif not curso_seleccionado %}
+        <div class="rounded-lg border border-slate-300 p-8 text-center dark:border-slate-700">
+            <i class="bi bi-mortarboard text-4xl text-slate-400"></i>
+            <p class="mt-3 font-semibold text-slate-600 dark:text-white">Selecciona un curso para comenzar.</p>
+            <p class="mt-1 text-sm text-slate-400">Luego podrás seleccionar una de las asignaturas que impartes.</p>
+        </div>
+
+        {% elif not plan_seleccionado %}
+        <div class="rounded-lg border border-slate-300 p-8 text-center dark:border-slate-700">
+            <i class="bi bi-journal-text text-4xl text-slate-400"></i>
+            <p class="mt-3 font-semibold text-slate-600 dark:text-white">Selecciona una asignatura.</p>
+            <p class="mt-1 text-sm text-slate-400">Se mostrará la planilla de notas de los estudiantes del curso.</p>
+        </div>
+
+        {% else %}
+
+        <div class="flex flex-col-reverse w-full">
+            <!-- INFORMACIÓN DEL CURSO Y ASIGNATURA -->
+            <div class="mb-6 rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-900 dark:bg-blue-950/30">
+                <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                        <p class="text-xs font-semibold uppercase tracking-wide text-blue-600 dark:text-blue-400">Curso seleccionado</p>
+                        <p class="text-lg font-bold text-slate-800 dark:text-white">{{ curso_seleccionado }}</p>
+                    </div>
+                    <div>
+                        <p class="text-xs font-semibold uppercase tracking-wide text-blue-600 dark:text-blue-400">Asignatura seleccionada</p>
+                        <p class="text-lg font-bold text-slate-800 dark:text-white">{{ plan_seleccionado.asignatura_id }}</p>
+                    </div>
+                    <div>
+                        <p class="text-xs font-semibold uppercase tracking-wide text-blue-600 dark:text-blue-400">Estudiantes</p>
+                        <p class="text-lg font-bold text-slate-800 dark:text-white">{{ filas|length }}</p>
+                    </div>
+                </div>
+            </div>
+
+            {% if filas %}
+            <!-- ACCIONES -->
+            <div class="mb-6 w-full flex items-end justify-end gap-3">
+                <div class="flex md:flex-row flex-col-reverse justify-end w-full gap-2">
+                    <button type="button" id="editar-notas" class="md:w-auto w-full justify-center flex shrink-0 items-center gap-2 rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white transition hover:bg-blue-800">
+                        <i class="bi bi-pencil-square"></i> Editar notas
+                    </button>
+                    <button type="button" id="cancelar-notas" class="md:w-auto w-full justify-center hidden shrink-0 items-center gap-2 rounded-lg border-2 border-slate-300 px-6 py-3 font-semibold text-slate-500 transition hover:bg-gray-100 hover:text-slate-700 dark:border-slate-700 dark:text-[#a8b2d2] dark:hover:bg-[#1d2236] dark:hover:text-white">
+                        <i class="bi bi-x-lg"></i> Cancelar
+                    </button>
+                    <button type="submit" form="form-planilla" id="aceptar-notas" class="md:w-auto w-full justify-center hidden shrink-0 items-center gap-2 rounded-lg bg-emerald-600 px-6 py-3 font-semibold text-white transition hover:bg-emerald-700">
+                        <i class="bi bi-check-lg"></i> Guardar notas
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- PLANILLA DE NOTAS -->
+        <form id="form-planilla" method="POST">
+            {% csrf_token %}
+            <input type="hidden" name="curso" value="{{ curso_seleccionado.pk }}">
+            <input type="hidden" name="asignatura" value="{{ plan_seleccionado.pk }}">
+
+            <div class="mb-3 flex items-center justify-between gap-3">
+                <p class="text-sm text-slate-500 dark:text-[#a8b2d2]">
+                    <i class="bi bi-info-circle"></i>
+                    Las calificaciones deben estar entre 1.0 y 7.0.
+                </p>
+                <span id="estado-planilla" class="shrink-0 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-500 dark:bg-slate-800 dark:text-slate-300">
+                    Solo lectura
+                </span>
+            </div>
+
+            <div class="overflow-hidden rounded-lg border border-slate-300 bg-white shadow-xs dark:border-slate-700 dark:bg-[#141826]">
+                <div class="relative max-h-[65vh] overflow-auto">
+                    <table class="w-full border-separate border-spacing-0 text-sm text-slate-700 dark:text-[#a8b2d2]">
+                        <thead class="sticky top-0 z-20">
+                            <tr class="text-center text-slate-700 dark:text-white">
+                                <th class="sticky left-0 z-30 min-w-[42px] border-b border-r border-slate-300 bg-slate-200 px-3 py-3 text-xs font-semibold dark:border-slate-700 dark:bg-[#10141f]">#</th>
+                                <th class="sticky left-[42px] z-30 min-w-[230px] whitespace-nowrap border-b border-r border-slate-300 bg-slate-200 px-4 py-3 text-left font-bold dark:border-slate-700 dark:bg-[#10141f]">Estudiante</th>
+                                {% comment %} <th class="min-w-[130px] whitespace-nowrap border-b border-r border-slate-300 bg-slate-200 px-3 py-3 font-bold dark:border-slate-700 dark:bg-[#10141f]">RUT</th> {% endcomment %}
+                                {% for numero in "12345678" %}
+                                <th class="min-w-[90px] whitespace-nowrap border-b border-r border-slate-300 bg-slate-200 px-3 py-3 font-bold dark:border-slate-700 dark:bg-[#10141f]">
+                                    Nota {{ forloop.counter }}
+                                </th>
+                                {% endfor %}
+                                <th class="min-w-[110px] whitespace-nowrap border-b border-slate-300 bg-slate-200 px-4 py-3 font-bold dark:border-slate-700 dark:bg-[#10141f]">Promedio</th>
+                                <th class="whitespace-nowrap border-b border-slate-300 bg-slate-200 px-4 py-3 font-bold dark:border-slate-700 dark:bg-[#10141f]">Limpiar</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {% for fila in filas %}
+                            <tr class="group">
+                                <td class="sticky left-0 z-10 border-b border-r border-slate-300 bg-slate-100 px-3 py-3 text-center text-xs font-semibold text-slate-400 group-hover:bg-blue-100 dark:border-slate-700 dark:bg-[#10141f] dark:group-hover:bg-blue-950">
+                                    {{ forloop.counter }}
+                                </td>
+
+                                <td class="sticky left-[42px] z-10 whitespace-nowrap border-b border-r border-slate-300 bg-white px-4 py-3 font-semibold group-hover:bg-blue-50 dark:border-slate-700 dark:bg-[#171c2b] dark:group-hover:bg-[#1d2540]">
+                                    {{ fila.estudiante.nombre }} {{ fila.estudiante.apellido_p }} {{ fila.estudiante.apellido_m }}
+                                </td>
+
+                                {% comment %} <td class="border-b border-r border-slate-300 bg-white px-3 py-3 text-center font-mono text-xs group-hover:bg-blue-50 dark:border-slate-700 dark:bg-[#171c2b] dark:group-hover:bg-[#1d2540]">
+                                    {{ fila.estudiante.rut }}
+                                </td> {% endcomment %}
+
+                                {% for campo in fila.campos %}
+                                <td class="border-b border-r border-slate-300 bg-white px-2 py-2 text-center group-hover:bg-blue-50 dark:border-slate-700 dark:bg-[#171c2b] dark:group-hover:bg-[#1d2540] [&_input]:mx-auto [&_input]:block [&_input]:h-[38px] [&_input]:w-[76px] [&_input]:min-w-[76px] [&_input]:rounded-md [&_input]:p-1 [&_input]:text-center [&_input]:font-mono [&_input]:font-semibold [&_input]:outline-none [&_input]:transition [&_input]:[appearance:textfield] [&_input::-webkit-inner-spin-button]:appearance-none [&_input::-webkit-outer-spin-button]:appearance-none [&_input[readonly]]:cursor-default [&_input[readonly]]:border-0 [&_input[readonly]]:bg-transparent [&_input[readonly]]:text-slate-700 dark:[&_input[readonly]]:text-[#a8b2d2] [&_input:not([readonly])]:cursor-text [&_input:not([readonly])]:border-2 [&_input:not([readonly])]:border-blue-500 [&_input:not([readonly])]:bg-white [&_input:not([readonly])]:text-blue-700 [&_input:not([readonly]):focus]:border-blue-700 [&_input:not([readonly]):focus]:ring-[3px] [&_input:not([readonly]):focus]:ring-blue-500/15 dark:[&_input:not([readonly])]:bg-[#1d2540] dark:[&_input:not([readonly])]:text-white">
+                                    {{ campo }}
+                                </td>
+                                {% endfor %}
+
+                                <td class="promedio-fila border-b border-slate-300 bg-slate-50 px-4 py-2 text-center font-mono font-bold dark:border-slate-700 dark:bg-[#10141f]">
+                                    {% if fila.promedio is None %}
+                                        <span class="text-slate-400">—</span>
+                                    {% elif fila.promedio < 4 %}
+                                        <span class="text-red-600 dark:text-red-400">{{ fila.promedio }}</span>
+                                    {% else %}
+                                        <span class="text-blue-700 dark:text-blue-400">{{ fila.promedio }}</span>
+                                    {% endif %}
+                                </td>
+                                <td class="border-b border-slate-300 px-3 py-2 text-center dark:border-slate-700">
+                                    <button type="button" title="Limpiar notas del estudiante" aria-label="Limpiar notas del estudiante" class="btn-limpiar-fila rounded-md bg-red-600 px-3 py-2 text-white transition hover:bg-red-700" disabled>
+                                        <i class="bi bi-eraser-fill"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="flex flex-col gap-2 border-t border-slate-300 bg-slate-100 px-4 py-3 text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between dark:border-slate-700 dark:bg-[#0d111c] dark:text-[#a8b2d2]">
+                    <span>{{ filas|length }} estudiante{{ filas|length|pluralize }}</span>
+                    <span>8 notas por estudiante · Asignatura: {{ plan_seleccionado.asignatura_id }}</span>
+                </div>
+            </div>
+        </form>
+
+        {% else %}
+        <div class="rounded-lg border border-slate-300 p-8 text-center dark:border-slate-700">
+            <i class="bi bi-people text-4xl text-slate-400"></i>
+            <p class="mt-3 font-semibold text-slate-600 dark:text-white">No hay estudiantes activos en este curso.</p>
+            <p class="mt-1 text-sm text-slate-400">No se encontraron estudiantes para ingresar calificaciones.</p>
+        </div>
+        {% endif %}
+        {% endif %}
+
+    </div>
+</div>
+
+<script>
+    function exitConfirm(button) {
+        const isDarkMode = document.documentElement.classList.contains('dark');
+
+        Swal.fire({
+            "title": "¿Está seguro que desea salir?",
+            "text": "No se guardarán los cambios.",
+            "icon": "warning",
+            "background": isDarkMode ? "#141826" : "#ffffff",
+            "color": isDarkMode ? "#f8fafc" : "#0f172a",
+            "showCancelButton": true,
+            "confirmButtonColor": "#0d6efd",
+            "cancelButtonColor": '#d33',
+            "confirmButtonText": 'Si, salir',
+            "cancelButtonText": 'Cancelar',
+        }).then((r) => {
+            if (!r.isConfirmed) return;
+
+            if (button.id != '') {
+                window.location.assign(button.dataset.url);
+            } else {
+                window.location.assign('/home');
+            }
+        });
+    };
+    
+    document.addEventListener('DOMContentLoaded', () => {
+
+        // SELECCIÓN DE CURSO Y ASIGNATURA
+        const formularioFiltros = document.getElementById('form-filtros');
+        const selectCurso = document.getElementById('select-curso');
+        const selectAsignatura = document.getElementById('select-asignatura');
+
+        if (selectCurso && selectAsignatura) {
+            selectCurso.addEventListener('change', () => {
+                selectAsignatura.value = '';
+                formularioFiltros.submit();
+            });
+        }
+
+        // EDICIÓN DE NOTAS
+        const formulario = document.getElementById('form-planilla');
+        const botonEditar = document.getElementById('editar-notas');
+        const botonAceptar = document.getElementById('aceptar-notas');
+        const botonCancelar = document.getElementById('cancelar-notas');
+        const estado = document.getElementById('estado-planilla');
+
+        if (formulario) {
+            const campos = [...formulario.querySelectorAll('input:not([type="hidden"]):not([type="submit"])')];
+            const botonesLimpiar = formulario.querySelectorAll('.btn-limpiar-fila');
+            let respaldo = [];
+            const cambiarModo = editar => {
+                campos.forEach(campo => campo.readOnly = !editar);
+
+                botonEditar.classList.toggle('hidden', editar);
+                botonAceptar.classList.toggle('hidden', !editar);
+                botonesLimpiar.forEach(boton => boton.disabled = !editar);
+                botonCancelar.classList.toggle('hidden', !editar);
+                if (editar) respaldo = campos.map(campo => campo.value);
+                estado.textContent = editar ? 'Modo edición' : 'Solo lectura';
+
+                ['bg-amber-100', 'text-amber-700', 'dark:bg-amber-950', 'dark:text-amber-300'].forEach(clase => estado.classList.toggle(clase, editar));
+                ['bg-slate-100', 'text-slate-500', 'dark:bg-slate-800'].forEach(clase => estado.classList.toggle(clase, !editar));
+
+                if (editar) campos[0]?.focus();
+            };
+
+            cambiarModo(false);
+
+            botonEditar.addEventListener('click', () => cambiarModo(true));
+
+            const actualizarPromedioFila = fila => {
+                const valores = [...fila.querySelectorAll('.nota-input')]
+                    .map(input => parseFloat(input.value.replace(',', '.')))
+                    .filter(n => Number.isFinite(n) && n >= 1 && n <= 7);
+
+                const promedio = valores.length
+                    ? (valores.reduce((a, b) => a + b, 0) / valores.length).toFixed(1)
+                    : '—';
+
+                const span = fila.querySelector('.promedio-fila span');
+
+                if (span) {
+                    span.textContent = promedio;
+                    span.className = promedio === '—'
+                        ? 'text-slate-400'
+                        : Number(promedio) < 4
+                            ? 'text-red-600 dark:text-red-400'
+                            : 'text-blue-700 dark:text-blue-400';
+                }
+            };
+            botonCancelar.addEventListener('click', () => {
+                campos.forEach((campo, i) => campo.value = respaldo[i]);
+                formulario.querySelectorAll('tbody tr').forEach(actualizarPromedioFila);
+                cambiarModo(false);
+            });
+            
+            // LIMPIAR FILA
+            botonesLimpiar.forEach(boton => {
+                boton.addEventListener('click', () => {
+                    const fila = boton.closest('tr');
+
+                    fila.querySelectorAll('.nota-input').forEach(input => {
+                        input.value = '';
+                    });
+
+                    actualizarPromedioFila(fila);
+                });
+            });
+        }
+    });
+    
+    // VALIDACIÓN Y FORMATO DE NOTAS
+    document.querySelectorAll('.nota-input').forEach(input => {
+        input.addEventListener('keydown', event => {
+            if (['e', 'E', '+', '-'].includes(event.key)) event.preventDefault();
+        });
+
+        input.addEventListener('input', () => {
+            let valor = input.value.replace(',', '.').replace(/[^0-9.]/g, '');
+            if (valor.includes('.')) {
+                const partes = valor.split('.');
+                valor = partes[0].slice(0, 1) + '.' + partes.slice(1).join('').slice(0, 1);
+            } else if (valor.length === 2) {
+                valor = valor[0] + '.' + valor[1];
+            } else {
+                valor = valor.slice(0, 1);
+            }
+            if (valor[0] && !/[1-7]/.test(valor[0])) valor = '';
+            input.value = valor;
+        });
+
+        input.addEventListener('blur', () => {
+            if (/^[1-7]$/.test(input.value)) input.value += '.0';
+        });
+    });
+</script>
+
+{% endblock %}

@@ -29,6 +29,8 @@ from reportlab.platypus import (
 
 from classplanner.models import Bloque, BloqueDeClase
 from core.middleware import constants
+from django.contrib import messages
+from django.shortcuts import redirect
 
 reportlab_fonts = Path(reportlab.__file__).parent / 'fonts'
 pdfmetrics.registerFont(TTFont('Vera', str(reportlab_fonts / 'Vera.ttf')))
@@ -978,15 +980,17 @@ def exportar_horarios(cursos, cargas: QuerySet, bloques: QuerySet):
     )
     return response
 
-def DescargaHorariosHistoricos(filenames):
+def DescargaHorariosHistoricos(filenames, request):
     filenames = list(dict.fromkeys(filenames))
     filenames = [
         filename for filename in filenames if filename != 'exportar_todo'
     ]
     if not filenames:
-        raise BadRequest(
-            'No existen horarios para descargar, asegúrese de haber seleccionado por lo menos un horario'
-        )
+        # raise BadRequest(
+        #     'No existen horarios para descargar, asegúrese de haber seleccionado por lo menos un horario'
+        # )
+        messages.error(request, 'No existen horarios para descargar o asegúrese de haber seleccionado por lo menos un horario')
+        return redirect('horarioshistorico')
 
     directorio_exportaciones = (Path(settings.MEDIA_ROOT) / 'horarios').resolve()
     archivo_zip = BytesIO()
