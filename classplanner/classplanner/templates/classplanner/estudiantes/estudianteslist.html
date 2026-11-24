@@ -56,7 +56,9 @@
                         <th scope="col" class="px-6 py-3 font-bold whitespace-nowrap md:whitespace-normal">Nombre</th>
                         <th scope="col" class="px-6 py-3 font-bold whitespace-nowrap md:whitespace-normal">Curso</th>
                         <th scope="col" class="px-6 py-3 font-bold whitespace-nowrap md:whitespace-normal">Promedio</th>
+                        {% if request.user.rol.name != 'Docente' %}
                         <th scope="col" class="px-6 py-3 font-bold whitespace-nowrap md:whitespace-normal">Acciones</th>
+                        {% endif %}
                     </tr>
                 </thead>
                 <tbody class="dark:text-[#a8b2d2] text-slate-500">
@@ -70,8 +72,9 @@
                         {% else %}
                         <td class="px-6 py-4 whitespace-nowrap md:whitespace-normal">---</td>
                         {% endif %}
+                        {% if request.user.rol.name != 'Docente' %}
                         <td class="px-6 py-4 whitespace-nowrap md:whitespace-normal flex gap-2">
-                            {% if e.is_active %}
+                            {% if e.is_active %}                    
                             <a href="{% url 'estudianteupdate' e.rut e.curso_id_id %}" title="Editar estudiante" class="bg-sky-600 hover:bg-sky-700 text-white w-9 h-9 flex items-center justify-center text-center hover:transition transition hover:duration-300 duration-300 rounded-lg">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-edit">
                                     <path stroke="none" d="M0 0h24v24H0z" fill="none" />
@@ -103,8 +106,9 @@
                                     </svg>
                                 </button>
                             </form>
-                            {% endif %}                            
+                            {% endif %}                          
                         </td>
+                        {% endif %}  
                     </tr>
                     {% endfor %}
                 </tbody>

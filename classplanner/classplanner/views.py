@@ -1568,7 +1568,9 @@ def ActivateAsignatura(request, pk):
 def ExportarPlanes(request, export):
     if export == 'excel':
         if request.method != 'POST':
-            raise BadRequest('Solicitud de exportación inválida')
+            # raise BadRequest('Solicitud de exportación inválida')
+            messages.error(request, 'Solicitud de exportación inválida')
+            return redirect('plandeestudio')
 
         planes_seleccionados = request.POST.getlist('plan_checkbox')
         if 'exportar_todo' in planes_seleccionados:
@@ -1579,14 +1581,18 @@ def ExportarPlanes(request, export):
             if curso_id != 'exportar_todo'
         ]
         if not cursos_seleccionados:
-            raise BadRequest('Seleccione planes válidos para exportar')
+            # raise BadRequest('Seleccione planes válidos para exportar')
+            messages.error(request, 'Seleccione planes válidos para exportar')
+            return redirect('plandeestudio')
 
         planes = PlanDeEstudio.objects.filter(curso_id__in=cursos_seleccionados)
         return exportar_planes(planes, export)
     
     elif export == 'pdf':
         if request.method != 'POST':
-                raise BadRequest('Solicitud de exportación inválida')
+            # raise BadRequest('Solicitud de exportación inválida')
+            messages.error(request, 'Solicitud de exportación inválida')
+            return redirect('plandeestudio')
     
         planes_seleccionados = request.POST.getlist('plan_checkbox')
         if 'exportar_todo' in planes_seleccionados:
@@ -1597,7 +1603,9 @@ def ExportarPlanes(request, export):
             if curso_id != 'exportar_todo'
         ]
         if not cursos_seleccionados:
-            raise BadRequest('Seleccione planes válidos para exportar')
+            # raise BadRequest('Seleccione planes válidos para exportar')
+            messages.error(request, 'Seleccione planes válidos para exportar')
+            return redirect('plandeestudio')
 
         planes = PlanDeEstudio.objects.filter(curso_id__in=cursos_seleccionados)
         return exportar_planes(planes, export)
@@ -2116,11 +2124,15 @@ def ExportarCargaHoraria(request):
     )
     if 'exportar_todo' not in cargas_seleccionadas:
         if not cargas_seleccionadas:
-            raise BadRequest('Seleccione cargas horarias válidas para exportar')
+            # raise BadRequest('Seleccione cargas horarias válidas para exportar')
+            messages.error(request, 'Seleccione cargas horarias válidas para exportar')
+            return redirect('cargashorarias')
         cargas = cargas.filter(pk__in=cargas_seleccionadas)
 
     if not cargas.exists():
-        raise BadRequest('Seleccione cargas horarias válidas para exportar')
+        # raise BadRequest('Seleccione cargas horarias válidas para exportar')
+        messages.error(request, 'Seleccione cargas horarias válidas para exportar')
+        return redirect('cargashorarias')
 
     bloques = (
         BloqueDeClase.objects
@@ -2225,7 +2237,7 @@ def PrevisualizarHorario(request, filename):
 @login_required
 @require_POST
 def DescargarHorariosHistoricos(request):
-    return DescargaHorariosHistoricos(request.POST.getlist('export_checkbox'))
+    return DescargaHorariosHistoricos(request.POST.getlist('export_checkbox'), request)
 
 @login_required
 def DescargarHorario(request, filename):
@@ -2261,9 +2273,13 @@ def ListHorarios(request):
     ids_cursos = set(horarios.values_list('plan_de_estudio_id__curso_id', flat=True))
     cursos = list(Curso.objects.filter(pk__in=ids_cursos))
 
-    curso_sel = next((c for c in cursos if c.pk == a_int(request.GET.get('curso'))), None)
-    if curso_sel is None and cursos:
-        curso_sel = cursos[0]
+    if request.user.rol.name == 'Docente':
+        curso_sel = next((c for c in cursos if c.usuario_id == request.user), None)
+        
+    else:
+        curso_sel = next((c for c in cursos if c.pk == a_int(request.GET.get('curso'))), None)
+        if curso_sel is None and cursos:
+            curso_sel = cursos[0]
 
     jornadas, horario_sel = [], None
 
@@ -2418,6 +2434,9 @@ def anio_de_planificacion(hoy=None):
 @roles_required('root', 'Administrador', 'Director')
 @periodo_planificacion_required()
 def CreateHorario(request): # Pendiente: validar asignaturas asignadas en bloques si: total de casillas (por asignatura) es == hrs registradas en el plan de estudio 
+    if request.user.rol.name == 'Docente':
+        horario = get_object_or_404(Horario.objects.all())
+
     bloques_por_jornada = obtener_bloques_por_jornada()
     errores = {}
     anio = anio_de_planificacion()  
@@ -2875,7 +2894,9 @@ def UpdateHorario(request, pk): # Pendiente: validar asignaturas asignadas en bl
 @login_required
 def ExportarHorario(request):
     if request.method != 'POST':
-        raise BadRequest('Solicitud de exportación inválida')
+        # raise BadRequest('Solicitud de exportación inválida')
+        messages.error(request, 'Solicitud de exportación inválida')
+        return redirect('horarios')
 
     cursos_seleccionados = [
         curso_id.strip()
@@ -2887,13 +2908,20 @@ def ExportarHorario(request):
         len(valores_exportar_todos) != 1
         or valores_exportar_todos[0] not in ('', '1')
     ):
-        raise BadRequest('Selección de exportación inválida')
+        # raise BadRequest('Selección de exportación inválida')
+        messages.error(request, 'Selección de exportación inválida')
+        return redirect('horarios')
 
     exportar_todos = valores_exportar_todos[0] == '1'
     if exportar_todos and cursos_seleccionados:
-        raise BadRequest('Seleccione un curso o todos los cursos')
+        # raise BadRequest('Seleccione un curso o todos los cursos')
+        messages.error(request, 'Seleccione un curso o todos los cursos')
+        return redirect('horarios')
+    
     if not exportar_todos and len(cursos_seleccionados) != 1:
-        raise BadRequest('Seleccione un curso o todos los cursos')
+        # raise BadRequest('Seleccione un curso o todos los cursos')
+        messages.error(request, 'Seleccione un curso o todos los cursos')
+        return redirect('horarios')
 
     ultimo_horario = (
         Horario.objects
@@ -2924,12 +2952,16 @@ def ExportarHorario(request):
     if not exportar_todos:
         curso_id = a_int(cursos_seleccionados[0])
         if curso_id is None:
-            raise BadRequest('Seleccione un curso válido')
+            # raise BadRequest('Seleccione un curso válido')
+            messages.error(request, 'Seleccione un curso válido')
+            return redirect('horarios')
         horarios = horarios.filter(plan_de_estudio_id__curso_id=curso_id)
 
     horarios_exportados = list(horarios)
     if not horarios_exportados:
-        raise BadRequest('No hay horarios disponibles para exportar')
+        # raise BadRequest('No hay horarios disponibles para exportar')
+        messages.error(request, 'No hay horarios disponibles para exportar')
+        return redirect('horarios')
 
     cursos = []
     for horario in horarios_exportados:
@@ -2965,6 +2997,11 @@ def ExportarHorario(request):
         .select_related('usuario_id')
     )
     return exportar_horarios(cursos, cargas, bloques)
+
+# ----------------------------------- # ERROR 404
+
+def error_404(request):
+    return render(request, 'classplanner/notfound.html', status=404)
 
 # ----------------------------------- #
 
