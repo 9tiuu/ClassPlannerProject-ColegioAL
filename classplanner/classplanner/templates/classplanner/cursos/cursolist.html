@@ -20,9 +20,14 @@
                     <path d="M21 21l-6 -6" />
                 </svg>
             </div>
-            <a href="{% url 'cursocreate' %}" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-800 text-center hover:transition transition hover:duration-300 duration-300 rounded-lg px-6 py-3">
-                <p class="w-full text-white font-semibold text-sm">+ Nuevo curso</p>
-            </a>
+            <div class="flex gap-2">
+                <a onclick="window.ascender()" class="cursos-pointer flex items-center gap-2 bg-sky-600 text-white hover:bg-sky-700 text-center hover:transition transition hover:duration-300 duration-300 rounded-lg px-6 py-3">
+                    <p class="cursos-pointer w-full text-white font-semibold text-sm">Ascender jefaturas</p>
+                </a>
+                <a href="{% url 'cursocreate' %}" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-800 text-center hover:transition transition hover:duration-300 duration-300 rounded-lg px-6 py-3">
+                    <p class="w-full text-white font-semibold text-sm">+ Nuevo curso</p>
+                </a>
+            </div>
         </div>
 
         {% if curso %}
@@ -87,8 +92,24 @@
     </div>
     
 </div>
-
-
-
-{% endblock  %}
+<script>
+    window.ascender = function () {
+        const isDarkMode = document.documentElement.classList.contains('dark');
+        Swal.fire({
+            title: "¿Desea ascender jefaturas?",
+            text: "Al confirmar esta acción, se cambiarán los profesores jefe al curso siguiente de manera automática. Esta acción no se puede deshacer.",
+            icon: "question",
+            background: isDarkMode ? "#141826" : "#ffffff",
+            color: isDarkMode ? "#f8fafc" : "#0f172a",
+            showCancelButton: true,
+            confirmButtonText: "Confirmar",
+            cancelButtonText: "Cancelar",
+            confirmButtonColor: "#234FA8",
+        }).then((result) => {
+            if (!result.isConfirmed) return;
+            else window.location.href = '{% url "cursosascenderjefaturas" %}'
+        });
+    };
+</script>
+{% endblock %}
 

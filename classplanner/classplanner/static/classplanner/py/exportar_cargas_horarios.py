@@ -27,7 +27,7 @@ from reportlab.platypus import (
     TableStyle as PDFTableStyle,
 )
 
-from classplanner.models import Bloque, BloqueDeClase
+from classplanner.models import Bloque, BloqueDeClase, Asignatura
 from core.middleware import constants
 from django.contrib import messages
 from django.shortcuts import redirect
@@ -468,59 +468,9 @@ DIAS_HORARIO = (
     ('V', 'Viernes'),
 )
 
-asign_list = list(constants.ASIGNATURAS)
+asign_list = Asignatura.objects.all()
 COLORES_ASIGNATURAS = (
-    (asign_list[0], "#DF151576"),
-    (asign_list[1], "#63311476"),
-    (asign_list[2], "#C765147D"),
-    (asign_list[3], "#0051FF7D"),
-    (asign_list[4], "#63311476"),
-    (asign_list[5], "#19A51478"),
-    (asign_list[6], "#DF265D67"),
-    (asign_list[7], "#7E1BAC7A"),
-    (asign_list[8], "#1AC58C73"),
-    (asign_list[9], "#DF153052"),
-    (asign_list[10], "#DF153052"),
-    (asign_list[11], "#701DCE7A"),
-    (asign_list[12], "#DF151576"),
-    (asign_list[13], "#DF265D67"),
-    (asign_list[14], "#63311476"),
-    (asign_list[15], "#E0DD2379"),
-    (asign_list[16], "#63311476"),
-    # Plan diferenciado: Artes
-    (asign_list[17], "#E23D9076"),
-    (asign_list[18], "#E23D9076"),
-    (asign_list[19], "#E23D9076"),
-    (asign_list[20], "#E23D9076"),
-    (asign_list[21], "#E23D9076"),
-    (asign_list[22], "#E23D9076"),
-    # Plan diferenciado: Ciencias
-    (asign_list[23], "#7EC4227D"),
-    (asign_list[24], "#7EC4227D"),
-    (asign_list[25], "#7EC4227D"),
-    (asign_list[26], "#7EC4227D"),
-    (asign_list[27], "#7EC4227D"),
-    # Plan diferenciado: Educación Física y Salud
-    (asign_list[28], "#167FA873"),
-    (asign_list[29], "#167FA873"),
-    (asign_list[30], "#167FA873"),
-    # Plan diferenciado: Filosofía
-    (asign_list[31], "#E0DD2379"),
-    (asign_list[32], "#E0DD2379"),
-    (asign_list[33], "#E0DD2379"),
-    # Plan diferenciado: Historia, Geografía y Ciencias sociales
-    (asign_list[34], "#C25A1F7A"),
-    (asign_list[35], "#C25A1F7A"),
-    (asign_list[36], "#C25A1F7A"),
-    # Plan diferenciado: Lengua y Literatura
-    (asign_list[37], "#CC0D0D7A"),
-    (asign_list[38], "#CC0D0D7A"),
-    (asign_list[39], "#CC0D0D7A"),
-    # Plan diferenciado: Matemática
-    (asign_list[40], "#0E4DD37D"),
-    (asign_list[41], "#0E4DD37D"),
-    (asign_list[42], "#0E4DD37D"),
-    (asign_list[43], "#0E4DD37D"),
+    (a.nombres_asignatura_id.nombre, a.color) for a in asign_list
 )
 
 def _build_horario_table_data(bloques, clases, jornada):
@@ -592,13 +542,20 @@ def _colores_asignaturas(clases):
         for clase in clases
     }
     ordenadas = sorted(asignaturas.items(), key=lambda item: (item[1], item[0]))
+
+    def con_opacidad(color, opacidad=0.4):
+        color.alpha = opacidad
+        return color
+
     colores_por_nombre = {
-        str(nombre).encode(): colors.HexColor(color, hasAlpha=True)
+        str(nombre).encode(): con_opacidad(colors.HexColor(color))
         for nombre, color in COLORES_ASIGNATURAS
     }
     return {
         asignatura_id: colores_por_nombre.get(nombre)
-        or colors.Color(*colorsys.hsv_to_rgb(random.random(), 0.3, 0.95))
+        or con_opacidad(
+            colors.Color(*colorsys.hsv_to_rgb(random.random(), 0.3, 0.95))
+        )
         for indice, (asignatura_id, nombre) in enumerate(ordenadas)
     }
 

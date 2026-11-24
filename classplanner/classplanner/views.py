@@ -15,6 +15,7 @@ from django.db.models.functions import Coalesce
 from collections import Counter, defaultdict
 from datetime import datetime
 from django.conf import settings
+import ast
 import json
 import re
 from math import floor
@@ -660,11 +661,32 @@ def _parse_changed_fields(changed_fields):
     try:
         parsed_fields = json.loads(changed_fields)
     except json.JSONDecodeError:
-        return {}, changed_fields
+        try:
+            parsed_fields = ast.literal_eval(changed_fields)
+        except (SyntaxError, ValueError):
+            return {}, changed_fields
 
     if isinstance(parsed_fields, dict):
         return parsed_fields, ''
     return {}, changed_fields
+
+def _asignatura_ids(values):
+    if values is None:
+        return []
+    if not isinstance(values, (list, tuple, set)):
+        return [values]
+    return values
+
+def _format_asignatura_change(values, event_type, idents_by_id):
+    asignaturas = ', '.join(
+        idents_by_id.get(str(asignatura_id), str(asignatura_id))
+        for asignatura_id in _asignatura_ids(values)
+        if asignatura_id is not None
+    ) or '---'
+
+    if event_type == CRUDEvent.M2M_REMOVE:
+        return {'before': asignaturas, 'after': '---'}
+    return {'before': '---', 'after': asignaturas}
 
 @method_decorator(login_required, name='dispatch')
 @method_decorator(roles_required('root', 'Administrador'), name='dispatch')
@@ -713,6 +735,30 @@ class ListRegistros(ListView):
                 registro.changed_fields_dict,
                 registro.changed_fields_text,
             ) = _parse_changed_fields(registro.changed_fields)
+
+        subject_ids = {
+            str(asignatura_id)
+            for registro in context["registros"]
+            if registro.content_type.model == 'usuario'
+            for asignatura_id in _asignatura_ids(
+                registro.changed_fields_dict.get('asignatura_id')
+            )
+        }
+        idents_by_id = {
+            str(pk): ident
+            for pk, ident in Asignatura.objects.filter(pk__in=subject_ids).values_list('pk', 'ident')
+        }
+
+        for registro in context["registros"]:
+            if (
+                registro.content_type.model == 'usuario'
+                and 'asignatura_id' in registro.changed_fields_dict
+            ):
+                registro.asignatura_change = _format_asignatura_change(
+                    registro.changed_fields_dict['asignatura_id'],
+                    registro.event_type,
+                    idents_by_id,
+                )
 
         # Módulos utilizados en los registros de auditoría
         context["modulos"] = (
@@ -952,6 +998,28 @@ def ActivateAreasPlanesDiferenciales(request, pk):
 
 # ----------------------------------- # CURSOS
 
+@login_required
+@roles_required('root', 'Administrador', 'Director')
+@periodo_planificacion_required()
+def AscenderJefaturas(request):
+    queryset = Curso.objects.all()
+    orden_nivel = Case(
+        *[
+            When(nivel=nivel, then=posicion)
+            for posicion, nivel in enumerate(Curso.Nivel.values)
+        ],
+        output_field=IntegerField(),
+    )
+    cursos = queryset.order_by(orden_nivel)
+
+    jefaturas_bef = list(cursos.values_list('usuario_id',flat=True))
+    jefaturas_bef = jefaturas_bef[-1:] + jefaturas_bef[:-1]
+    for u_id, c_id in zip(jefaturas_bef, list(cursos.values_list('id', flat=True))):
+        Curso.objects.filter(id=c_id).update(usuario_id=u_id)
+
+    messages.success(request, '¡Jefaturas cambiadas con éxito!')
+    return redirect('cursos')
+
 @method_decorator(login_required, name='dispatch')
 @method_decorator(roles_required('root', 'Administrador', 'Director'), name='dispatch')
 class ListCursos(ListView):
@@ -975,7 +1043,7 @@ class ListCursos(ListView):
             ],
             output_field=IntegerField(),
         )
-        return queryset.order_by(orden_nivel)
+        return queryset.order_by(orden_nivel).filter(created_at__year=timezone.now().year)
 
 @method_decorator(login_required, name='dispatch')
 @method_decorator(roles_required('root', 'Administrador', 'Director'), name='dispatch')
@@ -985,10 +1053,31 @@ class CreateCurso(CreateView):
     template_name = 'classplanner/cursos/cursocreate.html'
     success_url = reverse_lazy('cursos')
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        docentes = Usuario.objects.filter(
+            rol__name__iexact='docente',
+            is_active=True
+        )
+        cursos_otros = Curso.objects.all()
+        
+        docentes_asignados = cursos_otros.values_list(
+            'usuario_id', flat=True
+        )
+        
+        docentes_disponibles = docentes.exclude(pk__in=docentes_asignados)
+
+        docentes_no_disp = docentes.filter(pk__in=docentes_asignados)
+
+        context['docentes_disponibles'] = docentes_disponibles
+        context['docentes_no_disponibles'] = docentes_no_disp
+        return context
+    
     def form_valid(self, form):
         # Validar que no exista otro curso con el mismo nivel y letra
         nivel = form.cleaned_data.get('nivel')
-        letra = str(form.cleaned_data.get('letra')).upper()
+        letra = form.cleaned_data.get('letra')
         if Curso.objects.filter(nivel=nivel, letra=letra).exists():
             form.add_error('letra', 'Ya existe un curso con este nivel y letra.')
             return self.form_invalid(form)
@@ -1011,6 +1100,27 @@ class UpdateCurso(UpdateView):
     template_name = 'classplanner/cursos/cursoupdate.html'
     success_url = reverse_lazy('cursos')
     context_object_name = 'curso'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        docentes = Usuario.objects.filter(
+            rol__name__iexact='docente',
+            is_active=True
+        )
+        cursos_otros = Curso.objects.all()
+        
+        docentes_asignados = cursos_otros.values_list(
+            'usuario_id', flat=True
+        )
+        
+        docentes_disponibles = docentes.exclude(pk__in=docentes_asignados)
+
+        docentes_no_disp = docentes.filter(pk__in=docentes_asignados)
+
+        context['docentes_disponibles'] = docentes_disponibles
+        context['docentes_no_disponibles'] = docentes_no_disp
+        return context
 
     def get_form(self, form_class=None):
         form = super().get_form(form_class)
@@ -1021,19 +1131,44 @@ class UpdateCurso(UpdateView):
     def form_valid(self, form):
         # Validar que no exista otro curso con el mismo nivel y letra
         nivel = form.cleaned_data.get('nivel')
-        letra = str(form.cleaned_data.get('letra')).upper()
+        letra = form.cleaned_data.get('letra')
         if Curso.objects.filter(nivel=nivel, letra=letra).exclude(pk=self.object.pk).exists():
             form.add_error('letra', 'El curso que intenta agregar ya existe.')
             return self.form_invalid(form)
         
-        # Validar que no exista otro curso con la misma jefatura
+        # Hacer intercambio de jefatura
         usuario_id = form.cleaned_data.get('usuario_id')
-        if usuario_id and Curso.objects.filter(usuario_id=usuario_id).exclude(pk=self.object.pk).exists():
-            form.add_error('usuario_id', 'El docente seleccionado ya tiene jefatura.')
-            return self.form_invalid(form)
-        curso = form.save()
-        messages.success(self.request, '¡Curso actualizado con éxito!')
-        return super().form_valid(form)
+        with transaction.atomic():
+            curso_actual = Curso.objects.select_for_update().get(
+                pk=self.object.pk
+            )
+            if usuario_id and usuario_id.pk != curso_actual.usuario_id_id:
+                cursos_docente_seleccionado = list(
+                    Curso.objects.select_for_update()
+                    .filter(usuario_id=usuario_id)
+                    .exclude(pk=curso_actual.pk)
+                )
+                if len(cursos_docente_seleccionado) > 1:
+                    form.add_error(
+                        'usuario_id',
+                        'No se puede realizar el intercambio porque el docente seleccionado tiene más de una jefatura.'
+                    )
+                    return self.form_invalid(form)
+                if cursos_docente_seleccionado:
+                    if Curso.objects.filter(
+                        usuario_id=curso_actual.usuario_id_id
+                    ).exclude(pk=curso_actual.pk).exists():
+                        form.add_error(
+                            'usuario_id',
+                            'No se puede realizar el intercambio porque el docente actual tiene otra jefatura asignada.'
+                        )
+                        return self.form_invalid(form)
+                    curso_docente_seleccionado = cursos_docente_seleccionado[0]
+                    curso_docente_seleccionado.usuario_id_id = curso_actual.usuario_id_id
+                    curso_docente_seleccionado.save(update_fields=['usuario_id'])
+
+            messages.success(self.request, '¡Curso actualizado con éxito!')
+            return super().form_valid(form)
 
 @method_decorator(login_required, name='dispatch')
 @method_decorator(roles_required('root', 'Administrador', 'Director'), name='dispatch')

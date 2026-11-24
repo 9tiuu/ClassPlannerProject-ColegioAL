@@ -168,6 +168,7 @@ DJANGO_EASY_AUDIT_REGISTERED_CLASSES = [
     'classplanner.Estudiante', 
     'classplanner.Horario',
     'classplanner.Usuario',
-    'classplanner.BloqueDeClase'
+    'classplanner.BloqueDeClase',
+    'classplanner.Curso'
 ]
 PHONENUMBER_DEFAULT_REGION = 'CL'

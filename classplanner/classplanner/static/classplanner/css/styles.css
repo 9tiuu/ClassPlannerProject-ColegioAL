@@ -12,12 +12,14 @@
 
 /* select2 style matching */
 #id_nombres_asignatura_id + .select2,
-#id_areas_planes_diferenciales_id + .select2 {
+#id_areas_planes_diferenciales_id + .select2,
+#id_usuario_id + .select2 {
     width: 100% !important;
 }
 
 #id_nombres_asignatura_id + .select2 .select2-selection--single,
-#id_areas_planes_diferenciales_id + .select2 .select2-selection--single {
+#id_areas_planes_diferenciales_id + .select2 .select2-selection--single,
+#id_usuario_id + .select2 .select2-selection--single {
     height: 3rem;
     border: 2px solid #cbd5e1;
     border-radius: 0.5rem;
@@ -26,7 +28,8 @@
 }
 
 #id_nombres_asignatura_id + .select2 .select2-selection__rendered,
-#id_areas_planes_diferenciales_id + .select2 .select2-selection__rendered {
+#id_areas_planes_diferenciales_id + .select2 .select2-selection__rendered,
+#id_usuario_id + .select2 .select2-selection__rendered {
     padding: 0 2.25rem 0 0.75rem;
     color: #0f172a;
     font-size: 0.875rem;
@@ -34,13 +37,15 @@
 }
 
 #id_nombres_asignatura_id + .select2 .select2-selection__arrow,
-#id_areas_planes_diferenciales_id + .select2 .select2-selection__arrow {
+#id_areas_planes_diferenciales_id + .select2 .select2-selection__arrow,
+#id_usuario_id + .select2 .select2-selection__arrow {
     height: calc(3rem - 4px);
     right: 0.5rem;
 }
 
 #id_nombres_asignatura_id + .select2.select2-container--focus .select2-selection--single,
-#id_areas_planes_diferenciales_id + .select2.select2-container--focus .select2-selection--single {
+#id_areas_planes_diferenciales_id + .select2.select2-container--focus .select2-selection--single,
+#id_usuario_id + .select2.select2-container--focus .select2-selection--single {
     border-color: #2563eb;
     box-shadow: 0 0 0 3px rgb(37 99 235 / 0.5);
 }
@@ -74,24 +79,28 @@
 
 .dark #id_nombres_asignatura_id + .select2 .select2-selection__rendered,
 .dark #id_areas_planes_diferenciales_id + .select2 .select2-selection__rendered,
+.dark #id_usuario_id + .select2 .select2-selection__rendered,
 .dark .asignatura-select2-dropdown .select2-results__option {
     color: #fff;
     background-color: transparent;
 }
 
 .dark #id_nombres_asignatura_id + .select2 .select2-selection--single,
-.dark #id_areas_planes_diferenciales_id + .select2 .select2-selection--single {
+.dark #id_areas_planes_diferenciales_id + .select2 .select2-selection--single,
+.dark #id_usuario_id + .select2 .select2-selection--single {
     border-color: #334155;
     background-color: #141826;
 }
 
 .dark #id_nombres_asignatura_id + .select2.select2-container--focus .select2-selection--single,
-.dark #id_areas_planes_diferenciales_id + .select2.select2-container--focus .select2-selection--single {
+.dark #id_areas_planes_diferenciales_id + .select2.select2-container--focus .select2-selection--single,
+.dark #id_usuario_id + .select2.select2-container--focus .select2-selection--single {
     border-color: #2563eb;
 }
 
 .dark #id_nombres_asignatura_id + .select2 .select2-selection__arrow b,
-.dark #id_areas_planes_diferenciales_id + .select2 .select2-selection__arrow b {
+.dark #id_areas_planes_diferenciales_id + .select2 .select2-selection__arrow b,
+.dark #id_usuario_id + .select2 .select2-selection__arrow b {
     border-color: #a8b2d2 transparent transparent;
 }
 

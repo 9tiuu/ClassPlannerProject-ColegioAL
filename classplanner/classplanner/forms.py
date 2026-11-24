@@ -7,6 +7,7 @@ from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from decimal import Decimal
+from django.utils.timezone import now
 import re
 
 class UniqueDirectorRoleFormMixin:
@@ -91,6 +92,18 @@ class UserUpdateForm(UniqueDirectorRoleFormMixin, UserChangeForm):
         ).select_related('nombres_asignatura_id')
 
 class CursoForm(forms.ModelForm):
+    letra = forms.CharField(
+        max_length=1,
+        widget=forms.TextInput(attrs={'class': 'form-control form-crud', 'required': ''}),
+        error_messages={'max_length': 'Solo se aceptan letras de A-Z.'},
+    )
+
+    def clean_letra(self):
+        letra = (self.cleaned_data.get('letra') or '').strip().upper()
+        if re.fullmatch(r'[A-Z]', letra) is None:
+            raise forms.ValidationError('Solo se aceptan letras de A-Z.')
+        return letra
+
     class Meta:
         model = Curso
         fields = ['nivel', 'letra', 'horas_plan_total', 'usuario_id']
@@ -106,28 +119,7 @@ class CursoForm(forms.ModelForm):
             'horas_plan_total': forms.NumberInput(attrs={'class': 'form-control form-crud', 'min': 0, 'step': 0.5, 'required': ''}),
             'usuario_id': forms.Select(attrs={'class': 'form-control form-crud', 'required': ''}),
         }
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
 
-        docentes = Usuario.objects.filter(
-            rol__name__iexact='docente',
-            is_active=True
-        )
-        cursos_otros = Curso.objects.all()
-        
-        if self.instance.pk:
-            print('self.instance.id: ', self.instance.pk)
-            cursos_otros = cursos_otros.exclude(pk=self.instance.pk)
-
-        docentes_asignados = cursos_otros.values_list(
-            'usuario_id', flat=True
-        )
-        docentes_disponibles = docentes.exclude(pk__in=docentes_asignados, is_active=False)
-        if self.instance.pk:
-            docentes_disponibles |= Usuario.objects.filter(
-                pk=self.instance.usuario_id_id
-            )
-        self.fields['usuario_id'].queryset = docentes_disponibles
 
 class AulaCreateForm(forms.ModelForm):
     class Meta:

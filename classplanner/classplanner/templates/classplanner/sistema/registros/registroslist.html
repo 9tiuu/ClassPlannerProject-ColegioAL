@@ -85,7 +85,11 @@
                                     selected
                                 {% endif %}
                             >
+                                {% if modulo.model == 'bloquedeclase' %}
+                                Bloque de clase
+                                {% else %}
                                 {{ modulo.model|title }}
+                                {% endif %}
                             </option>
                         {% endfor %}
                     </select>
@@ -169,18 +173,23 @@
                     <td class="pl-6 pr-3 py-4 max-w-[17rem] md:whitespace-normal capitalize">{{ r.object_repr }}</td>
                     <td class="px-6 py-4 whitespace-nowrap md:whitespace-normal capitalize">{{ r.user.name }} {{ r.user.last_name }}</td>
                     <td class="px-6 py-4 whitespace-nowrap md:whitespace-normal">{{ r.datetime }}</td>
+                    <!-- Cambios realizados -->
                     {% if r.changed_fields_dict %}
                     <td class="px-6 py-4 whitespace-nowrap md:whitespace-normal max-w-[24rem] overflow-x-auto">
                         {% for field, values in r.changed_fields_dict.items %}
-                        {% if field != 'password' %}
-                            {{ field }}: '{% if values.0 != 'None' %}{{ values.0 }}{% else %} --- {% endif %}' -&gt; '{% if values.1 != 'None' %}{{ values.1 }}{% else %} --- {% endif %}' {% if not forloop.last %}<br>{% endif %}
+                        {% if field == 'asignatura_id' and r.asignatura_change %}
+                        Asignatura: '{{ r.asignatura_change.before }}' -&gt; '{{ r.asignatura_change.after }}' {% if not forloop.last %}<br>{% endif %}
+                        {% elif field == 'usuario_id' %}
+                        Profesor Jefe: '{% if values.0 != 'None' %}{{ values.0 }}{% else %} --- {% endif %}' -&gt; '{% if values.1 != 'None' %}{{ values.1 }}{% else %} --- {% endif %}' {% if not forloop.last %}<br>{% endif %}
+                        {% elif field != 'password' %}
+                        {{ field }}: '{% if values.0 != 'None' %}{{ values.0 }}{% else %} --- {% endif %}' -&gt; '{% if values.1 != 'None' %}{{ values.1 }}{% else %} --- {% endif %}' {% if not forloop.last %}<br>{% endif %}
                         {% else %}
-                            Cambio de contraseña{% if not forloop.last %}<br>{% endif %}
+                        Cambio de contraseña{% if not forloop.last %}<br>{% endif %}
                         {% endif %}
                         {% endfor %}
                     </td>
                     {% elif r.changed_fields_text and r.changed_fields_text != 'null' %}
-                    <td class="px-6 py-4 whitespace-nowrap md:whitespace-normal">{{ r.changed_fields_text }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap md:whitespace-normal capitalize">{{ r.changed_fields_text }}</td>
                     {% else %}
                     <td class="px-6 py-4 whitespace-nowrap md:whitespace-normal">---</td>
                     {% endif %}

@@ -75,9 +75,15 @@
                 <label for="id_usuario_id" class="mb-1 text-base font-semibold text-slate-600 dark:text-white">Docente jefe <b class="text-red-600">*</b></label>
                 <select name="usuario_id" id="id_usuario_id" class="w-full bg-white dark:bg-[#141826] text-sm focus:outline-none focus:ring-blue-600 focus-visible:ring-[3px] transition duration-300 rounded-lg h-12 border-2 p-3 border-slate-300 dark:border-slate-700 dark:text-white" required>
                     <option value="">Por seleccionar...</option>
-                    {% for option in form.usuario_id.field.queryset %}
-                    <option value="{{ option.pk }}" {% if form.usuario_id.value|stringformat:"s" == option.pk|stringformat:"s" %}selected{% endif %}>{{ option }}</option>
-                    {% endfor %}
+                    {% if docentes_disponibles %}
+                    <optgroup label="Docentes disponibles">
+                        {% for option in docentes_disponibles %}
+                        <option value="{{ option.pk }}" {% if form.usuario_id.value|stringformat:"s" == option.pk|stringformat:"s" %}selected{% endif %}>{{ option }}</option>
+                        {% endfor %}
+                    </optgroup>
+                    {% else %}
+                    <option value="" selected>No hay docentes disponibles</option>
+                    {% endif %}
                 </select>
 
                 {% if form.usuario_id.errors %}
@@ -101,6 +107,13 @@
     </div>
 </div>
 <script>
+    $(function () {
+        $('#id_usuario_id').select2({
+            width: '100%',
+            dropdownCssClass: 'asignatura-select2-dropdown'
+        });
+    });
+
     function exitConfirm(button) {
         const isDarkMode = document.documentElement.classList.contains('dark');
 

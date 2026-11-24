@@ -60,6 +60,7 @@ urlpatterns = [
     path('auladelete/<int:pk>/', DeleteAula.as_view(), name='auladelete'),
 
     # CURSOS
+    path('cursosascenderjefaturas/', views.AscenderJefaturas, name='cursosascenderjefaturas'),
     path('cursos/', ListCursos.as_view(), name='cursos'),
     path('cursocreate/', CreateCurso.as_view(), name='cursocreate'),
     path('cursoupdate/<int:pk>/', UpdateCurso.as_view(), name='cursoupdate'),
