@@ -213,3 +213,15 @@ class BloqueDeClase(models.Model):
 
     def __str__(self) -> str:
         return f'({self.asignatura_id} / {self.curso_id} / {self.usuario_id}): {self.bloque_id}'
+
+class BloqueNoLectivo(models.Model):
+    class HoraNoLectiva(models.TextChoices):
+        CD = 'CD', 'Carrera Docente'
+        AA = 'AA', 'Atención Apoderados'
+
+    tipo_hora = models.CharField(max_length=50, choices=HoraNoLectiva.choices)
+    carga_horaria_id = models.ForeignKey(CargaHoraria, on_delete=models.CASCADE, null=True, blank=True)
+    bloque_id = models.ForeignKey(Bloque, on_delete=models.RESTRICT)
+
+    def __str__(self) -> str:
+        return f'{self.tipo_hora}: ({self.bloque_id} / {self.carga_horaria_id})'

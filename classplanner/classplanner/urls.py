@@ -98,6 +98,9 @@ urlpatterns = [
     path('cargashorariasupdate/<int:pk>/', views.UpdateCargaHoraria, name='cargashorariasupdate'),
     path('cargashorariasexport/', views.ExportarCargaHoraria, name='cargashorariasexport'),
 
+    # BLOQUES NO LECTIVOS
+    path('cargashorarias/<int:pk>/horasnolectivas/', views.UpdateHorasNoLectivas, name='cargashorariasnolectivas'),
+
     # HORARIOS
     path('horarios/', views.ListHorarios, name='horarios'),
     path('horarioscreate/', views.CreateHorario, name='horariocreate'),
