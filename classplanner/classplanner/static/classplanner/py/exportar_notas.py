@@ -39,28 +39,26 @@ def _format_pdf_value(value):
     return str(value)
 
 
-def _build_grade_table_data(notas, promedio_general, asistencia):
-    asignaturas = {}
+def _build_grade_table_data(notas, asignaturas, promedio_general, asistencia):
+    notas_por_asignatura = {asignatura.pk: [] for asignatura in asignaturas}
     for nota in notas:
-        asignatura = nota.asignatura_id
-        asignatura_data = asignaturas.setdefault(
-            nota.asignatura_id_id,
-            {
-                'asignatura': asignatura,
-                'notas': [],
-            },
-        )
-        asignatura_data['notas'].append(nota.nota)
+        notas_por_asignatura[nota.asignatura_id_id].append(nota.nota)
 
     asignaturas_ordenadas = sorted(
-        asignaturas.values(),
-        key=lambda item: (
-            item['asignatura'].areas_planes_diferenciales_id is not None,
-            str(item['asignatura'].nombres_asignatura_id).casefold(),
+        asignaturas,
+        key=lambda asignatura: (
+            asignatura.areas_planes_diferenciales_id is not None,
+            asignatura.nombres_asignatura_id.nombre.casefold(),
         ),
     )
     cantidad_notas = min(
-        max((len(item['notas']) for item in asignaturas_ordenadas), default=0),
+        max(
+            (
+                len(notas_por_asignatura[asignatura.pk])
+                for asignatura in asignaturas_ordenadas
+            ),
+            default=0,
+        ),
         8,
     )
     table_data = [
@@ -69,8 +67,8 @@ def _build_grade_table_data(notas, promedio_general, asistencia):
         + ['Prom.']
     ]
 
-    for item in asignaturas_ordenadas:
-        notas_asignatura = item['notas']
+    for asignatura in asignaturas_ordenadas:
+        notas_asignatura = notas_por_asignatura[asignatura.pk]
         notas_validas = [valor for valor in notas_asignatura if valor is not None]
         promedio = (
             _format_pdf_value(round(sum(notas_validas) / len(notas_validas), 1))
@@ -82,7 +80,7 @@ def _build_grade_table_data(notas, promedio_general, asistencia):
         ]
         notas_visibles.extend([''] * (cantidad_notas - len(notas_visibles)))
         table_data.append(
-            [item['asignatura'].nombres_asignatura_id] + notas_visibles + [promedio]
+            [asignatura.nombres_asignatura_id.nombre] + notas_visibles + [promedio]
         )
 
     table_data.append(
@@ -102,6 +100,8 @@ def _exportar_notas_pdf(
     notas: QuerySet,
     estudiante: QuerySet,
     semestre: int,
+    *,
+    asignaturas,
     asistencia=None,
     observacion='',
 ):
@@ -112,14 +112,13 @@ def _exportar_notas_pdf(
     else:
         raise BadRequest('No se pudo completar la exportación')
 
-    notas_exportadas = list(
-        notas.select_related('asignatura_id').order_by('pk')
-    )
+    notas_exportadas = list(notas.order_by('pk'))
     estudiante_exportado = estudiante.select_related(
         'curso_id__usuario_id'
     ).get()
     tabla_datos, cantidad_notas = _build_grade_table_data(
         notas_exportadas,
+        asignaturas,
         estudiante_exportado.promedio,
         asistencia,
     )

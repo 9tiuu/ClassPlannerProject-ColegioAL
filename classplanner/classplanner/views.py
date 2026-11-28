@@ -1179,11 +1179,17 @@ class DeleteCurso(DeleteView):
     success_url = reverse_lazy('cursos')
 
     def form_valid(self, form):
-        try: 
-            super().form_valid(form)
-            return messages.success(self.request, '¡Curso eliminado con éxito!')
+        try:
+            response = super().form_valid(form)
         except RestrictedError:
-            raise PermissionDenied('Este curso tiene un profesor jefe asignado, un curso no se puede eliminar si tiene un profesor jefe asignado')
+            messages.error(
+                self.request,
+                'No se puede eliminar el curso.'
+            )
+            return redirect(self.get_success_url())
+
+        messages.success(self.request, '¡Curso eliminado con éxito!')
+        return response
 
 # ----------------------------------- # AULAS
 
@@ -1450,15 +1456,12 @@ def ExportarNotas(request, rut, export):
     estudiante = get_object_or_404(Estudiante, rut=rut)
     if not export:
         raise BadRequest('No se pudo completar la exportación')
-    asignaturas = obtener_planes(
-        estudiante.curso_id, solo_diferenciales=True
-    ).values('asignatura_id')
+    planes = list(obtener_planes(estudiante.curso_id))
+    asignaturas = [plan.asignatura_id for plan in planes]
     notas_estudiante = PromedioAsignatura.objects.filter(
         estudiante_id=estudiante.rut,
         curso_id=estudiante.curso_id,
-        asignatura_id__in=asignaturas,
-    ).select_related(
-        'asignatura_id__nombres_asignatura_id'
+        asignatura_id__in=[asignatura.pk for asignatura in asignaturas],
     ).order_by(
         'asignatura_id__ident',
         'id',
@@ -1467,8 +1470,9 @@ def ExportarNotas(request, rut, export):
         notas_estudiante,
         Estudiante.objects.filter(rut=estudiante.rut),
         export,
-        request.GET.get('asistencia'),
-        request.GET.get('observacion'),
+        asignaturas=asignaturas,
+        asistencia=request.GET.get('asistencia'),
+        observacion=request.GET.get('observacion'),
     )
 
 @method_decorator(login_required, name='dispatch')
