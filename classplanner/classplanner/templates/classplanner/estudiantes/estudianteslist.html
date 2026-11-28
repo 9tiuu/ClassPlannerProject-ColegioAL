@@ -63,7 +63,7 @@
                 </thead>
                 <tbody class="dark:text-[#a8b2d2] text-slate-500">
                     {% for e in estudiantes %}
-                    <tr data-curso="{{ e.curso_id_id }}" class="border-b border-default bg-white dark:bg-[#171c2b] dark:border-b-slate-800">
+                    <tr data-curso="{{ e.curso_id_id }}" class="border-b border-default bg-white dark:bg-[#171c2b] dark:border-b-slate-800 hover:bg-slate-50 dark:hover:bg-[#1d2236]">
                         <td name="search" class="px-6 py-4 whitespace-nowrap md:whitespace-normal">{{ e.rut }}</td>
                         <td name="search" class="px-6 py-4 whitespace-nowrap md:whitespace-normal">{{ e.nombre }} {{ e.apellido_p }} {{ e.apellido_m }}</td>
                         <td class="px-6 py-4 whitespace-nowrap md:whitespace-normal">{{ e.curso_id }}</td>

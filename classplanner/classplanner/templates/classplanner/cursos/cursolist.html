@@ -46,7 +46,7 @@
                 </thead>
                 <tbody class="dark:text-[#a8b2d2] text-slate-500">
                     {% for c in curso %}
-                    <tr class="border-b border-default bg-white dark:bg-[#171c2b] dark:border-b-slate-800">
+                    <tr class="border-b border-default bg-white dark:bg-[#171c2b] dark:border-b-slate-800 hover:bg-slate-50 dark:hover:bg-[#1d2236]">
                         <td name="search" class="px-6 py-4 whitespace-nowrap md:whitespace-normal">{{ c.nivel }} "{{ c.letra }}"</td>
                         <td name="search" class="px-6 py-4 whitespace-nowrap md:whitespace-normal">{{ c.horas_plan_total }}</td>
                         <td name="search" class="px-6 py-4 whitespace-nowrap md:whitespace-normal">{{ c.usuario_id.name }} {{ c.usuario_id.last_name }}</td>

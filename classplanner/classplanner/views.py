@@ -2591,6 +2591,26 @@ def anio_de_planificacion(hoy=None):
     hoy = hoy or date.today()
     return hoy.year + 1 if hoy.month >= 8 else hoy.year
 
+def conflictos_no_lectivos(casillas, cargas_db): # devuelve errores para las casillas si un docente ya tiene una hora no lectiva en ese bloque
+    errores = []
+    
+    no_lectivos = {
+        (usuario_id, bloque_id): tipo
+        for usuario_id, bloque_id, tipo in BloqueNoLectivo.objects.filter(
+            carga_horaria_id__in=[c.pk for c in cargas_db.values()], bloque_id__in=[c['bloque'].pk for c in casillas]
+        ).values_list('carga_horaria_id__usuario_id', 'bloque_id', 'tipo_hora')
+    }
+
+    for c in casillas:
+        tipo = no_lectivos.get((c['docente_id'], c['bloque'].pk))
+        if tipo:
+            errores.append(
+                f'{c["carga"].usuario_id} tiene una hora no lectiva '
+                f'({BloqueNoLectivo.HoraNoLectiva(tipo).label}) el {c["bloque"].get_dia_display()} '
+                f'a las {c["hora_inicio"]:%H:%M}.'
+            )
+    return errores
+
 @login_required
 @roles_required('root', 'Administrador', 'Director')
 @periodo_planificacion_required()
@@ -2737,6 +2757,8 @@ def CreateHorario(request): # Pendiente: validar asignaturas asignadas en bloque
                             f'El aula {c["aula"]} ya está ocupada el {c["bloque"].get_dia_display()} '
                             f'a las {c["hora_inicio"]:%H:%M} por el curso {e.curso_id}.'
                         )
+
+                errores['casillas'] += conflictos_no_lectivos(casillas, cargas_db)
 
                 # Horas de contrato: bloques del mismo año ya registrados + nuevos <= contrato
                 nuevos = Counter(c['docente_id'] for c in casillas)
@@ -2977,6 +2999,8 @@ def UpdateHorario(request, pk): # Pendiente: validar asignaturas asignadas en bl
                             f'El aula {c["aula"]} ya está ocupada el {c["bloque"].get_dia_display()} '
                             f'a las {c["hora_inicio"]:%H:%M} por el curso {e.curso_id}.'
                         )
+
+                errores['casillas'] += conflictos_no_lectivos(casillas, cargas_db)
 
                 # Horas de contrato: bloques de otros horarios del año + los de este horario <= contrato
                 nuevos = Counter(c['docente_id'] for c in casillas)
