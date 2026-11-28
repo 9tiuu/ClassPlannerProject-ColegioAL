@@ -1,0 +1,202 @@
+{% extends 'classplanner/base.html' %}
+{% block title %}
+<title>Horas no lectivas | ClassPlanner</title>
+{% endblock %}
+{% block content %}
+
+<div class="p-4 min-h-[10vh] mt-4 rounded-lg">
+    <p class="mb-2 text-slate-500 text-sm dark:text-slate-400">
+        <button class="hover:underline" id="home-link" onclick="window.exitConfirm(this)" data-url="{% url 'home' %}">Colegio</button> / 
+        <button class="hover:underline" id="cargas-link" onclick="window.exitConfirm(this)" data-url="{% url 'cargashorarias' %}">Cargas horarias</button> / 
+        <a class="hover:underline font-semibold text-slate-700 dark:text-slate-200" href="#">Horas no lectivas</a>
+    </p>
+    <h2 class="mb-2 text-2xl font-semibold text-[#234FA8] dark:text-blue-400 sm:text-3xl">Horas No Lectivas</h2>
+    <div class="flex gap-2">
+        <p class="text-cyan-600 dark:text-cyan-500 text-xs font-semibold bg-cyan-600/20 px-2 py-1 text-center w-44 rounded">
+            Docente: {{ docente }}
+        </p>
+        <p class="text-green-600 dark:text-green-500 text-xs font-semibold bg-green-600/20 px-2 py-1 text-center w-32 rounded">
+            Planificación {{ anio }}
+        </p>
+    </div>
+</div>
+
+<div class="p-4 bg-white dark:bg-[#141826] border-slate-300 dark:border-slate-700 min-h-[70vh] border-default border mt-10 rounded-lg">
+    <div class="p-4 rounded-lg">
+        <div class="flex md:flex-row flex-col md:gap-4 gap-2 mb-3">
+            <div class="flex gap-2 items-center">
+                <p class="text-sm font-semibold text-slate-600 dark:text-white">Hrs de Aula:</p>
+                <p class="text-stone-600 dark:text-stone-400 text-xs font-semibold bg-stone-600/20 px-2 py-1 text-center w-20 rounded">{{ total_bloques }} Bloques</p>
+            </div>
+            <div class="flex gap-2 items-center">
+                <p class="text-sm font-semibold text-slate-600 dark:text-white">Hrs NO Lectivas:</p>
+                <p class="text-stone-600 dark:text-stone-400 text-xs font-semibold bg-stone-600/20 px-2 py-1 text-center w-20 rounded">{{ total_no_lectivos }} Bloques</p>
+            </div>
+        </div>
+
+        <form method="POST" class="users-c-form">
+            {% csrf_token %}
+            <input type="hidden" name="accion" value="asignar_no_lectivo">
+            <p class="text-sm font-semibold text-amber-600 dark:text-amber-500 mt-8 mb-2">
+                Marque los bloques libres del docente y asígnelos como hora no lectiva:
+            </p>
+
+            {% if errores.bloques %}
+            <div class="errors mb-3">
+                {% for error in errores.bloques %}
+                <p class="text-red-600 dark:text-red-500 text-sm font-semibold">{{ error }}</p>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <div class="space-y-3 bg-white dark:bg-[#141826] text-sm rounded-lg border-2 p-3 border-slate-300 dark:border-slate-700 dark:text-white">
+                <div class="flex gap-3 md:justify-between md:flex-row flex-col">
+                    <div class="flex items-center gap-3 text-xs text-slate-600 dark:text-white">
+                        <span class="flex items-center gap-1"><span class="inline-block w-3 h-3 rounded bg-stone-500/20 border-stone-400/45 border"></span>Carrera Docente</span>
+                        <span class="flex items-center gap-1"><span class="inline-block w-3 h-3 rounded bg-[#ffa500]/20 border-[#ffa500]/45 border"></span>Atención Apoderados</span>
+                    </div>
+                    <div class="block">
+                            <div class="flex items-center w-full gap-2 md:flex-row flex-col">
+                            <label for="tipo_hora" class="text-sm font-semibold text-slate-600 dark:text-white">Asignar los bloques marcados como:</label>
+                            <select name="tipo_hora" id="tipo_hora" class="bg-white w-auto dark:bg-[#141826] h-11 text-sm focus:outline-none focus:ring-blue-600 focus-visible:ring-[3px] rounded-lg border-2 px-2 border-slate-300 dark:border-slate-700 dark:text-white">
+                                {% for valor, etiqueta in tipos_no_lectivo %}
+                                    <option value="{{ valor }}">{{ etiqueta }}</option>
+                                {% endfor %}
+                            </select>
+                            <button type="submit" class="flex items-center justify-center  text-white text-sm font-semibold bg-emerald-600 hover:bg-emerald-800 transition duration-300 rounded-lg px-8 py-3">
+                                Asignar bloques
+                            </button>
+                        </div>
+                    </div>
+                    
+                </div>
+
+                {% for j in jornadas %}
+                <div class="relative max-h-[80vh] overflow-x-auto border border-slate-300 dark:border-slate-800 rounded-lg">
+                    <table class="min-w-full text-sm text-left">
+                        <thead class="text-slate-700 dark:text-white bg-slate-200 dark:bg-[#10141f] border-b dark:border-slate-800">
+                            <tr>
+                                <th class="flex gap-2 px-4 min-w-36 py-3 font-bold">
+                                    <p>Horas</p>
+                                    {% if j.codigo_jornada == 'JM' %}
+                                    <p class="text-orange-500 text-xs bg-orange-600/20 px-2 py-0.5 rounded">JM</p>
+                                    {% else %}
+                                    <p class="text-violet-600 dark:text-violet-500 text-xs bg-violet-600/20 px-2 py-0.5 rounded">JT</p>
+                                    {% endif %}
+                                </th>
+                                {% for n, d in dias %}
+                                <th class="px-6 py-3 font-bold">{{ d }}</th>
+                                {% endfor %}
+                            </tr>
+                        </thead>
+                        <tbody class="dark:text-[#a8b2d2] text-slate-500">
+                            {% for f in j.filas %}
+                            <tr class="border-b dark:border-b-slate-800 odd:bg-white even:bg-white even:dark:bg-[#171c2b] dark:odd:bg-[#171c2b]">
+                                <td class="px-6 py-2">
+                                    <p class="font-bold">Hora {{ f.numero }}</p>
+                                    <p>{{ f.hora_inicio|time:"H:i" }} - {{ f.hora_termino|time:"H:i" }}</p>
+                                </td>
+
+                                {% if f.es_recreo %}
+                                <td colspan="{{ dias|length }}" class="p-2">
+                                    <div class="flex items-center justify-center rounded-lg bg-amber-500/10 min-h-[3.6rem] px-4 py-2">
+                                        <p class="font-bold text-amber-600 dark:text-amber-400">Recreo</p>
+                                    </div>
+                                </td>
+                                {% else %}
+                                    {% for celda in f.celdas %}
+                                    <td class="p-2">
+                                        {% if celda.tipo == 'clase' %}
+                                        {% with clase=celda.clase %}
+                                        <div class="bg-[{{ clase.asignatura_id.color }}]/15 border-b border-[{{ clase.asignatura_id.color }}]/45 rounded-lg px-4 py-2 min-w-52 min-h-[3.6rem] flex flex-col justify-center">
+                                            <p class="font-bold text-xs text-slate-800 dark:text-slate-200">{{ clase.asignatura_id.nombres_asignatura_id }}</p>
+                                            <p class="text-xs font-semibold text-slate-600 dark:text-slate-300">Curso: {{ clase.curso_id }}</p>
+                                            <p class="text-xs">Aula: {{ clase.aula_id }}</p>
+                                        </div>
+                                        {% endwith %}
+
+                                        {% elif celda.tipo == 'no_lectivo' %}
+                                        <div class="relative rounded-lg px-4 py-2 min-w-52 min-h-[3.6rem] flex flex-col justify-center border-b
+                                            {% if celda.no_lectivo.tipo_hora == 'CD' %}bg-stone-500/15 border-stone-400/45{% else %}bg-[#ffa500]/15 border-[#ffa500]/45{% endif %}">
+                                            <p class="font-bold uppercase text-xs text-slate-800 dark:text-slate-200">({{ celda.no_lectivo.tipo_hora }})</p>
+                                            <p class="text-xs font-semibold text-slate-600 dark:text-slate-300">Hora no lectiva</p>
+                                            <button type="submit" form="form-quitar-{{ celda.no_lectivo.pk }}" title="Quitar" class="text-xs text-left text-red-500 dark:text-red-400 hover:underline">
+                                                Quitar bloque
+                                            </button>
+                                        </div>
+
+                                        {% elif celda.tipo == 'libre' %}
+                                        <label class="block cursor-pointer">
+                                            <input type="checkbox" name="bloques" value="{{ celda.bloque.pk }}" class="sr-only peer">
+                                            <div class="flex items-center justify-center bg-slate-300/25 dark:bg-slate-500/10 hover:bg-slate-300/50 dark:hover:bg-slate-500/20 peer-checked:bg-blue-600/15 peer-checked:ring-1 peer-checked:ring-blue-600 peer-focus-visible:ring-2 peer-focus-visible:ring-blue-600/10 transition duration-200 rounded-lg min-h-[3.6rem] px-4 py-2 min-w-52">
+                                                <p class="dark:text-[#a8b2d2] text-slate-500">+</p>
+                                            </div>
+                                        </label>
+
+                                        {% else %}
+                                        <div class="flex items-center justify-center bg-slate-300/25 dark:bg-slate-500/10 rounded-lg min-h-[3.6rem] px-4 py-2 min-w-52">
+                                            <p class="dark:text-[#a8b2d2] text-slate-500">-</p>
+                                        </div>
+                                        {% endif %}
+                                    </td>
+                                    {% endfor %}
+                                {% endif %}
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="flex justify-end flex-row gap-2 my-8 w-full">
+                <button type="button" id="cargas-back" data-url="{% url 'cargashorarias' %}" onclick="window.exitConfirm(this)" class="flex items-center text-sm gap-2 border-2 font-semibold border-slate-300 dark:border-slate-700 dark:bg-[#141826] dark:hover:bg-[#1d2236] dark:text-[#a8b2d2] dark:hover:text-white text-slate-500 hover:bg-gray-100 hover:text-slate-700 text-center hover:transition transition hover:duration-300 duration-300 rounded-lg px-4 py-3">
+                    Volver atrás
+                </button>
+            </div>
+        </form>
+
+        {% for j in jornadas %}
+            {% for f in j.filas %}
+                {% if not f.es_recreo %}
+                    {% for celda in f.celdas %}
+                        {% if celda.tipo == 'no_lectivo' %}
+                            <form method="POST" id="form-quitar-{{ celda.no_lectivo.pk }}" class="hidden">
+                                {% csrf_token %}
+                                <input type="hidden" name="accion" value="quitar_no_lectivo">
+                                <input type="hidden" name="bloque_no_lectivo_id" value="{{ celda.no_lectivo.pk }}">
+                            </form>
+                        {% endif %}
+                    {% endfor %}
+                {% endif %}
+            {% endfor %}
+        {% endfor %}
+    </div>
+</div>
+<script>
+    function exitConfirm(button) {
+        const isDarkMode = document.documentElement.classList.contains('dark');
+
+        Swal.fire({
+            "title": "¿Está seguro que desea salir?",
+            "text": "Se perderán las casillas marcadas sin asignar.",
+            "icon": "warning",
+            "background": isDarkMode ? "#141826" : "#ffffff",
+            "color": isDarkMode ? "#f8fafc" : "#0f172a",
+            "showCancelButton": true,
+            "confirmButtonColor": "#0d6efd",
+            "cancelButtonColor": '#d33',
+            "confirmButtonText": 'Si, salir',
+            "cancelButtonText": 'Cancelar',
+        }).then((r) => {
+            if (!r.isConfirmed) return;
+
+            if (button.id != '') {
+                window.location.assign(button.dataset.url);
+            } else {
+                window.location.assign('/home');
+            }
+        });
+    };
+</script>
+{% endblock %}

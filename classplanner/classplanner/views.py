@@ -22,7 +22,7 @@ from math import floor
 from pathlib import Path
 
 from easyaudit.models import CRUDEvent, LoginEvent
-from .models import Rol, Usuario, NombresAsignatura, AreasPlanesDiferenciales, Asignatura, PlanDeEstudio, Curso, Estudiante, Aula, PromedioAsignatura, CargaHoraria, Bloque, BloqueDeClase, Horario
+from .models import Rol, Usuario, NombresAsignatura, AreasPlanesDiferenciales, Asignatura, PlanDeEstudio, Curso, Estudiante, Aula, PromedioAsignatura, CargaHoraria, Bloque, BloqueDeClase, Horario, BloqueNoLectivo
 from .forms import (
     RolForm, UsuarioForm, UserUpdateForm,
     PlanDeEstudioCreateForm, PlanDeEstudioUpdateForm,
@@ -2296,6 +2296,166 @@ def ExportarCargaHoraria(request):
     )
     return exportar_cargas(cargas, bloques)
 
+# ----------------------------------- # BLOQUES NO LECTIVOS
+
+def recalcular_horas_no_lectivas(carga):
+    conteo = BloqueNoLectivo.objects.filter(carga_horaria_id=carga).aggregate(
+        cd=Count('pk', filter=Q(tipo_hora='CD')),
+        aa=Count('pk', filter=Q(tipo_hora='AA')),
+    )
+
+    CargaHoraria.objects.filter(pk=carga.pk).update(
+        hrs_cd=conteo['cd'],
+        hrs_aa=conteo['aa'],
+    )
+
+@login_required
+@roles_required('root', 'Administrador', 'Director')
+def UpdateHorasNoLectivas(request, pk):
+    carga = get_object_or_404(
+        CargaHoraria.objects.select_related('usuario_id'), pk=pk
+    )
+    docente = carga.usuario_id
+    anio = carga.anio_planificacion
+    
+    errores = {
+        'bloques': []
+    }
+
+    bloques_por_jornada = obtener_bloques_por_jornada()
+
+    recreos = {
+        (DIAS_CODIGO[n], b['hora_inicio'], b['hora_termino'])
+        for filas in bloques_por_jornada.values()
+        for b in filas if b.get('es_recreo')
+        for n in DIAS_CODIGO
+    }
+
+    clases = (
+        BloqueDeClase.objects
+        .filter(usuario_id=docente, horario_id__anio_planificacion=anio)
+        .select_related('bloque_id', 'asignatura_id', 'curso_id')
+    )
+
+    if request.method == 'POST':
+        accion = request.POST.get('accion', '')
+
+        if accion == 'asignar_no_lectivo': # asignar bloques no lectivos
+            tipo = request.POST.get('tipo_hora', '')
+            ids = {a_int(i) for i in request.POST.getlist('bloques')}
+            ids.discard(None)
+
+            if tipo not in BloqueNoLectivo.HoraNoLectiva.values:
+                errores['bloques'].append('Seleccione un tipo de hora no lectiva válido.')
+            if not ids:
+                errores['bloques'].append('Seleccione al menos un bloque.')
+
+            bloques = []
+            if not errores['bloques']:
+                bloques = list(Bloque.objects.filter(pk__in=ids))
+                
+                if len(bloques) != len(ids):
+                    errores['bloques'].append('Alguno de los bloques seleccionados no existe.')
+
+            if not errores['bloques']:
+                con_clase = set(clases.filter(bloque_id__in=ids).values_list('bloque_id', flat=True))
+
+                con_no_lectivo = set(
+                    BloqueNoLectivo.objects
+                    .filter(carga_horaria_id=carga, bloque_id__in=ids)
+                    .values_list('bloque_id', flat=True)
+                )
+
+                for b in bloques:
+                    if (b.dia, b.hora_inicio, b.hora_termino) in recreos:
+                        errores['bloques'].append(f'{b} corresponde a un recreo.')
+                    elif b.pk in con_clase:
+                        errores['bloques'].append(f'{b} ya tiene una clase asignada, no se puede usar como hora no lectiva.')
+                    elif b.pk in con_no_lectivo:
+                        errores['bloques'].append(f'{b} ya tiene una hora no lectiva asignada.')
+
+            if not errores['bloques']:
+                with transaction.atomic():
+                    CargaHoraria.objects.select_for_update().get(pk=carga.pk)
+
+                    if BloqueNoLectivo.objects.filter(carga_horaria_id=carga, bloque_id__in=ids).exists():
+                        errores['bloques'].append('Alguno de los bloques ya tiene una hora no lectiva asignada.')
+                    else:
+                        BloqueNoLectivo.objects.bulk_create([
+                            BloqueNoLectivo(tipo_hora=tipo, carga_horaria_id=carga, bloque_id=b)
+                            for b in bloques
+                        ])
+                        recalcular_horas_no_lectivas(carga)
+
+                if not errores['bloques']:
+                    messages.success(request, 'Bloques no lectivos asignados correctamente.')
+                    return redirect('cargashorariasnolectivas', pk=carga.pk)
+
+        elif accion == 'quitar_no_lectivo':
+            BloqueNoLectivo.objects.filter(
+                pk=a_int(request.POST.get('bloque_no_lectivo_id')), carga_horaria_id=carga,
+            ).delete()
+            recalcular_horas_no_lectivas(carga) 
+            
+            messages.success(request, 'Bloque no lectivo eliminado.')
+            return redirect('cargashorariasnolectivas', pk=carga.pk)
+
+    ocupadas = {
+        (c.bloque_id.dia, c.bloque_id.hora_inicio, c.bloque_id.hora_termino): c
+        for c in clases
+    }
+
+    no_lectivos = {
+        (n.bloque_id.dia, n.bloque_id.hora_inicio, n.bloque_id.hora_termino): n
+        for n in BloqueNoLectivo.objects
+        .filter(carga_horaria_id=carga)
+        .select_related('bloque_id')
+    }
+
+    bloques_db = {
+        (b.dia, b.hora_inicio, b.hora_termino): b
+        for b in Bloque.objects.all()
+    }
+
+    jornadas = []
+
+    for codigo_jornada, nombre in (('JM', 'Jornada de mañana'), ('JT', 'Jornada de tarde')):
+        filas = []
+
+        for cantidad, b in enumerate(bloques_por_jornada[codigo_jornada], start=1):
+            celdas = []
+
+            for n in sorted(DIAS_CODIGO):
+                clave = (DIAS_CODIGO[n], b['hora_inicio'], b['hora_termino'])
+                clase = ocupadas.get(clave)
+                no_lect = no_lectivos.get(clave)
+                bloque = bloques_db.get(clave)
+
+                if clase:
+                    celdas.append({'tipo': 'clase', 'clase': clase})
+                elif no_lect:
+                    celdas.append({'tipo': 'no_lectivo', 'no_lectivo': no_lect})
+                elif bloque:
+                    celdas.append({'tipo': 'libre', 'bloque': bloque})
+                else:
+                    celdas.append({'tipo': 'vacio'})
+            filas.append({**b, 'cantidad': cantidad, 'celdas': celdas})   
+        jornadas.append({'codigo_jornada': codigo_jornada, 'nombre': nombre, 'filas': filas})
+
+    dias = [(1, 'Lunes'), (2, 'Martes'), (3, 'Miércoles'), (4, 'Jueves'), (5, 'Viernes')]
+
+    return render(request, 'classplanner/cargahoraria/horasnolectivas.html', {
+        'carga': carga,
+        'docente': docente,
+        'anio': anio,
+        'jornadas': jornadas,
+        'total_bloques': len(clases),
+        'total_no_lectivos': len(no_lectivos),
+        'tipos_no_lectivo': BloqueNoLectivo.HoraNoLectiva.choices,
+        'dias': dias,
+        'errores': errores,
+    })
+
 # ----------------------------------- # HORARIOS
 
 @login_required
@@ -2570,6 +2730,26 @@ def anio_de_planificacion(hoy=None):
     hoy = hoy or date.today()
     return hoy.year + 1 if hoy.month >= 8 else hoy.year
 
+def conflictos_no_lectivos(casillas, cargas_db): # devuelve errores para las casillas si un docente ya tiene una hora no lectiva en ese bloque
+    errores = []
+    
+    no_lectivos = {
+        (usuario_id, bloque_id): tipo
+        for usuario_id, bloque_id, tipo in BloqueNoLectivo.objects.filter(
+            carga_horaria_id__in=[c.pk for c in cargas_db.values()], bloque_id__in=[c['bloque'].pk for c in casillas]
+        ).values_list('carga_horaria_id__usuario_id', 'bloque_id', 'tipo_hora')
+    }
+
+    for c in casillas:
+        tipo = no_lectivos.get((c['docente_id'], c['bloque'].pk))
+        if tipo:
+            errores.append(
+                f'{c["carga"].usuario_id} tiene una hora no lectiva '
+                f'({BloqueNoLectivo.HoraNoLectiva(tipo).label}) el {c["bloque"].get_dia_display()} '
+                f'a las {c["hora_inicio"]:%H:%M}.'
+            )
+    return errores
+
 @login_required
 @roles_required('root', 'Administrador', 'Director')
 @periodo_planificacion_required()
@@ -2716,6 +2896,8 @@ def CreateHorario(request): # Pendiente: validar asignaturas asignadas en bloque
                             f'El aula {c["aula"]} ya está ocupada el {c["bloque"].get_dia_display()} '
                             f'a las {c["hora_inicio"]:%H:%M} por el curso {e.curso_id}.'
                         )
+
+                errores['casillas'] += conflictos_no_lectivos(casillas, cargas_db)
 
                 # Horas de contrato: bloques del mismo año ya registrados + nuevos <= contrato
                 nuevos = Counter(c['docente_id'] for c in casillas)
@@ -2956,6 +3138,8 @@ def UpdateHorario(request, pk): # Pendiente: validar asignaturas asignadas en bl
                             f'El aula {c["aula"]} ya está ocupada el {c["bloque"].get_dia_display()} '
                             f'a las {c["hora_inicio"]:%H:%M} por el curso {e.curso_id}.'
                         )
+
+                errores['casillas'] += conflictos_no_lectivos(casillas, cargas_db)
 
                 # Horas de contrato: bloques de otros horarios del año + los de este horario <= contrato
                 nuevos = Counter(c['docente_id'] for c in casillas)
